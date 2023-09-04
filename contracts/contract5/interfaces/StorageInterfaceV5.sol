@@ -27,7 +27,7 @@ interface StorageInterfaceV5 {
         uint pairIndex;
         uint index;
         uint initialPosToken; // 1e18
-        uint positionSizeDai; // 1e18
+        uint positionSizeWETH; // 1e18
         uint openPrice; // PRECISION
         bool buy;
         uint leverage;
@@ -36,8 +36,8 @@ interface StorageInterfaceV5 {
     }
     struct TradeInfo {
         uint tokenId;
-        uint tokenPriceDai; // PRECISION
-        uint openInterestDai; // 1e18
+        uint tokenPriceWETH; // PRECISION
+        uint openInterestWETH; // 1e18
         uint tpLastUpdated;
         uint slLastUpdated;
         bool beingMarketClosed;
@@ -46,7 +46,7 @@ interface StorageInterfaceV5 {
         address trader;
         uint pairIndex;
         uint index;
-        uint positionSize; // 1e18 (DAI or GFARM2)
+        uint positionSize; // 1e18 (WETH or GFARM2)
         uint spreadReductionP;
         bool buy;
         uint leverage;
@@ -80,7 +80,7 @@ interface StorageInterfaceV5 {
 
     function dev() external view returns (address);
 
-    function dai() external view returns (TokenInterfaceV5);
+    function WETH() external view returns (TokenInterfaceV5);
 
     function token() external view returns (TokenInterfaceV5);
 
@@ -96,7 +96,7 @@ interface StorageInterfaceV5 {
 
     function handleTokens(address, uint, bool) external;
 
-    function transferDai(address, address, uint) external;
+    function transferWETH(address, address, uint) external;
 
     function transferLinkToAggregator(address, uint, uint) external;
 
@@ -166,7 +166,7 @@ interface StorageInterfaceV5 {
 
     function maxPendingMarketOrders() external view returns (uint);
 
-    function openInterestDai(uint, uint) external view returns (uint);
+    function openInterestWETH(uint, uint) external view returns (uint);
 
     function getPendingOrderIds(address) external view returns (uint[] memory);
 
@@ -233,7 +233,7 @@ interface AggregatorInterfaceV6_4 {
 
     function getPrice(uint, OrderType, uint, uint) external returns (uint);
 
-    function tokenPriceDai() external returns (uint);
+    function tokenPriceWETH() external returns (uint);
 
     function linkFee(uint, uint) external view returns (uint);
 
@@ -280,7 +280,7 @@ interface AggregatorInterfaceV6_2{
     enum OrderType { MARKET_OPEN, MARKET_CLOSE, LIMIT_OPEN, LIMIT_CLOSE, UPDATE_SL }
     function pairsStorage() external view returns(PairsStorageInterfaceV6);
     function getPrice(uint,OrderType,uint) external returns(uint);
-    function tokenPriceDai() external returns(uint);
+    function tokenPriceWETH() external returns(uint);
     function linkFee(uint,uint) external view returns(uint);
     function openFeeP(uint) external view returns(uint);
     function pendingSlOrders(uint) external view returns(PendingSl memory);

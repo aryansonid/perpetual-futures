@@ -58,7 +58,7 @@ abstract contract TWAPPriceGetter {
 
     // Returns price with "precision" decimals
     // https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/OracleLibrary.sol
-    function tokenPriceDai() public view returns (uint price) {
+    function tokenPriceWETH() public view returns (uint price) {
         uint32[] memory secondsAgos = new uint32[](2);
         secondsAgos[0] = twapInterval;
         secondsAgos[1] = 0;

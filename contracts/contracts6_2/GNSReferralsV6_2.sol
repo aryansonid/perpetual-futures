@@ -5,6 +5,8 @@
 // File: contracts\interfaces\UniswapRouterInterfaceV5.sol
 // SPDX-License-Identifier: MIT
 
+/// DEPLOY need storage 
+
 pragma solidity 0.8.15;
 
 interface UniswapRouterInterfaceV5{
@@ -56,10 +58,10 @@ interface NftInterfaceV5{
 pragma solidity 0.8.15;
 
 interface VaultInterfaceV5{
-	function sendDaiToTrader(address, uint) external;
-	function receiveDaiFromTrader(address, uint, uint) external;
-	function currentBalanceDai() external view returns(uint);
-	function distributeRewardDai(uint) external;
+	function sendWETHToTrader(address, uint) external;
+	function receiveWETHFromTrader(address, uint, uint) external;
+	function currentBalanceWETH() external view returns(uint);
+	function distributeRewardWETH(uint) external;
 }
 
 // File: contracts\interfaces\PairsStorageInterfaceV6.sol
@@ -84,7 +86,7 @@ interface PairsStorageInterfaceV6{
     function pairOracleFeeP(uint) external view returns(uint);
     function pairNftLimitOrderFeeP(uint) external view returns(uint);
     function pairReferralFeeP(uint) external view returns(uint);
-    function pairMinLevPosDai(uint) external view returns(uint);
+    function pairMinLevPosWETH(uint) external view returns(uint);
 }
 
 // File: contracts\interfaces\StorageInterfaceV5.sol
@@ -103,7 +105,7 @@ interface StorageInterfaceV5{
         uint pairIndex;
         uint index;
         uint initialPosToken;       // 1e18
-        uint positionSizeDai;       // 1e18
+        uint positionSizeWETH;       // 1e18
         uint openPrice;             // PRECISION
         bool buy;
         uint leverage;
@@ -112,8 +114,8 @@ interface StorageInterfaceV5{
     }
     struct TradeInfo{
         uint tokenId;
-        uint tokenPriceDai;         // PRECISION
-        uint openInterestDai;       // 1e18
+        uint tokenPriceWETH;         // PRECISION
+        uint openInterestWETH;       // 1e18
         uint tpLastUpdated;
         uint slLastUpdated;
         bool beingMarketClosed;
@@ -122,7 +124,7 @@ interface StorageInterfaceV5{
         address trader;
         uint pairIndex;
         uint index;
-        uint positionSize;          // 1e18 (DAI or GFARM2)
+        uint positionSize;          // 1e18 (WETH or GFARM2)
         uint spreadReductionP;
         bool buy;
         uint leverage;
@@ -152,16 +154,16 @@ interface StorageInterfaceV5{
     function PRECISION() external pure returns(uint);
     function gov() external view returns(address);
     function dev() external view returns(address);
-    function dai() external view returns(TokenInterfaceV5);
+    function WETH() external view returns(TokenInterfaceV5);
     function token() external view returns(TokenInterfaceV5);
     function linkErc677() external view returns(TokenInterfaceV5);
-    function tokenDaiRouter() external view returns(UniswapRouterInterfaceV5);
+    function tokenWETHRouter() external view returns(UniswapRouterInterfaceV5);
     function priceAggregator() external view returns(AggregatorInterfaceV6_2);
     function vault() external view returns(VaultInterfaceV5);
     function trading() external view returns(address);
     function callbacks() external view returns(address);
     function handleTokens(address,uint,bool) external;
-    function transferDai(address, address, uint) external;
+    function transferWETH(address, address, uint) external;
     function transferLinkToAggregator(address, uint, uint) external;
     function unregisterTrade(address, uint, uint) external;
     function unregisterPendingMarketOrder(uint, bool) external;
@@ -210,7 +212,7 @@ interface StorageInterfaceV5{
     function maxPendingMarketOrders() external view returns(uint);
     function maxGainP() external view returns(uint);
     function defaultLeverageUnlocked() external view returns(uint);
-    function openInterestDai(uint, uint) external view returns(uint);
+    function openInterestWETH(uint, uint) external view returns(uint);
     function getPendingOrderIds(address) external view returns(uint[] memory);
     function traders(address) external view returns(Trader memory);
     function nfts(uint) external view returns(NftInterfaceV5);
@@ -220,9 +222,9 @@ interface AggregatorInterfaceV6_2{
     enum OrderType { MARKET_OPEN, MARKET_CLOSE, LIMIT_OPEN, LIMIT_CLOSE, UPDATE_SL }
     function pairsStorage() external view returns(PairsStorageInterfaceV6);
     function getPrice(uint,OrderType,uint) external returns(uint);
-    function tokenPriceDai() external returns(uint);
+    function tokenPriceWETH() external returns(uint);
     function linkFee(uint,uint) external view returns(uint);
-    function tokenDaiReservesLp() external view returns(uint, uint);
+    function tokenWETHReservesLp() external view returns(uint, uint);
     function pendingSlOrders(uint) external view returns(PendingSl memory);
     function storePendingSlOrder(uint orderId, PendingSl calldata p) external;
     function unregisterPendingSlOrder(uint orderId) external;
@@ -256,25 +258,25 @@ contract GNSReferralsV6_2 {
     uint public allyFeeP;           // % (of referrer fees going to allies, eg. 10)
     uint public startReferrerFeeP;  // % (of referrer fee when 0 volume referred, eg. 75)
     uint public openFeeP;           // % (of opening fee used for referral system, eg. 33)
-    uint public targetVolumeDai;    // DAI (to reach maximum referral system fee, eg. 1e8)
+    uint public targetVolumeWETH;    // WETH (to reach maximum referral system fee, eg. 1e8)
 
     // CUSTOM TYPES
     struct AllyDetails{
         address[] referrersReferred;
-        uint volumeReferredDai;    // 1e18
+        uint volumeReferredWETH;    // 1e18
         uint pendingRewardsToken;  // 1e18
         uint totalRewardsToken;    // 1e18
-        uint totalRewardsValueDai; // 1e18
+        uint totalRewardsValueWETH; // 1e18
         bool active;
     }
 
     struct ReferrerDetails{
         address ally;
         address[] tradersReferred;
-        uint volumeReferredDai;    // 1e18
+        uint volumeReferredWETH;    // 1e18
         uint pendingRewardsToken;  // 1e18
         uint totalRewardsToken;    // 1e18
-        uint totalRewardsValueDai; // 1e18
+        uint totalRewardsValueWETH; // 1e18
         bool active;
     }
 
@@ -288,7 +290,7 @@ contract GNSReferralsV6_2 {
     event UpdatedAllyFeeP(uint value);
     event UpdatedStartReferrerFeeP(uint value);
     event UpdatedOpenFeeP(uint value);
-    event UpdatedTargetVolumeDai(uint value);
+    event UpdatedTargetVolumeWETH(uint value);
 
     event AllyWhitelisted(address indexed ally);
     event AllyUnwhitelisted(address indexed ally);
@@ -306,16 +308,16 @@ contract GNSReferralsV6_2 {
     event AllyRewardDistributed(
         address indexed ally,
         address indexed trader,
-        uint volumeDai,
+        uint volumeWETH,
         uint amountToken,
-        uint amountValueDai
+        uint amountValueWETH
     );
     event ReferrerRewardDistributed(
         address indexed referrer,
         address indexed trader,
-        uint volumeDai,
+        uint volumeWETH,
         uint amountToken,
-        uint amountValueDai
+        uint amountValueWETH
     );
 
     event AllyRewardsClaimed(
@@ -332,20 +334,20 @@ contract GNSReferralsV6_2 {
         uint _allyFeeP,
         uint _startReferrerFeeP,
         uint _openFeeP,
-        uint _targetVolumeDai
+        uint _targetVolumeWETH
     ){
         require(address(_storageT) != address(0)
             && _allyFeeP <= 50
             && _startReferrerFeeP <= 100
             && _openFeeP <= 50
-            && _targetVolumeDai > 0, "WRONG_PARAMS");
+            && _targetVolumeWETH > 0, "WRONG_PARAMS");
 
         storageT = _storageT;
 
         allyFeeP = _allyFeeP;
         startReferrerFeeP = _startReferrerFeeP;
         openFeeP = _openFeeP;
-        targetVolumeDai = _targetVolumeDai;
+        targetVolumeWETH = _targetVolumeWETH;
     }
 
     // MODIFIERS
@@ -384,12 +386,12 @@ contract GNSReferralsV6_2 {
 
         emit UpdatedOpenFeeP(value);
     }
-    function updateTargetVolumeDai(uint value) external onlyGov{
+    function updateTargetVolumeWETH(uint value) external onlyGov{
         require(value > 0, "VALUE_0");
 
-        targetVolumeDai = value;
+        targetVolumeWETH = value;
         
-        emit UpdatedTargetVolumeDai(value);
+        emit UpdatedTargetVolumeWETH(value);
     }
 
     // MANAGE ALLIES
@@ -466,9 +468,9 @@ contract GNSReferralsV6_2 {
     // REWARDS DISTRIBUTION
     function distributePotentialReward(
         address trader,
-        uint volumeDai,
+        uint volumeWETH,
         uint pairOpenFeeP,
-        uint tokenPriceDai
+        uint tokenPriceWETH
     ) external onlyCallbacks returns(uint){
 
         address referrer = referrerByTrader[trader];
@@ -478,55 +480,55 @@ contract GNSReferralsV6_2 {
             return 0;
         }
 
-        uint referrerRewardValueDai = volumeDai * getReferrerFeeP(
+        uint referrerRewardValueWETH = volumeWETH * getReferrerFeeP(
             pairOpenFeeP,
-            r.volumeReferredDai
+            r.volumeReferredWETH
         ) / PRECISION / 100;
 
-        uint referrerRewardToken = referrerRewardValueDai * PRECISION / tokenPriceDai;
+        uint referrerRewardToken = referrerRewardValueWETH * PRECISION / tokenPriceWETH;
 
         storageT.handleTokens(address(this), referrerRewardToken, true);
 
         AllyDetails storage a = allyDetails[r.ally];
         
-        uint allyRewardValueDai;
+        uint allyRewardValueWETH;
         uint allyRewardToken;
 
         if(a.active){
-            allyRewardValueDai = referrerRewardValueDai * allyFeeP / 100;
+            allyRewardValueWETH = referrerRewardValueWETH * allyFeeP / 100;
             allyRewardToken = referrerRewardToken * allyFeeP / 100;
 
-            a.volumeReferredDai += volumeDai;
+            a.volumeReferredWETH += volumeWETH;
             a.pendingRewardsToken += allyRewardToken;
             a.totalRewardsToken += allyRewardToken;
-            a.totalRewardsValueDai += allyRewardValueDai;
+            a.totalRewardsValueWETH += allyRewardValueWETH;
 
-            referrerRewardValueDai -= allyRewardValueDai;
+            referrerRewardValueWETH -= allyRewardValueWETH;
             referrerRewardToken -= allyRewardToken;
 
             emit AllyRewardDistributed(
                 r.ally,
                 trader,
-                volumeDai,
+                volumeWETH,
                 allyRewardToken,
-                allyRewardValueDai
+                allyRewardValueWETH
             );
         }
 
-        r.volumeReferredDai += volumeDai;
+        r.volumeReferredWETH += volumeWETH;
         r.pendingRewardsToken += referrerRewardToken;
         r.totalRewardsToken += referrerRewardToken;
-        r.totalRewardsValueDai += referrerRewardValueDai;
+        r.totalRewardsValueWETH += referrerRewardValueWETH;
 
         emit ReferrerRewardDistributed(
             referrer,
             trader,
-            volumeDai,
+            volumeWETH,
             referrerRewardToken,
-            referrerRewardValueDai
+            referrerRewardValueWETH
         );
 
-        return referrerRewardValueDai + allyRewardValueDai;
+        return referrerRewardValueWETH + allyRewardValueWETH;
     }
 
     // REWARDS CLAIMING
@@ -556,14 +558,14 @@ contract GNSReferralsV6_2 {
     // VIEW FUNCTIONS
     function getReferrerFeeP(
         uint pairOpenFeeP,
-        uint volumeReferredDai
+        uint volumeReferredWETH
     ) public view returns(uint){
 
         uint maxReferrerFeeP = pairOpenFeeP * 2 * openFeeP / 100;
         uint minFeeP = maxReferrerFeeP * startReferrerFeeP / 100;
 
         uint feeP = minFeeP + (maxReferrerFeeP - minFeeP)
-            * volumeReferredDai / 1e18 / targetVolumeDai;
+            * volumeReferredWETH / 1e18 / targetVolumeWETH;
 
         return feeP > maxReferrerFeeP ? maxReferrerFeeP : feeP;
     }
@@ -571,15 +573,15 @@ contract GNSReferralsV6_2 {
     function getPercentOfOpenFeeP(
         address trader
     ) external view returns(uint){
-        return getPercentOfOpenFeeP_calc(referrerDetails[referrerByTrader[trader]].volumeReferredDai);
+        return getPercentOfOpenFeeP_calc(referrerDetails[referrerByTrader[trader]].volumeReferredWETH);
     }
 
     function getPercentOfOpenFeeP_calc(
-        uint volumeReferredDai
+        uint volumeReferredWETH
     ) public view returns(uint resultP){
         resultP = (openFeeP * (
             startReferrerFeeP * PRECISION +
-            volumeReferredDai * PRECISION * (100 - startReferrerFeeP) / 1e18 / targetVolumeDai)
+            volumeReferredWETH * PRECISION * (100 - startReferrerFeeP) / 1e18 / targetVolumeWETH)
         ) / 100;
 
         resultP = resultP > openFeeP * PRECISION ?

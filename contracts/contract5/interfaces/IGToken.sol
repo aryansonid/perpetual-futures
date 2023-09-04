@@ -31,7 +31,7 @@ interface IGToken {
 
     function distributeReward(uint assets) external;
 
-    function currentBalanceDai() external view returns (uint);
+    function currentBalanceWETH() external view returns (uint);
 
     function tvl() external view returns (uint);
 

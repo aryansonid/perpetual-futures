@@ -44,7 +44,7 @@ interface PairsStorageInterfaceV6 {
 
     function pairReferralFeeP(uint) external view returns (uint);
 
-    function pairMinLevPosDai(uint) external view returns (uint);
+    function pairMinLevPosWETH(uint) external view returns (uint);
 
     function pairsCount() external view returns (uint);
 }

@@ -2,6 +2,8 @@
  *Submitted for verification at PolygonScan.com on 2022-08-16
 */
 
+/// DEPLOY need g token and WETH
+
 // File: contracts\interfaces\TokenInterfaceV5.sol
 // SPDX-License-Identifier: MIT
 
@@ -39,12 +41,12 @@ contract GNSStakingV6_2 {
     address public govFund;
 
     TokenInterfaceV5 public immutable token; // GNS
-    TokenInterfaceV5 public immutable dai;
+    TokenInterfaceV5 public immutable WETH;
 
     NftInterfaceV5[5] public nfts;
 
     // Pool state
-    uint public accDaiPerToken;
+    uint public accWETHPerToken;
     uint public tokenBalance;
 
     // Pool parameters
@@ -52,7 +54,7 @@ contract GNSStakingV6_2 {
     uint public maxNftsStaked;
 
     // Pool stats
-    uint public totalRewardsDistributedDai; // 1e18
+    uint public totalRewardsDistributedWETH; // 1e18
 
     // Mappings
     mapping(address => User) public users;
@@ -65,10 +67,10 @@ contract GNSStakingV6_2 {
     }
     struct User{
         uint stakedTokens;        // 1e18
-        uint debtDai;             // 1e18
+        uint debtWETH;             // 1e18
         uint stakedNftsCount;
         uint totalBoostTokens;    // 1e18
-        uint harvestedRewardsDai; // 1e18
+        uint harvestedRewardsWETH; // 1e18
     }
 
     // Events
@@ -76,9 +78,9 @@ contract GNSStakingV6_2 {
     event BoostsUpdated(uint[5] boosts);
     event MaxNftsStakedUpdated(uint value);
 
-    event DaiDistributed(uint amount);
+    event WETHDistributed(uint amount);
 
-    event DaiHarvested(
+    event WETHHarvested(
         address indexed user,
         uint amount
     );
@@ -106,21 +108,21 @@ contract GNSStakingV6_2 {
     constructor(
         address _govFund, 
         TokenInterfaceV5 _token,
-        TokenInterfaceV5 _dai,
+        TokenInterfaceV5 _WETH,
         NftInterfaceV5[5] memory _nfts,
         uint[5] memory _boostsP,
         uint _maxNftsStaked
     ){
         require(_govFund != address(0)
             && address(_token) != address(0)
-            && address(_dai) != address(0)
+            && address(_WETH) != address(0)
             && address(_nfts[4]) != address(0), "WRONG_PARAMS");
 
         checkBoostsP(_boostsP);
 
         govFund = _govFund;
         token = _token;
-        dai = _dai;
+        WETH = _WETH;
         nfts = _nfts;
 
         boostsP = _boostsP;
@@ -166,15 +168,15 @@ contract GNSStakingV6_2 {
     }
 
     // Distribute rewards
-    function distributeRewardDai(uint amount) external{
-        dai.transferFrom(msg.sender, address(this), amount);
+    function distributeRewardWETH(uint amount) external{
+        WETH.transferFrom(msg.sender, address(this), amount);
 
         if(tokenBalance > 0){
-            accDaiPerToken += amount * 1e18 / tokenBalance;
-            totalRewardsDistributedDai += amount;
+            accWETHPerToken += amount * 1e18 / tokenBalance;
+            totalRewardsDistributedWETH += amount;
         }
 
-        emit DaiDistributed(amount);
+        emit WETHDistributed(amount);
     }
 
     // Compute user boosts
@@ -188,28 +190,28 @@ contract GNSStakingV6_2 {
                 * boostsP[userNfts[msg.sender][i].nftType - 1] / 100;
         }
 
-        u.debtDai = (u.stakedTokens + u.totalBoostTokens) * accDaiPerToken / 1e18;
+        u.debtWETH = (u.stakedTokens + u.totalBoostTokens) * accWETHPerToken / 1e18;
     }
 
     // Rewards to be harvested
-    function pendingRewardDai() view public returns(uint){
+    function pendingRewardWETH() view public returns(uint){
         User storage u = users[msg.sender];
 
         return (u.stakedTokens + u.totalBoostTokens)
-            * accDaiPerToken / 1e18 - u.debtDai;
+            * accWETHPerToken / 1e18 - u.debtWETH;
     }
 
     // Harvest rewards
     function harvest() public{
-        uint pendingDai = pendingRewardDai();
+        uint pendingWETH = pendingRewardWETH();
 
         User storage u = users[msg.sender];
-        u.debtDai = (u.stakedTokens + u.totalBoostTokens) * accDaiPerToken / 1e18;
-        u.harvestedRewardsDai += pendingDai;
+        u.debtWETH = (u.stakedTokens + u.totalBoostTokens) * accWETHPerToken / 1e18;
+        u.harvestedRewardsWETH += pendingWETH;
 
-        dai.transfer(msg.sender, pendingDai);
+        WETH.transfer(msg.sender, pendingWETH);
 
-        emit DaiHarvested(msg.sender, pendingDai);
+        emit WETHHarvested(msg.sender, pendingWETH);
     }
 
     // Stake tokens

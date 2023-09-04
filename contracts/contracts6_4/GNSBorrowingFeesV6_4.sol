@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+/// DEPLOY need storage and pair info
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/GNSBorrowingFeesInterfaceV6_4.sol";
 import "../contract5/interfaces/StorageInterfaceV5.sol";
@@ -74,7 +75,7 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
             _setGroupPendingAccFees(prevGroupIndex, currentBlock);
             _setGroupPendingAccFees(value.groupIndex, currentBlock);
 
-            (uint oiLong, uint oiShort) = getPairOpenInterestDai(pairIndex);
+            (uint oiLong, uint oiShort) = getPairOpenInterestWETH(pairIndex);
 
             // Only remove OI from old group if old group is not 0
             _setGroupOi(prevGroupIndex, true, false, oiLong);
@@ -241,7 +242,7 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
     ) public view returns (uint64 accFeeLong, uint64 accFeeShort, uint64 pairAccFeeDelta) {
         Pair memory pair = pairs[pairIndex];
 
-        (uint pairOiLong, uint pairOiShort) = getPairOpenInterestDai(pairIndex);
+        (uint pairOiLong, uint pairOiShort) = getPairOpenInterestWETH(pairIndex);
 
         (accFeeLong, accFeeShort, pairAccFeeDelta) = getPendingAccFees(
             PendingAccFeesInput(
@@ -327,7 +328,7 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
         address trader,
         uint pairIndex,
         uint index,
-        uint positionSizeDai, // 1e18 (collateral * leverage)
+        uint positionSizeWETH, // 1e18 (collateral * leverage)
         bool open,
         bool long
     ) external override onlyCallbacks {
@@ -337,7 +338,7 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
         (uint64 pairAccFeeLong, uint64 pairAccFeeShort) = _setPairPendingAccFees(pairIndex, currentBlock);
         (uint64 groupAccFeeLong, uint64 groupAccFeeShort) = _setGroupPendingAccFees(groupIndex, currentBlock);
 
-        _setGroupOi(groupIndex, long, open, positionSizeDai);
+        _setGroupOi(groupIndex, long, open, positionSizeWETH);
 
         if (open) {
             InitialAccFees memory initialFees = InitialAccFees(
@@ -352,7 +353,7 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
             emit TradeInitialAccFeesStored(trader, pairIndex, index, initialFees.accPairFee, initialFees.accGroupFee);
         }
 
-        emit TradeActionHandled(trader, pairIndex, index, open, long, positionSizeDai);
+        emit TradeActionHandled(trader, pairIndex, index, open, long, positionSizeWETH);
     }
 
     // Important trade getters
@@ -396,7 +397,7 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
             }
         }
 
-        fee = (input.collateral * input.leverage * fee) / P_1 / 100; // 1e18 (DAI)
+        fee = (input.collateral * input.leverage * fee) / P_1 / 100; // 1e18 (WETH)
     }
 
     function getTradeLiquidationPrice(LiqPriceInput calldata input) external view returns (uint) {
@@ -429,8 +430,8 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
     }
 
     // Public getters
-    function getPairOpenInterestDai(uint pairIndex) public view returns (uint, uint) {
-        return (storageT.openInterestDai(pairIndex, 0), storageT.openInterestDai(pairIndex, 1));
+    function getPairOpenInterestWETH(uint pairIndex) public view returns (uint, uint) {
+        return (storageT.openInterestWETH(pairIndex, 0), storageT.openInterestWETH(pairIndex, 1));
     }
 
     function getPairGroupIndex(uint pairIndex) public view returns (uint16 groupIndex) {
@@ -442,10 +443,10 @@ contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
     function withinMaxGroupOi(
         uint pairIndex,
         bool long,
-        uint positionSizeDai // 1e18
+        uint positionSizeWETH // 1e18
     ) external view returns (bool) {
         Group memory g = groups[getPairGroupIndex(pairIndex)];
-        return (g.maxOi == 0) || ((long ? g.oiLong : g.oiShort) + (positionSizeDai * P_1) / 1e18 <= g.maxOi);
+        return (g.maxOi == 0) || ((long ? g.oiLong : g.oiShort) + (positionSizeWETH * P_1) / 1e18 <= g.maxOi);
     }
 
     function getGroup(uint16 groupIndex) external view returns (Group memory, uint48) {

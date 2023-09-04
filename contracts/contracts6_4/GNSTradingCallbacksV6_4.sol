@@ -26,8 +26,8 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     uint constant MAX_EXECUTE_TIMEOUT = 5; // 5 blocks
 
     // Params (adjustable)
-    uint public daiVaultFeeP; // % of closing fee going to DAI vault (eg. 40)
-    uint public lpFeeP; // % of closing fee going to GNS/DAI LPs (eg. 20)
+    uint public WETHVaultFeeP; // % of closing fee going to WETH vault (eg. 40)
+    uint public lpFeeP; // % of closing fee going to GNS/WETH LPs (eg. 20)
     uint public sssFeeP; // % of closing fee going to GNS staking (eg. 40)
 
     // State
@@ -58,13 +58,13 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
     // Useful to avoid stack too deep errors
     struct Values {
-        uint posDai;
-        uint levPosDai;
-        uint tokenPriceDai;
+        uint posWETH;
+        uint levPosWETH;
+        uint tokenPriceWETH;
         int profitP;
         uint price;
         uint liqPrice;
-        uint daiSentToTrader;
+        uint WETHSentToTrader;
         uint reward1;
         uint reward2;
         uint reward3;
@@ -132,9 +132,9 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         bool open,
         uint price,
         uint priceImpactP,
-        uint positionSizeDai,
+        uint positionSizeWETH,
         int percentProfit, // before fees
-        uint daiSentToTrader
+        uint WETHSentToTrader
     );
 
     event LimitExecuted(
@@ -145,9 +145,9 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         StorageInterfaceV5.LimitOrder orderType,
         uint price,
         uint priceImpactP,
-        uint positionSizeDai,
+        uint positionSizeWETH,
         int percentProfit,
-        uint daiSentToTrader,
+        uint WETHSentToTrader,
         bool exactExecution
     );
 
@@ -171,18 +171,18 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         CancelReason cancelReason
     );
 
-    event ClosingFeeSharesPUpdated(uint daiVaultFeeP, uint lpFeeP, uint sssFeeP);
+    event ClosingFeeSharesPUpdated(uint WETHVaultFeeP, uint lpFeeP, uint sssFeeP);
     event CanExecuteTimeoutUpdated(uint newValue);
 
     event Pause(bool paused);
     event Done(bool done);
 
-    event DevGovFeeCharged(address indexed trader, uint valueDai);
-    event ReferralFeeCharged(address indexed trader, uint valueDai);
-    event NftBotFeeCharged(address indexed trader, uint valueDai);
-    event SssFeeCharged(address indexed trader, uint valueDai);
-    event DaiVaultFeeCharged(address indexed trader, uint valueDai);
-    event BorrowingFeeCharged(address indexed trader, uint tradeValueDai, uint feeValueDai);
+    event DevGovFeeCharged(address indexed trader, uint valueWETH);
+    event ReferralFeeCharged(address indexed trader, uint valueWETH);
+    event NftBotFeeCharged(address indexed trader, uint valueWETH);
+    event SssFeeCharged(address indexed trader, uint valueWETH);
+    event WETHVaultFeeCharged(address indexed trader, uint valueWETH);
+    event BorrowingFeeCharged(address indexed trader, uint tradeValueWETH, uint feeValueWETH);
     event PairMaxLeverageUpdated(uint indexed pairIndex, uint maxLeverage);
 
     // Custom errors (save gas)
@@ -196,7 +196,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         GNSReferralsInterfaceV6_2 _referrals,
         GNSStakingInterfaceV6_2 _staking,
         address vaultToApprove,
-        uint _daiVaultFeeP,
+        uint _WETHVaultFeeP,
         uint _lpFeeP,
         uint _sssFeeP,
         uint _canExecuteTimeout
@@ -208,7 +208,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             address(_referrals) == address(0) ||
             address(_staking) == address(0) ||
             vaultToApprove == address(0) ||
-            _daiVaultFeeP + _lpFeeP + _sssFeeP != 100 ||
+            _WETHVaultFeeP + _lpFeeP + _sssFeeP != 100 ||
             _canExecuteTimeout > MAX_EXECUTE_TIMEOUT
         ) {
             revert WrongParams();
@@ -220,13 +220,12 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         referrals = _referrals;
         staking = _staking;
 
-        daiVaultFeeP = _daiVaultFeeP;
+        WETHVaultFeeP = _WETHVaultFeeP;
         lpFeeP = _lpFeeP;
         sssFeeP = _sssFeeP;
 
         canExecuteTimeout = _canExecuteTimeout;
-
-        TokenInterfaceV5 t = storageT.dai();
+        TokenInterfaceV5 t = storageT.WETH();
         t.approve(address(staking), type(uint256).max);
         t.approve(vaultToApprove, type(uint256).max);
     }
@@ -316,16 +315,16 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         emit PairMaxLeverageUpdated(pairIndex, maxLeverage);
     }
 
-    function setClosingFeeSharesP(uint _daiVaultFeeP, uint _lpFeeP, uint _sssFeeP) external onlyGov {
-        if (_daiVaultFeeP + _lpFeeP + _sssFeeP != 100) {
+    function setClosingFeeSharesP(uint _WETHVaultFeeP, uint _lpFeeP, uint _sssFeeP) external onlyGov {
+        if (_WETHVaultFeeP + _lpFeeP + _sssFeeP != 100) {
             revert WrongParams();
         }
 
-        daiVaultFeeP = _daiVaultFeeP;
+        WETHVaultFeeP = _WETHVaultFeeP;
         lpFeeP = _lpFeeP;
         sssFeeP = _sssFeeP;
 
-        emit ClosingFeeSharesPUpdated(_daiVaultFeeP, _lpFeeP, _sssFeeP);
+        emit ClosingFeeSharesPUpdated(_WETHVaultFeeP, _lpFeeP, _sssFeeP);
     }
 
     function setCanExecuteTimeout(uint _canExecuteTimeout) external onlyGov {
@@ -368,7 +367,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                 o.spreadReductionP,
                 t.buy,
                 t.pairIndex,
-                t.positionSizeDai,
+                t.positionSizeWETH,
                 t.leverage,
                 o.slippageP,
                 t.tp,
@@ -379,7 +378,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         t.openPrice = priceAfterImpact;
 
         if (cancelReason == CancelReason.NONE) {
-            (StorageInterfaceV5.Trade memory finalTrade, uint tokenPriceDai) = registerTrade(t, 1500, 0);
+            (StorageInterfaceV5.Trade memory finalTrade, uint tokenPriceWETH) = registerTrade(t, 1500, 0);
 
             emit MarketExecuted(
                 a.orderId,
@@ -387,15 +386,15 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                 true,
                 finalTrade.openPrice,
                 priceImpactP,
-                (finalTrade.initialPosToken * tokenPriceDai) / PRECISION,
+                (finalTrade.initialPosToken * tokenPriceWETH) / PRECISION,
                 0,
                 0
             );
         } else {
-            uint devGovFeesDai = storageT.handleDevGovFees(t.pairIndex, t.positionSizeDai * t.leverage, true, true);
-            transferFromStorageToAddress(t.trader, t.positionSizeDai - devGovFeesDai);
+            uint devGovFeesWETH = storageT.handleDevGovFees(t.pairIndex, t.positionSizeWETH * t.leverage, true, true);
+            transferFromStorageToAddress(t.trader, t.positionSizeWETH - devGovFeesWETH);
 
-            emit DevGovFeeCharged(t.trader, devGovFeesDai);
+            emit DevGovFeeCharged(t.trader, devGovFeesWETH);
             emit MarketOpenCanceled(a.orderId, t.trader, t.pairIndex, cancelReason);
         }
 
@@ -420,37 +419,37 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             AggregatorInterfaceV6_4 aggregator = storageT.priceAggregator();
 
             Values memory v;
-            v.levPosDai = (t.initialPosToken * i.tokenPriceDai * t.leverage) / PRECISION;
-            v.tokenPriceDai = aggregator.tokenPriceDai();
+            v.levPosWETH = (t.initialPosToken * i.tokenPriceWETH * t.leverage) / PRECISION;
+            v.tokenPriceWETH = aggregator.tokenPriceWETH();
 
             if (cancelReason == CancelReason.NONE) {
                 v.profitP = currentPercentProfit(t.openPrice, a.price, t.buy, t.leverage);
-                v.posDai = v.levPosDai / t.leverage;
+                v.posWETH = v.levPosWETH / t.leverage;
 
-                v.daiSentToTrader = unregisterTrade(
+                v.WETHSentToTrader = unregisterTrade(
                     t,
                     true,
                     v.profitP,
-                    v.posDai,
-                    i.openInterestDai,
-                    (v.levPosDai * aggregator.pairsStorage().pairCloseFeeP(t.pairIndex)) / 100 / PRECISION,
-                    (v.levPosDai * aggregator.pairsStorage().pairNftLimitOrderFeeP(t.pairIndex)) / 100 / PRECISION
+                    v.posWETH,
+                    i.openInterestWETH,
+                    (v.levPosWETH * aggregator.pairsStorage().pairCloseFeeP(t.pairIndex)) / 100 / PRECISION,
+                    (v.levPosWETH * aggregator.pairsStorage().pairNftLimitOrderFeeP(t.pairIndex)) / 100 / PRECISION
                 );
 
-                emit MarketExecuted(a.orderId, t, false, a.price, 0, v.posDai, v.profitP, v.daiSentToTrader);
+                emit MarketExecuted(a.orderId, t, false, a.price, 0, v.posWETH, v.profitP, v.WETHSentToTrader);
             } else {
                 // Dev / gov rewards to pay for oracle cost
-                // Charge in DAI if collateral in storage or token if collateral in vault
-                v.reward1 = t.positionSizeDai > 0
-                    ? storageT.handleDevGovFees(t.pairIndex, v.levPosDai, true, true)
+                // Charge in WETH if collateral in storage or token if collateral in vault
+                v.reward1 = t.positionSizeWETH > 0
+                    ? storageT.handleDevGovFees(t.pairIndex, v.levPosWETH, true, true)
                     : (storageT.handleDevGovFees(
                         t.pairIndex,
-                        (v.levPosDai * PRECISION) / v.tokenPriceDai,
+                        (v.levPosWETH * PRECISION) / v.tokenPriceWETH,
                         false,
                         true
-                    ) * v.tokenPriceDai) / PRECISION;
+                    ) * v.tokenPriceWETH) / PRECISION;
 
-                t.initialPosToken -= (v.reward1 * PRECISION) / i.tokenPriceDai;
+                t.initialPosToken -= (v.reward1 * PRECISION) / i.tokenPriceWETH;
                 storageT.updateTrade(t);
 
                 emit DevGovFeeCharged(t.trader, v.reward1);
@@ -512,7 +511,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                 : _cancelReason;
 
             if (cancelReason == CancelReason.NONE) {
-                (StorageInterfaceV5.Trade memory finalTrade, uint tokenPriceDai) = registerTrade(
+                (StorageInterfaceV5.Trade memory finalTrade, uint tokenPriceWETH) = registerTrade(
                     StorageInterfaceV5.Trade(
                         o.trader,
                         o.pairIndex,
@@ -539,7 +538,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                     StorageInterfaceV5.LimitOrder.OPEN,
                     finalTrade.openPrice,
                     priceImpactP,
-                    (finalTrade.initialPosToken * tokenPriceDai) / PRECISION,
+                    (finalTrade.initialPosToken * tokenPriceWETH) / PRECISION,
                     0,
                     0,
                     exactExecution
@@ -580,8 +579,8 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             PairsStorageInterfaceV6 pairsStored = aggregator.pairsStorage();
 
             Values memory v;
-            v.levPosDai = (t.initialPosToken * i.tokenPriceDai * t.leverage) / PRECISION;
-            v.posDai = v.levPosDai / t.leverage;
+            v.levPosWETH = (t.initialPosToken * i.tokenPriceWETH * t.leverage) / PRECISION;
+            v.posWETH = v.levPosWETH / t.leverage;
 
             if (o.orderType == StorageInterfaceV5.LimitOrder.LIQ) {
                 v.liqPrice = borrowingFees.getTradeLiquidationPrice(
@@ -591,7 +590,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                         t.index,
                         t.openPrice,
                         t.buy,
-                        v.posDai,
+                        v.posWETH,
                         t.leverage
                     )
                 );
@@ -605,13 +604,13 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
             if (v.exactExecution) {
                 v.reward1 = o.orderType == StorageInterfaceV5.LimitOrder.LIQ
-                    ? (v.posDai * 5) / 100
-                    : (v.levPosDai * pairsStored.pairNftLimitOrderFeeP(t.pairIndex)) / 100 / PRECISION;
+                    ? (v.posWETH * 5) / 100
+                    : (v.levPosWETH * pairsStored.pairNftLimitOrderFeeP(t.pairIndex)) / 100 / PRECISION;
             } else {
                 v.price = a.open;
 
                 v.reward1 = o.orderType == StorageInterfaceV5.LimitOrder.LIQ
-                    ? ((t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice) ? (v.posDai * 5) / 100 : 0)
+                    ? ((t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice) ? (v.posWETH * 5) / 100 : 0)
                     : (
                         ((o.orderType == StorageInterfaceV5.LimitOrder.TP &&
                             t.tp > 0 &&
@@ -619,7 +618,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                             (o.orderType == StorageInterfaceV5.LimitOrder.SL &&
                                 t.sl > 0 &&
                                 (t.buy ? a.open <= t.sl : a.open >= t.sl)))
-                            ? (v.levPosDai * pairsStored.pairNftLimitOrderFeeP(t.pairIndex)) / 100 / PRECISION
+                            ? (v.levPosWETH * pairsStored.pairNftLimitOrderFeeP(t.pairIndex)) / 100 / PRECISION
                             : 0
                     );
             }
@@ -629,24 +628,24 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             // If can be triggered
             if (cancelReason == CancelReason.NONE) {
                 v.profitP = currentPercentProfit(t.openPrice, v.price, t.buy, t.leverage);
-                v.tokenPriceDai = aggregator.tokenPriceDai();
+                v.tokenPriceWETH = aggregator.tokenPriceWETH();
 
-                v.daiSentToTrader = unregisterTrade(
+                v.WETHSentToTrader = unregisterTrade(
                     t,
                     false,
                     v.profitP,
-                    v.posDai,
-                    i.openInterestDai,
+                    v.posWETH,
+                    i.openInterestWETH,
                     o.orderType == StorageInterfaceV5.LimitOrder.LIQ
                         ? v.reward1
-                        : (v.levPosDai * pairsStored.pairCloseFeeP(t.pairIndex)) / 100 / PRECISION,
+                        : (v.levPosWETH * pairsStored.pairCloseFeeP(t.pairIndex)) / 100 / PRECISION,
                     v.reward1
                 );
 
-                // Convert NFT bot fee from DAI to token value
-                v.reward2 = (v.reward1 * PRECISION) / v.tokenPriceDai;
+                // Convert NFT bot fee from WETH to token value
+                v.reward2 = (v.reward1 * PRECISION) / v.tokenPriceWETH;
 
-                nftRewards.distributeNftReward(triggeredLimitId, v.reward2, v.tokenPriceDai);
+                nftRewards.distributeNftReward(triggeredLimitId, v.reward2, v.tokenPriceWETH);
 
                 storageT.increaseNftRewards(o.nftId, v.reward2);
 
@@ -660,9 +659,9 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                     o.orderType,
                     v.price,
                     0,
-                    v.posDai,
+                    v.posWETH,
                     v.profitP,
-                    v.daiSentToTrader,
+                    v.WETHSentToTrader,
                     v.exactExecution
                 );
             }
@@ -687,48 +686,48 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
         Values memory v;
 
-        v.levPosDai = trade.positionSizeDai * trade.leverage;
-        v.tokenPriceDai = aggregator.tokenPriceDai();
+        v.levPosWETH = trade.positionSizeWETH * trade.leverage;
+        v.tokenPriceWETH = aggregator.tokenPriceWETH();
 
-        // 1. Charge referral fee (if applicable) and send DAI amount to vault
+        // 1. Charge referral fee (if applicable) and send WETH amount to vault
         if (referrals.getTraderReferrer(trade.trader) != address(0)) {
-            // Use this variable to store lev pos dai for dev/gov fees after referral fees
-            // and before volumeReferredDai increases
-            v.posDai =
-                (v.levPosDai * (100 * PRECISION - referrals.getPercentOfOpenFeeP(trade.trader))) /
+            // Use this variable to store lev pos WETH for dev/gov fees after referral fees
+            // and before volumeReferredWETH increases
+            v.posWETH =
+                (v.levPosWETH * (100 * PRECISION - referrals.getPercentOfOpenFeeP(trade.trader))) /
                 100 /
                 PRECISION;
 
             v.reward1 = referrals.distributePotentialReward(
                 trade.trader,
-                v.levPosDai,
+                v.levPosWETH,
                 pairsStored.pairOpenFeeP(trade.pairIndex),
-                v.tokenPriceDai
+                v.tokenPriceWETH
             );
 
             sendToVault(v.reward1, trade.trader);
-            trade.positionSizeDai -= v.reward1;
+            trade.positionSizeWETH -= v.reward1;
 
             emit ReferralFeeCharged(trade.trader, v.reward1);
         }
 
         // 2. Charge opening fee - referral fee (if applicable)
-        v.reward2 = storageT.handleDevGovFees(trade.pairIndex, (v.posDai > 0 ? v.posDai : v.levPosDai), true, true);
+        v.reward2 = storageT.handleDevGovFees(trade.pairIndex, (v.posWETH > 0 ? v.posWETH : v.levPosWETH), true, true);
 
-        trade.positionSizeDai -= v.reward2;
+        trade.positionSizeWETH -= v.reward2;
 
         emit DevGovFeeCharged(trade.trader, v.reward2);
 
         // 3. Charge NFT / SSS fee
-        v.reward2 = (v.levPosDai * pairsStored.pairNftLimitOrderFeeP(trade.pairIndex)) / 100 / PRECISION;
-        trade.positionSizeDai -= v.reward2;
+        v.reward2 = (v.levPosWETH * pairsStored.pairNftLimitOrderFeeP(trade.pairIndex)) / 100 / PRECISION;
+        trade.positionSizeWETH -= v.reward2;
 
-        // 3.1 Distribute NFT fee and send DAI amount to vault (if applicable)
+        // 3.1 Distribute NFT fee and send WETH amount to vault (if applicable)
         if (nftId < 1500) {
             sendToVault(v.reward2, trade.trader);
 
-            // Convert NFT bot fee from DAI to token value
-            v.reward3 = (v.reward2 * PRECISION) / v.tokenPriceDai;
+            // Convert NFT bot fee from WETH to token value
+            v.reward3 = (v.reward2 * PRECISION) / v.tokenPriceWETH;
 
             nftRewards.distributeNftReward(
                 NftRewardsInterfaceV6_3_1.TriggeredLimitId(
@@ -738,7 +737,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                     StorageInterfaceV5.LimitOrder.OPEN
                 ),
                 v.reward3,
-                v.tokenPriceDai
+                v.tokenPriceWETH
             );
             storageT.increaseNftRewards(nftId, v.reward3);
 
@@ -751,19 +750,19 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
         // 4. Set trade final details
         trade.index = storageT.firstEmptyTradeIndex(trade.trader, trade.pairIndex);
-        trade.initialPosToken = (trade.positionSizeDai * PRECISION) / v.tokenPriceDai;
+        trade.initialPosToken = (trade.positionSizeWETH * PRECISION) / v.tokenPriceWETH;
 
         trade.tp = correctTp(trade.openPrice, trade.leverage, trade.tp, trade.buy);
         trade.sl = correctSl(trade.openPrice, trade.leverage, trade.sl, trade.buy);
 
         // 5. Call other contracts
         pairInfos.storeTradeInitialAccFees(trade.trader, trade.pairIndex, trade.index, trade.buy);
-        pairsStored.updateGroupCollateral(trade.pairIndex, trade.positionSizeDai, trade.buy, true);
+        pairsStored.updateGroupCollateral(trade.pairIndex, trade.positionSizeWETH, trade.buy, true);
         borrowingFees.handleTradeAction(
             trade.trader,
             trade.pairIndex,
             trade.index,
-            trade.positionSizeDai * trade.leverage,
+            trade.positionSizeWETH * trade.leverage,
             true,
             trade.buy
         );
@@ -771,7 +770,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         // 6. Store final trade in storage contract
         storageT.storeTrade(
             trade,
-            StorageInterfaceV5.TradeInfo(0, v.tokenPriceDai, trade.positionSizeDai * trade.leverage, 0, 0, false)
+            StorageInterfaceV5.TradeInfo(0, v.tokenPriceWETH, trade.positionSizeWETH * trade.leverage, 0, 0, false)
         );
 
         // 7. Store tradeLastUpdated
@@ -783,61 +782,61 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         lastUpdated.sl = currBlock;
         lastUpdated.created = currBlock;
 
-        return (trade, v.tokenPriceDai);
+        return (trade, v.tokenPriceWETH);
     }
 
     function unregisterTrade(
         StorageInterfaceV5.Trade memory trade,
         bool marketOrder,
         int percentProfit, // PRECISION
-        uint currentDaiPos, // 1e18
-        uint openInterestDai, // 1e18
-        uint closingFeeDai, // 1e18
-        uint nftFeeDai // 1e18 (= SSS reward if market order)
-    ) private returns (uint daiSentToTrader) {
+        uint currentWETHPos, // 1e18
+        uint openInterestWETH, // 1e18
+        uint closingFeeWETH, // 1e18
+        uint nftFeeWETH // 1e18 (= SSS reward if market order)
+    ) private returns (uint WETHSentToTrader) {
         IGToken vault = storageT.vault();
 
         // 1. Calculate net PnL (after all closing and holding fees)
-        (daiSentToTrader, ) = _getTradeValue(trade, currentDaiPos, percentProfit, closingFeeDai + nftFeeDai);
+        (WETHSentToTrader, ) = _getTradeValue(trade, currentWETHPos, percentProfit, closingFeeWETH + nftFeeWETH);
 
         // 2. Calls to other contracts
-        borrowingFees.handleTradeAction(trade.trader, trade.pairIndex, trade.index, openInterestDai, false, trade.buy);
-        getPairsStorage().updateGroupCollateral(trade.pairIndex, openInterestDai / trade.leverage, trade.buy, false);
+        borrowingFees.handleTradeAction(trade.trader, trade.pairIndex, trade.index, openInterestWETH, false, trade.buy);
+        getPairsStorage().updateGroupCollateral(trade.pairIndex, openInterestWETH / trade.leverage, trade.buy, false);
 
         // 3. Unregister trade from storage
         storageT.unregisterTrade(trade.trader, trade.pairIndex, trade.index);
 
         // 4.1 If collateral in storage (opened after update)
-        if (trade.positionSizeDai > 0) {
+        if (trade.positionSizeWETH > 0) {
             Values memory v;
 
-            // 4.1.1 DAI vault reward
-            v.reward2 = (closingFeeDai * daiVaultFeeP) / 100;
+            // 4.1.1 WETH vault reward
+            v.reward2 = (closingFeeWETH * WETHVaultFeeP) / 100;
             transferFromStorageToAddress(address(this), v.reward2);
             vault.distributeReward(v.reward2);
 
-            emit DaiVaultFeeCharged(trade.trader, v.reward2);
+            emit WETHVaultFeeCharged(trade.trader, v.reward2);
 
             // 4.1.2 SSS reward
-            v.reward3 = marketOrder ? nftFeeDai + (closingFeeDai * sssFeeP) / 100 : (closingFeeDai * sssFeeP) / 100;
+            v.reward3 = marketOrder ? nftFeeWETH + (closingFeeWETH * sssFeeP) / 100 : (closingFeeWETH * sssFeeP) / 100;
 
             distributeStakingReward(trade.trader, v.reward3);
 
-            // 4.1.3 Take DAI from vault if winning trade
-            // or send DAI to vault if losing trade
-            uint daiLeftInStorage = currentDaiPos - v.reward3 - v.reward2;
+            // 4.1.3 Take WETH from vault if winning trade
+            // or send WETH to vault if losing trade
+            uint WETHLeftInStorage = currentWETHPos - v.reward3 - v.reward2;
 
-            if (daiSentToTrader > daiLeftInStorage) {
-                vault.sendAssets(daiSentToTrader - daiLeftInStorage, trade.trader);
-                transferFromStorageToAddress(trade.trader, daiLeftInStorage);
+            if (WETHSentToTrader > WETHLeftInStorage) {
+                vault.sendAssets(WETHSentToTrader - WETHLeftInStorage, trade.trader);
+                transferFromStorageToAddress(trade.trader, WETHLeftInStorage);
             } else {
-                sendToVault(daiLeftInStorage - daiSentToTrader, trade.trader);
-                transferFromStorageToAddress(trade.trader, daiSentToTrader);
+                sendToVault(WETHLeftInStorage - WETHSentToTrader, trade.trader);
+                transferFromStorageToAddress(trade.trader, WETHSentToTrader);
             }
 
             // 4.2 If collateral in vault (opened before update)
         } else {
-            vault.sendAssets(daiSentToTrader, trade.trader);
+            vault.sendAssets(WETHSentToTrader, trade.trader);
         }
     }
 
@@ -853,19 +852,19 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     // Utils (getters)
     function _getTradeValue(
         StorageInterfaceV5.Trade memory trade,
-        uint currentDaiPos, // 1e18
+        uint currentWETHPos, // 1e18
         int percentProfit, // PRECISION
         uint closingFees // 1e18
     ) private returns (uint value, uint borrowingFee) {
         int netProfitP;
 
-        (netProfitP, borrowingFee) = _getBorrowingFeeAdjustedPercentProfit(trade, currentDaiPos, percentProfit);
+        (netProfitP, borrowingFee) = _getBorrowingFeeAdjustedPercentProfit(trade, currentWETHPos, percentProfit);
         value = pairInfos.getTradeValue(
             trade.trader,
             trade.pairIndex,
             trade.index,
             trade.buy,
-            currentDaiPos,
+            currentWETHPos,
             trade.leverage,
             netProfitP,
             closingFees
@@ -876,7 +875,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
     function _getBorrowingFeeAdjustedPercentProfit(
         StorageInterfaceV5.Trade memory trade,
-        uint currentDaiPos, // 1e18
+        uint currentWETHPos, // 1e18
         int percentProfit // PRECISION
     ) private view returns (int netProfitP, uint borrowingFee) {
         borrowingFee = borrowingFees.getTradeBorrowingFee(
@@ -885,11 +884,11 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                 trade.pairIndex,
                 trade.index,
                 trade.buy,
-                currentDaiPos,
+                currentWETHPos,
                 trade.leverage
             )
         );
-        netProfitP = percentProfit - int((borrowingFee * 100 * PRECISION) / currentDaiPos);
+        netProfitP = percentProfit - int((borrowingFee * 100 * PRECISION) / currentWETHPos);
     }
 
     function withinMaxLeverage(uint pairIndex, uint leverage) private view returns (bool) {
@@ -900,15 +899,15 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     function withinExposureLimits(
         uint pairIndex,
         bool buy,
-        uint positionSizeDai,
+        uint positionSizeWETH,
         uint leverage
     ) private view returns (bool) {
-        uint levPositionSizeDai = positionSizeDai * leverage;
+        uint levPositionSizeWETH = positionSizeWETH * leverage;
 
         return
-            storageT.openInterestDai(pairIndex, buy ? 0 : 1) + levPositionSizeDai <=
+            storageT.openInterestWETH(pairIndex, buy ? 0 : 1) + levPositionSizeWETH <=
             borrowingFees.getPairMaxOi(pairIndex) * 1e8 &&
-            borrowingFees.withinMaxGroupOi(pairIndex, buy, levPositionSizeDai);
+            borrowingFees.withinMaxGroupOi(pairIndex, buy, levPositionSizeWETH);
     }
 
     function currentPercentProfit(
@@ -1024,19 +1023,19 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     }
 
     // Utils (private)
-    function distributeStakingReward(address trader, uint amountDai) private {
-        transferFromStorageToAddress(address(this), amountDai);
-        staking.distributeRewardDai(amountDai);
-        emit SssFeeCharged(trader, amountDai);
+    function distributeStakingReward(address trader, uint amountWETH) private {
+        transferFromStorageToAddress(address(this), amountWETH);
+        staking.distributeRewardWETH(amountWETH);
+        emit SssFeeCharged(trader, amountWETH);
     }
 
-    function sendToVault(uint amountDai, address trader) private {
-        transferFromStorageToAddress(address(this), amountDai);
-        storageT.vault().receiveAssets(amountDai, trader);
+    function sendToVault(uint amountWETH, address trader) private {
+        transferFromStorageToAddress(address(this), amountWETH);
+        storageT.vault().receiveAssets(amountWETH, trader);
     }
 
-    function transferFromStorageToAddress(address to, uint amountDai) private {
-        storageT.transferDai(address(storageT), to, amountDai);
+    function transferFromStorageToAddress(address to, uint amountWETH) private {
+        storageT.transferWETH(address(storageT), to, amountWETH);
     }
 
     // Public views

@@ -26,7 +26,7 @@ contract GNSTradingV6_4 is Delegatable {
     uint constant MAX_SL_P = 75; // -75% PNL
 
     // Params (adjustable)
-    uint public maxPosDai; // 1e18 (eg. 75000 * 1e18)
+    uint public maxPosWETH; // 1e18 (eg. 75000 * 1e18)
     uint public marketOrdersTimeout; // block (eg. 30)
 
     // State
@@ -68,7 +68,7 @@ contract GNSTradingV6_4 is Delegatable {
         GNSPairInfosInterfaceV6 _pairInfos,
         GNSReferralsInterfaceV6_2 _referrals,
         GNSBorrowingFeesInterfaceV6_4 _borrowingFees,
-        uint _maxPosDai,
+        uint _maxPosWETH,
         uint _marketOrdersTimeout
     ) {
         require(
@@ -77,7 +77,7 @@ contract GNSTradingV6_4 is Delegatable {
                 address(_pairInfos) != address(0) &&
                 address(_referrals) != address(0) &&
                 address(_borrowingFees) != address(0) &&
-                _maxPosDai > 0 &&
+                _maxPosWETH > 0 &&
                 _marketOrdersTimeout > 0,
             "WRONG_PARAMS"
         );
@@ -88,7 +88,7 @@ contract GNSTradingV6_4 is Delegatable {
         referrals = _referrals;
         borrowingFees = _borrowingFees;
 
-        maxPosDai = _maxPosDai;
+        maxPosWETH = _maxPosWETH;
         marketOrdersTimeout = _marketOrdersTimeout;
     }
 
@@ -120,10 +120,10 @@ contract GNSTradingV6_4 is Delegatable {
     }
 
     // Manage params
-    function setMaxPosDai(uint value) external onlyGov {
+    function setMaxPosWETH(uint value) external onlyGov {
         require(value > 0, "VALUE_0");
-        maxPosDai = value;
-        emit NumberUpdated("maxPosDai", value);
+        maxPosWETH = value;
+        emit NumberUpdated("maxPosWETH", value);
     }
 
     function setMarketOrdersTimeout(uint value) external onlyGov {
@@ -169,8 +169,8 @@ contract GNSTradingV6_4 is Delegatable {
         );
 
         require(storageT.pendingOrderIdsCount(sender) < storageT.maxPendingMarketOrders(), "MAX_PENDING_ORDERS");
-        require(t.positionSizeDai <= maxPosDai, "ABOVE_MAX_POS");
-        require(t.positionSizeDai * t.leverage >= pairsStored.pairMinLevPosDai(t.pairIndex), "BELOW_MIN_POS");
+        require(t.positionSizeWETH <= maxPosWETH, "ABOVE_MAX_POS");
+        require(t.positionSizeWETH * t.leverage >= pairsStored.pairMinLevPosWETH(t.pairIndex), "BELOW_MIN_POS");
 
         require(
             t.leverage > 0 &&
@@ -187,10 +187,10 @@ contract GNSTradingV6_4 is Delegatable {
         require(t.tp == 0 || (t.buy ? t.tp > t.openPrice : t.tp < t.openPrice), "WRONG_TP");
         require(t.sl == 0 || (t.buy ? t.sl < t.openPrice : t.sl > t.openPrice), "WRONG_SL");
 
-        (uint priceImpactP, ) = pairInfos.getTradePriceImpact(0, t.pairIndex, t.buy, t.positionSizeDai * t.leverage);
+        (uint priceImpactP, ) = pairInfos.getTradePriceImpact(0, t.pairIndex, t.buy, t.positionSizeWETH * t.leverage);
         require(priceImpactP * t.leverage <= pairInfos.maxNegativePnlOnOpenP(), "PRICE_IMPACT_TOO_HIGH");
 
-        storageT.transferDai(sender, address(storageT), t.positionSizeDai);
+        storageT.transferWETH(sender, address(storageT), t.positionSizeWETH);
 
         if (orderType != NftRewardsInterfaceV6_3_1.OpenLimitOrderType.LEGACY) {
             uint index = storageT.firstEmptyOpenLimitIndex(sender, t.pairIndex);
@@ -200,7 +200,7 @@ contract GNSTradingV6_4 is Delegatable {
                     sender,
                     t.pairIndex,
                     index,
-                    t.positionSizeDai,
+                    t.positionSizeWETH,
                     spreadReductionId > 0 ? storageT.spreadReductionsP(spreadReductionId - 1) : 0,
                     t.buy,
                     t.leverage,
@@ -230,7 +230,7 @@ contract GNSTradingV6_4 is Delegatable {
             uint orderId = aggregator.getPrice(
                 t.pairIndex,
                 AggregatorInterfaceV6_4.OrderType.MARKET_OPEN,
-                t.positionSizeDai * t.leverage,
+                t.positionSizeWETH * t.leverage,
                 ChainUtils.getBlockNumber()
             );
 
@@ -241,7 +241,7 @@ contract GNSTradingV6_4 is Delegatable {
                         t.pairIndex,
                         0,
                         0,
-                        t.positionSizeDai,
+                        t.positionSizeWETH,
                         0,
                         t.buy,
                         t.leverage,
@@ -278,7 +278,7 @@ contract GNSTradingV6_4 is Delegatable {
         uint orderId = storageT.priceAggregator().getPrice(
             pairIndex,
             AggregatorInterfaceV6_4.OrderType.MARKET_CLOSE,
-            (t.initialPosToken * i.tokenPriceDai * t.leverage) / PRECISION,
+            (t.initialPosToken * i.tokenPriceWETH * t.leverage) / PRECISION,
             ChainUtils.getBlockNumber()
         );
 
@@ -350,7 +350,7 @@ contract GNSTradingV6_4 is Delegatable {
         checkNoPendingTrigger(sender, pairIndex, index, StorageInterfaceV5.LimitOrder.OPEN);
 
         storageT.unregisterOpenLimitOrder(sender, pairIndex, index);
-        storageT.transferDai(address(storageT), sender, o.positionSize);
+        storageT.transferWETH(address(storageT), sender, o.positionSize);
 
         emit OpenLimitCanceled(sender, pairIndex, index);
     }
@@ -444,7 +444,7 @@ contract GNSTradingV6_4 is Delegatable {
                         t.index,
                         t.openPrice,
                         t.buy,
-                        (t.initialPosToken * storageT.openTradesInfo(t.trader, t.pairIndex, t.index).tokenPriceDai) /
+                        (t.initialPosToken * storageT.openTradesInfo(t.trader, t.pairIndex, t.index).tokenPriceWETH) /
                             PRECISION,
                         t.leverage
                     )
@@ -465,22 +465,22 @@ contract GNSTradingV6_4 is Delegatable {
         );
 
         if (!nftRewards.triggered(triggeredLimitId) || nftRewards.timedOut(triggeredLimitId)) {
-            uint leveragedPosDai;
+            uint leveragedPosWETH;
 
             if (isOpenLimit) {
                 StorageInterfaceV5.OpenLimitOrder memory l = storageT.getOpenLimitOrder(trader, pairIndex, index);
 
-                leveragedPosDai = l.positionSize * l.leverage;
-                (uint priceImpactP, ) = pairInfos.getTradePriceImpact(0, l.pairIndex, l.buy, leveragedPosDai);
+                leveragedPosWETH = l.positionSize * l.leverage;
+                (uint priceImpactP, ) = pairInfos.getTradePriceImpact(0, l.pairIndex, l.buy, leveragedPosWETH);
 
                 require(priceImpactP * l.leverage <= pairInfos.maxNegativePnlOnOpenP(), "PRICE_IMPACT_TOO_HIGH");
             } else {
-                leveragedPosDai =
-                    (t.initialPosToken * storageT.openTradesInfo(trader, pairIndex, index).tokenPriceDai * t.leverage) /
+                leveragedPosWETH =
+                    (t.initialPosToken * storageT.openTradesInfo(trader, pairIndex, index).tokenPriceWETH * t.leverage) /
                     PRECISION;
             }
 
-            storageT.transferLinkToAggregator(sender, pairIndex, leveragedPosDai);
+            storageT.transferLinkToAggregator(sender, pairIndex, leveragedPosWETH);
 
             (uint orderId, uint linkFee) = getPriceNftOrder(
                 isOpenLimit,
@@ -489,7 +489,7 @@ contract GNSTradingV6_4 is Delegatable {
                 index,
                 tradeType,
                 orderType,
-                leveragedPosDai
+                leveragedPosWETH
             );
 
             StorageInterfaceV5.PendingNftOrder memory pendingNftOrder;
@@ -523,7 +523,7 @@ contract GNSTradingV6_4 is Delegatable {
         require(t.leverage > 0, "WRONG_MARKET_ORDER_TYPE");
 
         storageT.unregisterPendingMarketOrder(_order, true);
-        storageT.transferDai(address(storageT), sender, t.positionSizeDai);
+        storageT.transferWETH(address(storageT), sender, t.positionSizeWETH);
 
         emit ChainlinkCallbackTimeout(_order, o);
     }
@@ -608,7 +608,7 @@ contract GNSTradingV6_4 is Delegatable {
         uint index,
         TradingCallbacksV6_4.TradeType tradeType,
         StorageInterfaceV5.LimitOrder orderType,
-        uint leveragedPosDai
+        uint leveragedPosWETH
     ) private returns (uint orderId, uint linkFee) {
         TradingCallbacksV6_4.LastUpdated memory lastUpdated = TradingCallbacksV6_4(storageT.callbacks())
             .tradeLastUpdated(trader, pairIndex, index, tradeType);
@@ -618,7 +618,7 @@ contract GNSTradingV6_4 is Delegatable {
         orderId = aggregator.getPrice(
             pairIndex,
             isOpenLimit ? AggregatorInterfaceV6_4.OrderType.LIMIT_OPEN : AggregatorInterfaceV6_4.OrderType.LIMIT_CLOSE,
-            leveragedPosDai,
+            leveragedPosWETH,
             isOpenLimit ? lastUpdated.limit : orderType == StorageInterfaceV5.LimitOrder.SL
                 ? lastUpdated.sl
                 : orderType == StorageInterfaceV5.LimitOrder.TP
@@ -626,6 +626,6 @@ contract GNSTradingV6_4 is Delegatable {
                 : lastUpdated.created
         );
 
-        linkFee = aggregator.linkFee(pairIndex, leveragedPosDai);
+        linkFee = aggregator.linkFee(pairIndex, leveragedPosWETH);
     }
 }
