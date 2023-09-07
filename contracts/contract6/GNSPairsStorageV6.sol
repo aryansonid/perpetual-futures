@@ -2,6 +2,8 @@
  *Submitted for verification at PolygonScan.com on 2022-02-14
 */
 
+
+/// DEPLOY no dependency.
 // File: contracts\interfaces\UniswapRouterInterfaceV5.sol
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
@@ -55,10 +57,10 @@ interface NftInterfaceV5{
 pragma solidity 0.8.11;
 
 interface VaultInterfaceV5{
-	function sendDaiToTrader(address, uint) external;
-	function receiveDaiFromTrader(address, uint, uint) external;
-	function currentBalanceDai() external view returns(uint);
-	function distributeRewardDai(uint) external;
+	function sendWETHToTrader(address, uint) external;
+	function receiveWETHFromTrader(address, uint, uint) external;
+	function currentBalanceWETH() external view returns(uint);
+	function distributeRewardWETH(uint) external;
 }
 
 // File: contracts\interfaces\PairsStorageInterfaceV6.sol
@@ -83,7 +85,7 @@ interface PairsStorageInterfaceV6{
     function pairOracleFeeP(uint) external view returns(uint);
     function pairNftLimitOrderFeeP(uint) external view returns(uint);
     function pairReferralFeeP(uint) external view returns(uint);
-    function pairMinLevPosDai(uint) external view returns(uint);
+    function pairMinLevPosWETH(uint) external view returns(uint);
 }
 
 // File: contracts\interfaces\StorageInterfaceV5.sol
@@ -107,7 +109,7 @@ interface StorageInterfaceV5{
         uint pairIndex;
         uint index;
         uint initialPosToken;       // 1e18
-        uint positionSizeDai;       // 1e18
+        uint positionSizeWETH;       // 1e18
         uint openPrice;             // PRECISION
         bool buy;
         uint leverage;
@@ -116,8 +118,8 @@ interface StorageInterfaceV5{
     }
     struct TradeInfo{
         uint tokenId;
-        uint tokenPriceDai;         // PRECISION
-        uint openInterestDai;       // 1e18
+        uint tokenPriceWETH;         // PRECISION
+        uint openInterestWETH;       // 1e18
         uint tpLastUpdated;
         uint slLastUpdated;
         bool beingMarketClosed;
@@ -126,7 +128,7 @@ interface StorageInterfaceV5{
         address trader;
         uint pairIndex;
         uint index;
-        uint positionSize;          // 1e18 (DAI or GFARM2)
+        uint positionSize;          // 1e18 (WETH or GFARM2)
         uint spreadReductionP;
         bool buy;
         uint leverage;
@@ -156,16 +158,16 @@ interface StorageInterfaceV5{
     function PRECISION() external pure returns(uint);
     function gov() external view returns(address);
     function dev() external view returns(address);
-    function dai() external view returns(TokenInterfaceV5);
+    function WETH() external view returns(TokenInterfaceV5);
     function token() external view returns(TokenInterfaceV5);
     function linkErc677() external view returns(TokenInterfaceV5);
-    function tokenDaiRouter() external view returns(UniswapRouterInterfaceV5);
+    function tokenWETHRouter() external view returns(UniswapRouterInterfaceV5);
     function priceAggregator() external view returns(AggregatorInterfaceV6);
     function vault() external view returns(VaultInterfaceV5);
     function trading() external view returns(address);
     function callbacks() external view returns(address);
     function handleTokens(address,uint,bool) external;
-    function transferDai(address, address, uint) external;
+    function transferWETH(address, address, uint) external;
     function transferLinkToAggregator(address, uint, uint) external;
     function unregisterTrade(address, uint, uint) external;
     function unregisterPendingMarketOrder(uint, bool) external;
@@ -214,7 +216,7 @@ interface StorageInterfaceV5{
     function maxPendingMarketOrders() external view returns(uint);
     function maxGainP() external view returns(uint);
     function defaultLeverageUnlocked() external view returns(uint);
-    function openInterestDai(uint, uint) external view returns(uint);
+    function openInterestWETH(uint, uint) external view returns(uint);
     function getPendingOrderIds(address) external view returns(uint[] memory);
     function traders(address) external view returns(Trader memory);
     function nfts(uint) external view returns(NftInterfaceV5);
@@ -225,9 +227,9 @@ interface AggregatorInterfaceV6{
     function pairsStorage() external view returns(PairsStorageInterfaceV6);
     function nftRewards() external view returns(NftRewardsInterfaceV6);
     function getPrice(uint,OrderType,uint) external returns(uint);
-    function tokenPriceDai() external view returns(uint);
+    function tokenPriceWETH() external view returns(uint);
     function linkFee(uint,uint) external view returns(uint);
-    function tokenDaiReservesLp() external view returns(uint, uint);
+    function tokenWETHReservesLp() external view returns(uint, uint);
     function pendingSlOrders(uint) external view returns(PendingSl memory);
     function storePendingSlOrder(uint orderId, PendingSl calldata p) external;
     function unregisterPendingSlOrder(uint orderId) external;
@@ -278,7 +280,7 @@ contract GNSPairsStorageV6 {
         bytes32 job;
         uint minLeverage;
         uint maxLeverage;
-        uint maxCollateralP;        // % (of DAI vault current balance)
+        uint maxCollateralP;        // % (of WETH vault current balance)
     }
     struct Fee{
         string name;
@@ -287,7 +289,7 @@ contract GNSPairsStorageV6 {
         uint oracleFeeP;            // PRECISION (% of leveraged pos)
         uint nftLimitOrderFeeP;     // PRECISION (% of leveraged pos)
         uint referralFeeP;          // PRECISION (% of leveraged pos)
-        uint minLevPosDai;          // 1e18 (collateral x leverage, useful for min fee)
+        uint minLevPosWETH;          // 1e18 (collateral x leverage, useful for min fee)
     }
 
     // State
@@ -345,7 +347,7 @@ contract GNSPairsStorageV6 {
     }
     modifier feeOk(Fee calldata _fee){
         require(_fee.openFeeP > 0 && _fee.closeFeeP > 0 && _fee.oracleFeeP > 0
-            && _fee.nftLimitOrderFeeP > 0 && _fee.referralFeeP > 0 && _fee.minLevPosDai > 0, "WRONG_FEES");
+            && _fee.nftLimitOrderFeeP > 0 && _fee.referralFeeP > 0 && _fee.minLevPosWETH > 0, "WRONG_FEES");
         _;
     }
 
@@ -432,7 +434,7 @@ contract GNSPairsStorageV6 {
         return groups[pairs[_pairIndex].groupIndex].maxLeverage;
     }
     function groupMaxCollateral(uint _pairIndex) external view returns(uint){
-        return groups[pairs[_pairIndex].groupIndex].maxCollateralP*storageT.vault().currentBalanceDai()/100;
+        return groups[pairs[_pairIndex].groupIndex].maxCollateralP*storageT.vault().currentBalanceWETH()/100;
     }
     function groupCollateral(uint _pairIndex, bool _long) external view returns(uint){
         return groupsCollaterals[pairs[_pairIndex].groupIndex][_long ? 0 : 1];
@@ -457,8 +459,8 @@ contract GNSPairsStorageV6 {
     function pairReferralFeeP(uint _pairIndex) external view returns(uint){ 
         return fees[pairs[_pairIndex].feeIndex].referralFeeP; 
     }
-    function pairMinLevPosDai(uint _pairIndex) external view returns(uint){
-        return fees[pairs[_pairIndex].feeIndex].minLevPosDai;
+    function pairMinLevPosWETH(uint _pairIndex) external view returns(uint){
+        return fees[pairs[_pairIndex].feeIndex].minLevPosWETH;
     }
 
     // Getters (backend)

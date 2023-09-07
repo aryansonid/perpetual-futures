@@ -1,0 +1,1014 @@
+{
+  "address": "0x7985A05FF9916fbac219c651f5Da52E78c7eDAe7",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract StorageInterfaceV5",
+          "name": "_storageT",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_allyFeeP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_startReferrerFeeP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_openFeeP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_targetVolumeWETH",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "trader",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "volumeWETH",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amountToken",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amountValueWETH",
+          "type": "uint256"
+        }
+      ],
+      "name": "AllyRewardDistributed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amountToken",
+          "type": "uint256"
+        }
+      ],
+      "name": "AllyRewardsClaimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        }
+      ],
+      "name": "AllyUnwhitelisted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        }
+      ],
+      "name": "AllyWhitelisted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "trader",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        }
+      ],
+      "name": "ReferrerRegistered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "trader",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "volumeWETH",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amountToken",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amountValueWETH",
+          "type": "uint256"
+        }
+      ],
+      "name": "ReferrerRewardDistributed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amountToken",
+          "type": "uint256"
+        }
+      ],
+      "name": "ReferrerRewardsClaimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        }
+      ],
+      "name": "ReferrerUnwhitelisted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        }
+      ],
+      "name": "ReferrerWhitelisted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "UpdatedAllyFeeP",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "UpdatedOpenFeeP",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "UpdatedStartReferrerFeeP",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "UpdatedTargetVolumeWETH",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "allyDetails",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "volumeReferredWETH",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pendingRewardsToken",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalRewardsToken",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalRewardsValueWETH",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "active",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "allyFeeP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "claimAllyRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "claimReferrerRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "trader",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "volumeWETH",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pairOpenFeeP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenPriceWETH",
+          "type": "uint256"
+        }
+      ],
+      "name": "distributePotentialReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "trader",
+          "type": "address"
+        }
+      ],
+      "name": "getPercentOfOpenFeeP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "volumeReferredWETH",
+          "type": "uint256"
+        }
+      ],
+      "name": "getPercentOfOpenFeeP_calc",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "resultP",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "pairOpenFeeP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "volumeReferredWETH",
+          "type": "uint256"
+        }
+      ],
+      "name": "getReferrerFeeP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        }
+      ],
+      "name": "getReferrersReferred",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "trader",
+          "type": "address"
+        }
+      ],
+      "name": "getTraderReferrer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "referred",
+          "type": "address"
+        }
+      ],
+      "name": "getTradersReferred",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "openFeeP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "referrerByTrader",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "referrerDetails",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "volumeReferredWETH",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pendingRewardsToken",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalRewardsToken",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalRewardsValueWETH",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "active",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "trader",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        }
+      ],
+      "name": "registerPotentialReferrer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "startReferrerFeeP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "storageT",
+      "outputs": [
+        {
+          "internalType": "contract StorageInterfaceV5",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "targetVolumeWETH",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        }
+      ],
+      "name": "unwhitelistAlly",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        }
+      ],
+      "name": "unwhitelistReferrer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateAllyFeeP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateOpenFeeP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateStartReferrerFeeP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateTargetVolumeWETH",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        }
+      ],
+      "name": "whitelistAlly",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "ally",
+          "type": "address"
+        }
+      ],
+      "name": "whitelistReferrer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x579f51ebd0245aec7f5b08b7dda1653c4c8733a1411e767f97ab5961fd9ce650",
+  "receipt": {
+    "to": null,
+    "from": "0xa667403454F483dE81A0363Af7FcEE563819D910",
+    "contractAddress": "0x7985A05FF9916fbac219c651f5Da52E78c7eDAe7",
+    "transactionIndex": 19,
+    "gasUsed": "1754239",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000800000000000000000000100000000004000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000080000000000000000000200000000000000000000000000000000000000000000000000000000000004000000000000000000001000000000000000000000000000000100040001100000000000000000000000000000000000000000000010000000000000000100000",
+    "blockHash": "0xfad9c11c8e7da152bfefaeda10d168174a0fb8dbe7241cc04ce40c2709772368",
+    "transactionHash": "0x579f51ebd0245aec7f5b08b7dda1653c4c8733a1411e767f97ab5961fd9ce650",
+    "logs": [
+      {
+        "transactionIndex": 19,
+        "blockNumber": 39744012,
+        "transactionHash": "0x579f51ebd0245aec7f5b08b7dda1653c4c8733a1411e767f97ab5961fd9ce650",
+        "address": "0x0000000000000000000000000000000000001010",
+        "topics": [
+          "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+          "0x0000000000000000000000000000000000000000000000000000000000001010",
+          "0x000000000000000000000000a667403454f483de81a0363af7fcee563819d910",
+          "0x000000000000000000000000be188d6641e8b680743a4815dfa0f6208038960f"
+        ],
+        "data": "0x000000000000000000000000000000000000000000000000000f94adc52860cf0000000000000000000000000000000000000000000000004783e4a42dd3f72b000000000000000000000000000000000000000000003414f93b4af669bda01100000000000000000000000000000000000000000000000047744ff668ab965c000000000000000000000000000000000000000000003414f94adfa42ee600e0",
+        "logIndex": 65,
+        "blockHash": "0xfad9c11c8e7da152bfefaeda10d168174a0fb8dbe7241cc04ce40c2709772368"
+      }
+    ],
+    "blockNumber": 39744012,
+    "cumulativeGasUsed": "8694871",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xB9c1C0B7981029CFc289D3eA0d5a9a5919d60764",
+    25,
+    25,
+    25,
+    25
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "ddc61b74b36c79cacf7661cbe91250c7",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.15+commit.e14f2714\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract StorageInterfaceV5\",\"name\":\"_storageT\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_allyFeeP\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_startReferrerFeeP\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_openFeeP\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_targetVolumeWETH\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"volumeWETH\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountToken\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountValueWETH\",\"type\":\"uint256\"}],\"name\":\"AllyRewardDistributed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountToken\",\"type\":\"uint256\"}],\"name\":\"AllyRewardsClaimed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"}],\"name\":\"AllyUnwhitelisted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"}],\"name\":\"AllyWhitelisted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"}],\"name\":\"ReferrerRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"volumeWETH\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountToken\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountValueWETH\",\"type\":\"uint256\"}],\"name\":\"ReferrerRewardDistributed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountToken\",\"type\":\"uint256\"}],\"name\":\"ReferrerRewardsClaimed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"}],\"name\":\"ReferrerUnwhitelisted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"}],\"name\":\"ReferrerWhitelisted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"UpdatedAllyFeeP\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"UpdatedOpenFeeP\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"UpdatedStartReferrerFeeP\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"UpdatedTargetVolumeWETH\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"allyDetails\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"volumeReferredWETH\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pendingRewardsToken\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalRewardsToken\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalRewardsValueWETH\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"allyFeeP\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"claimAllyRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"claimReferrerRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"volumeWETH\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pairOpenFeeP\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenPriceWETH\",\"type\":\"uint256\"}],\"name\":\"distributePotentialReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"}],\"name\":\"getPercentOfOpenFeeP\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"volumeReferredWETH\",\"type\":\"uint256\"}],\"name\":\"getPercentOfOpenFeeP_calc\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"resultP\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"pairOpenFeeP\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"volumeReferredWETH\",\"type\":\"uint256\"}],\"name\":\"getReferrerFeeP\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"}],\"name\":\"getReferrersReferred\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"}],\"name\":\"getTraderReferrer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"referred\",\"type\":\"address\"}],\"name\":\"getTradersReferred\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"openFeeP\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"referrerByTrader\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"referrerDetails\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"volumeReferredWETH\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pendingRewardsToken\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalRewardsToken\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalRewardsValueWETH\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"}],\"name\":\"registerPotentialReferrer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"startReferrerFeeP\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"storageT\",\"outputs\":[{\"internalType\":\"contract StorageInterfaceV5\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"targetVolumeWETH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"}],\"name\":\"unwhitelistAlly\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"}],\"name\":\"unwhitelistReferrer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"updateAllyFeeP\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"updateOpenFeeP\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"updateStartReferrerFeeP\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"updateTargetVolumeWETH\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"}],\"name\":\"whitelistAlly\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"ally\",\"type\":\"address\"}],\"name\":\"whitelistReferrer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/contracts6_2/GNSReferralsV6_2.sol\":\"GNSReferralsV6_2\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":125},\"remappings\":[]},\"sources\":{\"contracts/contracts6_2/GNSReferralsV6_2.sol\":{\"content\":\"/**\\n *Submitted for verification at PolygonScan.com on 2022-08-16\\n*/\\n\\n// File: contracts\\\\interfaces\\\\UniswapRouterInterfaceV5.sol\\n// SPDX-License-Identifier: MIT\\n\\n/// DEPLOY need storage \\n\\npragma solidity 0.8.15;\\n\\ninterface UniswapRouterInterfaceV5{\\n\\tfunction swapExactTokensForTokens(\\n\\t\\tuint amountIn,\\n\\t\\tuint amountOutMin,\\n\\t\\taddress[] calldata path,\\n\\t\\taddress to,\\n\\t\\tuint deadline\\n\\t) external returns (uint[] memory amounts);\\n\\n\\tfunction swapTokensForExactTokens(\\n\\t\\tuint amountOut,\\n\\t\\tuint amountInMax,\\n\\t\\taddress[] calldata path,\\n\\t\\taddress to,\\n\\t\\tuint deadline\\n\\t) external returns (uint[] memory amounts);\\n}\\n\\n// File: contracts\\\\interfaces\\\\TokenInterfaceV5.sol\\n\\npragma solidity 0.8.15;\\n\\ninterface TokenInterfaceV5{\\n    function burn(address, uint256) external;\\n    function mint(address, uint256) external;\\n    function transfer(address, uint256) external returns (bool);\\n    function transferFrom(address, address, uint256) external returns(bool);\\n    function balanceOf(address) external view returns(uint256);\\n    function hasRole(bytes32, address) external view returns (bool);\\n    function approve(address, uint256) external returns (bool);\\n    function allowance(address, address) external view returns (uint256);\\n}\\n\\n// File: contracts\\\\interfaces\\\\NftInterfaceV5.sol\\n\\npragma solidity 0.8.15;\\n\\ninterface NftInterfaceV5{\\n    function balanceOf(address) external view returns (uint);\\n    function ownerOf(uint) external view returns (address);\\n    function transferFrom(address, address, uint) external;\\n    function tokenOfOwnerByIndex(address, uint) external view returns(uint);\\n}\\n\\n// File: contracts\\\\interfaces\\\\VaultInterfaceV5.sol\\n\\npragma solidity 0.8.15;\\n\\ninterface VaultInterfaceV5{\\n\\tfunction sendWETHToTrader(address, uint) external;\\n\\tfunction receiveWETHFromTrader(address, uint, uint) external;\\n\\tfunction currentBalanceWETH() external view returns(uint);\\n\\tfunction distributeRewardWETH(uint) external;\\n}\\n\\n// File: contracts\\\\interfaces\\\\PairsStorageInterfaceV6.sol\\n\\npragma solidity 0.8.15;\\n\\ninterface PairsStorageInterfaceV6{\\n    enum FeedCalculation { DEFAULT, INVERT, COMBINE }    // FEED 1, 1 / (FEED 1), (FEED 1)/(FEED 2)\\n    struct Feed{ address feed1; address feed2; FeedCalculation feedCalculation; uint maxDeviationP; } // PRECISION (%)\\n    function incrementCurrentOrderId() external returns(uint);\\n    function updateGroupCollateral(uint, uint, bool, bool) external;\\n    function pairJob(uint) external returns(string memory, string memory, bytes32, uint);\\n    function pairFeed(uint) external view returns(Feed memory);\\n    function pairSpreadP(uint) external view returns(uint);\\n    function pairMinLeverage(uint) external view returns(uint);\\n    function pairMaxLeverage(uint) external view returns(uint);\\n    function groupMaxCollateral(uint) external view returns(uint);\\n    function groupCollateral(uint, bool) external view returns(uint);\\n    function guaranteedSlEnabled(uint) external view returns(bool);\\n    function pairOpenFeeP(uint) external view returns(uint);\\n    function pairCloseFeeP(uint) external view returns(uint);\\n    function pairOracleFeeP(uint) external view returns(uint);\\n    function pairNftLimitOrderFeeP(uint) external view returns(uint);\\n    function pairReferralFeeP(uint) external view returns(uint);\\n    function pairMinLevPosWETH(uint) external view returns(uint);\\n}\\n\\n// File: contracts\\\\interfaces\\\\StorageInterfaceV5.sol\\n\\npragma solidity 0.8.15;\\n\\ninterface StorageInterfaceV5{\\n    enum LimitOrder { TP, SL, LIQ, OPEN }\\n    struct Trader{\\n        uint leverageUnlocked;\\n        address referral;\\n        uint referralRewardsTotal;  // 1e18\\n    }\\n    struct Trade{\\n        address trader;\\n        uint pairIndex;\\n        uint index;\\n        uint initialPosToken;       // 1e18\\n        uint positionSizeWETH;       // 1e18\\n        uint openPrice;             // PRECISION\\n        bool buy;\\n        uint leverage;\\n        uint tp;                    // PRECISION\\n        uint sl;                    // PRECISION\\n    }\\n    struct TradeInfo{\\n        uint tokenId;\\n        uint tokenPriceWETH;         // PRECISION\\n        uint openInterestWETH;       // 1e18\\n        uint tpLastUpdated;\\n        uint slLastUpdated;\\n        bool beingMarketClosed;\\n    }\\n    struct OpenLimitOrder{\\n        address trader;\\n        uint pairIndex;\\n        uint index;\\n        uint positionSize;          // 1e18 (WETH or GFARM2)\\n        uint spreadReductionP;\\n        bool buy;\\n        uint leverage;\\n        uint tp;                    // PRECISION (%)\\n        uint sl;                    // PRECISION (%)\\n        uint minPrice;              // PRECISION\\n        uint maxPrice;              // PRECISION\\n        uint block;\\n        uint tokenId;               // index in supportedTokens\\n    }\\n    struct PendingMarketOrder{\\n        Trade trade;\\n        uint block;\\n        uint wantedPrice;           // PRECISION\\n        uint slippageP;             // PRECISION (%)\\n        uint spreadReductionP;\\n        uint tokenId;               // index in supportedTokens\\n    }\\n    struct PendingNftOrder{\\n        address nftHolder;\\n        uint nftId;\\n        address trader;\\n        uint pairIndex;\\n        uint index;\\n        LimitOrder orderType;\\n    }\\n    function PRECISION() external pure returns(uint);\\n    function gov() external view returns(address);\\n    function dev() external view returns(address);\\n    function WETH() external view returns(TokenInterfaceV5);\\n    function token() external view returns(TokenInterfaceV5);\\n    function linkErc677() external view returns(TokenInterfaceV5);\\n    function tokenWETHRouter() external view returns(UniswapRouterInterfaceV5);\\n    function priceAggregator() external view returns(AggregatorInterfaceV6_2);\\n    function vault() external view returns(VaultInterfaceV5);\\n    function trading() external view returns(address);\\n    function callbacks() external view returns(address);\\n    function handleTokens(address,uint,bool) external;\\n    function transferWETH(address, address, uint) external;\\n    function transferLinkToAggregator(address, uint, uint) external;\\n    function unregisterTrade(address, uint, uint) external;\\n    function unregisterPendingMarketOrder(uint, bool) external;\\n    function unregisterOpenLimitOrder(address, uint, uint) external;\\n    function hasOpenLimitOrder(address, uint, uint) external view returns(bool);\\n    function storePendingMarketOrder(PendingMarketOrder memory, uint, bool) external;\\n    function storeReferral(address, address) external;\\n    function openTrades(address, uint, uint) external view returns(Trade memory);\\n    function openTradesInfo(address, uint, uint) external view returns(TradeInfo memory);\\n    function updateSl(address, uint, uint, uint) external;\\n    function updateTp(address, uint, uint, uint) external;\\n    function getOpenLimitOrder(address, uint, uint) external view returns(OpenLimitOrder memory);\\n    function spreadReductionsP(uint) external view returns(uint);\\n    function positionSizeTokenDynamic(uint,uint) external view returns(uint);\\n    function maxSlP() external view returns(uint);\\n    function storeOpenLimitOrder(OpenLimitOrder memory) external;\\n    function reqID_pendingMarketOrder(uint) external view returns(PendingMarketOrder memory);\\n    function storePendingNftOrder(PendingNftOrder memory, uint) external;\\n    function updateOpenLimitOrder(OpenLimitOrder calldata) external;\\n    function firstEmptyTradeIndex(address, uint) external view returns(uint);\\n    function firstEmptyOpenLimitIndex(address, uint) external view returns(uint);\\n    function increaseNftRewards(uint, uint) external;\\n    function nftSuccessTimelock() external view returns(uint);\\n    function currentPercentProfit(uint,uint,bool,uint) external view returns(int);\\n    function reqID_pendingNftOrder(uint) external view returns(PendingNftOrder memory);\\n    function setNftLastSuccess(uint) external;\\n    function updateTrade(Trade memory) external;\\n    function nftLastSuccess(uint) external view returns(uint);\\n    function unregisterPendingNftOrder(uint) external;\\n    function handleDevGovFees(uint, uint, bool, bool) external returns(uint);\\n    function distributeLpRewards(uint) external;\\n    function getReferral(address) external view returns(address);\\n    function increaseReferralRewards(address, uint) external;\\n    function storeTrade(Trade memory, TradeInfo memory) external;\\n    function setLeverageUnlocked(address, uint) external;\\n    function getLeverageUnlocked(address) external view returns(uint);\\n    function openLimitOrdersCount(address, uint) external view returns(uint);\\n    function maxOpenLimitOrdersPerPair() external view returns(uint);\\n    function openTradesCount(address, uint) external view returns(uint);\\n    function pendingMarketOpenCount(address, uint) external view returns(uint);\\n    function pendingMarketCloseCount(address, uint) external view returns(uint);\\n    function maxTradesPerPair() external view returns(uint);\\n    function maxTradesPerBlock() external view returns(uint);\\n    function tradesPerBlock(uint) external view returns(uint);\\n    function pendingOrderIdsCount(address) external view returns(uint);\\n    function maxPendingMarketOrders() external view returns(uint);\\n    function maxGainP() external view returns(uint);\\n    function defaultLeverageUnlocked() external view returns(uint);\\n    function openInterestWETH(uint, uint) external view returns(uint);\\n    function getPendingOrderIds(address) external view returns(uint[] memory);\\n    function traders(address) external view returns(Trader memory);\\n    function nfts(uint) external view returns(NftInterfaceV5);\\n}\\n\\ninterface AggregatorInterfaceV6_2{\\n    enum OrderType { MARKET_OPEN, MARKET_CLOSE, LIMIT_OPEN, LIMIT_CLOSE, UPDATE_SL }\\n    function pairsStorage() external view returns(PairsStorageInterfaceV6);\\n    function getPrice(uint,OrderType,uint) external returns(uint);\\n    function tokenPriceWETH() external returns(uint);\\n    function linkFee(uint,uint) external view returns(uint);\\n    function tokenWETHReservesLp() external view returns(uint, uint);\\n    function pendingSlOrders(uint) external view returns(PendingSl memory);\\n    function storePendingSlOrder(uint orderId, PendingSl calldata p) external;\\n    function unregisterPendingSlOrder(uint orderId) external;\\n    struct PendingSl{address trader; uint pairIndex; uint index; uint openPrice; bool buy; uint newSl; }\\n}\\n\\ninterface NftRewardsInterfaceV6{\\n    struct TriggeredLimitId{ address trader; uint pairIndex; uint index; StorageInterfaceV5.LimitOrder order; }\\n    enum OpenLimitOrderType{ LEGACY, REVERSAL, MOMENTUM }\\n    function storeFirstToTrigger(TriggeredLimitId calldata, address) external;\\n    function storeTriggerSameBlock(TriggeredLimitId calldata, address) external;\\n    function unregisterTrigger(TriggeredLimitId calldata) external;\\n    function distributeNftReward(TriggeredLimitId calldata, uint) external;\\n    function openLimitOrderTypes(address, uint, uint) external view returns(OpenLimitOrderType);\\n    function setOpenLimitOrderType(address, uint, uint, OpenLimitOrderType) external;\\n    function triggered(TriggeredLimitId calldata) external view returns(bool);\\n    function timedOut(TriggeredLimitId calldata) external view returns(bool);\\n}\\n\\n// File: contracts\\\\GNSReferralsV6_2.sol\\n\\npragma solidity 0.8.15;\\n\\ncontract GNSReferralsV6_2 {\\n\\n    // CONSTANTS\\n    uint constant PRECISION = 1e10;\\n    StorageInterfaceV5 public immutable storageT;\\n\\n    // ADJUSTABLE PARAMETERS\\n    uint public allyFeeP;           // % (of referrer fees going to allies, eg. 10)\\n    uint public startReferrerFeeP;  // % (of referrer fee when 0 volume referred, eg. 75)\\n    uint public openFeeP;           // % (of opening fee used for referral system, eg. 33)\\n    uint public targetVolumeWETH;    // WETH (to reach maximum referral system fee, eg. 1e8)\\n\\n    // CUSTOM TYPES\\n    struct AllyDetails{\\n        address[] referrersReferred;\\n        uint volumeReferredWETH;    // 1e18\\n        uint pendingRewardsToken;  // 1e18\\n        uint totalRewardsToken;    // 1e18\\n        uint totalRewardsValueWETH; // 1e18\\n        bool active;\\n    }\\n\\n    struct ReferrerDetails{\\n        address ally;\\n        address[] tradersReferred;\\n        uint volumeReferredWETH;    // 1e18\\n        uint pendingRewardsToken;  // 1e18\\n        uint totalRewardsToken;    // 1e18\\n        uint totalRewardsValueWETH; // 1e18\\n        bool active;\\n    }\\n\\n    // STATE (MAPPINGS)\\n    mapping(address => AllyDetails) public allyDetails;\\n    mapping(address => ReferrerDetails) public referrerDetails;\\n\\n    mapping(address => address) public referrerByTrader;\\n\\n    // EVENTS\\n    event UpdatedAllyFeeP(uint value);\\n    event UpdatedStartReferrerFeeP(uint value);\\n    event UpdatedOpenFeeP(uint value);\\n    event UpdatedTargetVolumeWETH(uint value);\\n\\n    event AllyWhitelisted(address indexed ally);\\n    event AllyUnwhitelisted(address indexed ally);\\n\\n    event ReferrerWhitelisted(\\n        address indexed referrer,\\n        address indexed ally\\n    );\\n    event ReferrerUnwhitelisted(address indexed referrer);\\n    event ReferrerRegistered(\\n        address indexed trader,\\n        address indexed referrer\\n    );\\n\\n    event AllyRewardDistributed(\\n        address indexed ally,\\n        address indexed trader,\\n        uint volumeWETH,\\n        uint amountToken,\\n        uint amountValueWETH\\n    );\\n    event ReferrerRewardDistributed(\\n        address indexed referrer,\\n        address indexed trader,\\n        uint volumeWETH,\\n        uint amountToken,\\n        uint amountValueWETH\\n    );\\n\\n    event AllyRewardsClaimed(\\n        address indexed ally,\\n        uint amountToken\\n    );\\n    event ReferrerRewardsClaimed(\\n        address indexed referrer,\\n        uint amountToken\\n    );\\n\\n    constructor(\\n        StorageInterfaceV5 _storageT,\\n        uint _allyFeeP,\\n        uint _startReferrerFeeP,\\n        uint _openFeeP,\\n        uint _targetVolumeWETH\\n    ){\\n        require(address(_storageT) != address(0)\\n            && _allyFeeP <= 50\\n            && _startReferrerFeeP <= 100\\n            && _openFeeP <= 50\\n            && _targetVolumeWETH > 0, \\\"WRONG_PARAMS\\\");\\n\\n        storageT = _storageT;\\n\\n        allyFeeP = _allyFeeP;\\n        startReferrerFeeP = _startReferrerFeeP;\\n        openFeeP = _openFeeP;\\n        targetVolumeWETH = _targetVolumeWETH;\\n    }\\n\\n    // MODIFIERS\\n    modifier onlyGov(){\\n        require(msg.sender == storageT.gov(), \\\"GOV_ONLY\\\");\\n        _;\\n    }\\n    modifier onlyTrading(){\\n        require(msg.sender == storageT.trading(), \\\"TRADING_ONLY\\\");\\n        _;\\n    }\\n    modifier onlyCallbacks(){\\n        require(msg.sender == storageT.callbacks(), \\\"CALLBACKS_ONLY\\\");\\n        _;\\n    }\\n\\n    // MANAGE PARAMETERS\\n    function updateAllyFeeP(uint value) external onlyGov{\\n        require(value <= 50, \\\"VALUE_ABOVE_50\\\");\\n\\n        allyFeeP = value;\\n        \\n        emit UpdatedAllyFeeP(value);\\n    }\\n    function updateStartReferrerFeeP(uint value) external onlyGov{\\n        require(value <= 100, \\\"VALUE_ABOVE_100\\\");\\n\\n        startReferrerFeeP = value;\\n\\n        emit UpdatedStartReferrerFeeP(value);\\n    }\\n    function updateOpenFeeP(uint value) external onlyGov{\\n        require(value <= 50, \\\"VALUE_ABOVE_50\\\");\\n\\n        openFeeP = value;\\n\\n        emit UpdatedOpenFeeP(value);\\n    }\\n    function updateTargetVolumeWETH(uint value) external onlyGov{\\n        require(value > 0, \\\"VALUE_0\\\");\\n\\n        targetVolumeWETH = value;\\n        \\n        emit UpdatedTargetVolumeWETH(value);\\n    }\\n\\n    // MANAGE ALLIES\\n    function whitelistAlly(address ally) external onlyGov{\\n        require(ally != address(0), \\\"ADDRESS_0\\\");\\n\\n        AllyDetails storage a = allyDetails[ally];\\n        require(!a.active, \\\"ALLY_ALREADY_ACTIVE\\\");\\n\\n        a.active = true;\\n\\n        emit AllyWhitelisted(ally);\\n    }\\n    function unwhitelistAlly(address ally) external onlyGov{\\n        AllyDetails storage a = allyDetails[ally];\\n        require(a.active, \\\"ALREADY_UNACTIVE\\\");\\n\\n        a.active = false;\\n\\n        emit AllyUnwhitelisted(ally);\\n    }\\n\\n    // MANAGE REFERRERS\\n    function whitelistReferrer(\\n        address referrer,\\n        address ally\\n    ) external onlyGov{\\n        \\n        require(referrer != address(0), \\\"ADDRESS_0\\\");\\n\\n        ReferrerDetails storage r = referrerDetails[referrer];      \\n        require(!r.active, \\\"REFERRER_ALREADY_ACTIVE\\\");\\n\\n        r.active = true;\\n        \\n        if(ally != address(0)){\\n            AllyDetails storage a = allyDetails[ally];\\n            require(a.active, \\\"ALLY_NOT_ACTIVE\\\");\\n\\n            r.ally = ally;\\n            a.referrersReferred.push(referrer);\\n        }\\n\\n        emit ReferrerWhitelisted(referrer, ally);\\n    }\\n    function unwhitelistReferrer(address referrer) external onlyGov{\\n        ReferrerDetails storage r = referrerDetails[referrer];\\n        require(r.active, \\\"ALREADY_UNACTIVE\\\");\\n\\n        r.active = false;\\n\\n        emit ReferrerUnwhitelisted(referrer);\\n    }\\n\\n    function registerPotentialReferrer(\\n        address trader,\\n        address referrer\\n    ) external onlyTrading{\\n\\n        ReferrerDetails storage r = referrerDetails[referrer];\\n\\n        if(referrerByTrader[trader] != address(0)\\n        || referrer == address(0)\\n        || !r.active){\\n            return;\\n        }\\n\\n        referrerByTrader[trader] = referrer;\\n        r.tradersReferred.push(trader);\\n\\n        emit ReferrerRegistered(trader, referrer);\\n    }\\n\\n    // REWARDS DISTRIBUTION\\n    function distributePotentialReward(\\n        address trader,\\n        uint volumeWETH,\\n        uint pairOpenFeeP,\\n        uint tokenPriceWETH\\n    ) external onlyCallbacks returns(uint){\\n\\n        address referrer = referrerByTrader[trader];\\n        ReferrerDetails storage r = referrerDetails[referrer];\\n\\n        if(!r.active){\\n            return 0;\\n        }\\n\\n        uint referrerRewardValueWETH = volumeWETH * getReferrerFeeP(\\n            pairOpenFeeP,\\n            r.volumeReferredWETH\\n        ) / PRECISION / 100;\\n\\n        uint referrerRewardToken = referrerRewardValueWETH * PRECISION / tokenPriceWETH;\\n\\n        storageT.handleTokens(address(this), referrerRewardToken, true);\\n\\n        AllyDetails storage a = allyDetails[r.ally];\\n        \\n        uint allyRewardValueWETH;\\n        uint allyRewardToken;\\n\\n        if(a.active){\\n            allyRewardValueWETH = referrerRewardValueWETH * allyFeeP / 100;\\n            allyRewardToken = referrerRewardToken * allyFeeP / 100;\\n\\n            a.volumeReferredWETH += volumeWETH;\\n            a.pendingRewardsToken += allyRewardToken;\\n            a.totalRewardsToken += allyRewardToken;\\n            a.totalRewardsValueWETH += allyRewardValueWETH;\\n\\n            referrerRewardValueWETH -= allyRewardValueWETH;\\n            referrerRewardToken -= allyRewardToken;\\n\\n            emit AllyRewardDistributed(\\n                r.ally,\\n                trader,\\n                volumeWETH,\\n                allyRewardToken,\\n                allyRewardValueWETH\\n            );\\n        }\\n\\n        r.volumeReferredWETH += volumeWETH;\\n        r.pendingRewardsToken += referrerRewardToken;\\n        r.totalRewardsToken += referrerRewardToken;\\n        r.totalRewardsValueWETH += referrerRewardValueWETH;\\n\\n        emit ReferrerRewardDistributed(\\n            referrer,\\n            trader,\\n            volumeWETH,\\n            referrerRewardToken,\\n            referrerRewardValueWETH\\n        );\\n\\n        return referrerRewardValueWETH + allyRewardValueWETH;\\n    }\\n\\n    // REWARDS CLAIMING\\n    function claimAllyRewards() external{\\n        AllyDetails storage a = allyDetails[msg.sender];\\n        uint rewardsToken = a.pendingRewardsToken;\\n        \\n        require(rewardsToken > 0, \\\"NO_PENDING_REWARDS\\\");\\n\\n        a.pendingRewardsToken = 0;\\n        storageT.token().transfer(msg.sender, rewardsToken);\\n\\n        emit AllyRewardsClaimed(msg.sender, rewardsToken);\\n    }\\n    function claimReferrerRewards() external{\\n        ReferrerDetails storage r = referrerDetails[msg.sender];\\n        uint rewardsToken = r.pendingRewardsToken;\\n        \\n        require(rewardsToken > 0, \\\"NO_PENDING_REWARDS\\\");\\n\\n        r.pendingRewardsToken = 0;\\n        storageT.token().transfer(msg.sender, rewardsToken);\\n\\n        emit ReferrerRewardsClaimed(msg.sender, rewardsToken);\\n    }\\n\\n    // VIEW FUNCTIONS\\n    function getReferrerFeeP(\\n        uint pairOpenFeeP,\\n        uint volumeReferredWETH\\n    ) public view returns(uint){\\n\\n        uint maxReferrerFeeP = pairOpenFeeP * 2 * openFeeP / 100;\\n        uint minFeeP = maxReferrerFeeP * startReferrerFeeP / 100;\\n\\n        uint feeP = minFeeP + (maxReferrerFeeP - minFeeP)\\n            * volumeReferredWETH / 1e18 / targetVolumeWETH;\\n\\n        return feeP > maxReferrerFeeP ? maxReferrerFeeP : feeP;\\n    }\\n\\n    function getPercentOfOpenFeeP(\\n        address trader\\n    ) external view returns(uint){\\n        return getPercentOfOpenFeeP_calc(referrerDetails[referrerByTrader[trader]].volumeReferredWETH);\\n    }\\n\\n    function getPercentOfOpenFeeP_calc(\\n        uint volumeReferredWETH\\n    ) public view returns(uint resultP){\\n        resultP = (openFeeP * (\\n            startReferrerFeeP * PRECISION +\\n            volumeReferredWETH * PRECISION * (100 - startReferrerFeeP) / 1e18 / targetVolumeWETH)\\n        ) / 100;\\n\\n        resultP = resultP > openFeeP * PRECISION ?\\n            openFeeP * PRECISION :\\n            resultP;\\n    }\\n\\n    function getTraderReferrer(\\n        address trader\\n    ) external view returns(address){\\n        address referrer = referrerByTrader[trader];\\n\\n        return referrerDetails[referrer].active ? referrer : address(0);\\n    }\\n    function getReferrersReferred(\\n        address ally\\n    ) external view returns (address[] memory){\\n        return allyDetails[ally].referrersReferred;\\n    }\\n    function getTradersReferred(\\n        address referred\\n    ) external view returns (address[] memory){\\n        return referrerDetails[referred].tradersReferred;\\n    }\\n}\",\"keccak256\":\"0x3a3c655f89ecdbeada1082a373dbf4a3cb963dddd6b8474072c5298c12bc31be\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60a06040523480156200001157600080fd5b5060405162001ec738038062001ec78339810160408190526200003491620000da565b6001600160a01b038516158015906200004e575060328411155b80156200005c575060648311155b80156200006a575060328211155b8015620000775750600081115b620000b75760405162461bcd60e51b815260206004820152600c60248201526b57524f4e475f504152414d5360a01b604482015260640160405180910390fd5b6001600160a01b0390941660805260009290925560015560025560035562000131565b600080600080600060a08688031215620000f357600080fd5b85516001600160a01b03811681146200010b57600080fd5b602087015160408801516060890151608090990151929a91995097965090945092505050565b608051611d1f620001a86000396000818161018d0152818161045a015281816106f00152818161085d01528181610a4101528181610b6201528181610c9401528181610d9c01528181610fb7015281816111820152818161130e0152818161158601528181611802015261192a0152611d1f6000f3fe608060405234801561001057600080fd5b506004361061016e5760003560e01c806394df2c7c116100ce578063c3160c6811610087578063c3160c68146103d2578063c36acccd146103e5578063df374a9b1461040e578063e78c6fd214610417578063ea61c6021461042a578063ee6cf8841461043d578063f79ad43e1461044557600080fd5b806394df2c7c1461036a57806397365b741461037d5780639b8ab68414610390578063a6a7d393146103a3578063a73a3e35146103ac578063bc786541146103bf57600080fd5b806355c780281161012b57806355c780281461022957806365ae45271461023c57806365cbd307146102aa57806369c82c28146102b25780636a83de79146102bb5780637792a23114610344578063917abb961461035757600080fd5b806303e374641461017357806316fff074146101885780631727e82d146101cc578063201ad16d146101e357806332a7b732146101f65780634e583b3114610216575b600080fd5b610186610181366004611a30565b610458565b005b6101af7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b6101d560015481565b6040519081526020016101c3565b6101d56101f1366004611a61565b610592565b610209610204366004611a61565b6105ce565b6040516101c39190611a7e565b6101d5610224366004611acb565b610647565b610186610237366004611a61565b6106ee565b61028061024a366004611a61565b60046020819052600091825260409091206001810154600282015460038301549383015460059093015491939092909160ff1685565b6040805195865260208601949094529284019190915260608301521515608082015260a0016101c3565b610186610820565b6101d560035481565b61030b6102c9366004611a61565b60056020819052600091825260409091208054600282015460038301546004840154948401546006909401546001600160a01b03909316949193909260ff1686565b604080516001600160a01b03909716875260208701959095529385019290925260608401526080830152151560a082015260c0016101c3565b6101d5610352366004611a30565b61098b565b610186610365366004611a30565b610a3f565b610186610378366004611a61565b610b60565b61018661038b366004611a30565b610c92565b61018661039e366004611aed565b610d9a565b6101d560005481565b6102096103ba366004611a61565b610f41565b6101866103cd366004611a61565b610fb5565b6101af6103e0366004611a61565b611137565b6101af6103f3366004611a61565b6006602052600090815260409020546001600160a01b031681565b6101d560025481565b6101d5610425366004611b26565b61117e565b610186610438366004611aed565b611584565b6101866117c5565b610186610453366004611a30565b611928565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa1580156104b6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104da9190611b61565b6001600160a01b0316336001600160a01b0316146105135760405162461bcd60e51b815260040161050a90611b7e565b60405180910390fd5b60648111156105565760405162461bcd60e51b815260206004820152600f60248201526e056414c55455f41424f56455f31303608c1b604482015260640161050a565b60018190556040518181527fb85b70acaeb40f1a2351367c48842ee0ea24ec05d411d99d80bf7a020c0dbb0f906020015b60405180910390a150565b6001600160a01b03808216600090815260066020908152604080832054909316825260059052908120600201546105c89061098b565b92915050565b6001600160a01b03811660009081526005602090815260409182902060010180548351818402810184019094528084526060939283018282801561063b57602002820191906000526020600020905b81546001600160a01b0316815260019091019060200180831161061d575b50505050509050919050565b600080606460025485600261065c9190611bb6565b6106669190611bb6565b6106709190611bd5565b905060006064600154836106849190611bb6565b61068e9190611bd5565b90506000600354670de0b6b3a76400008684866106ab9190611bf7565b6106b59190611bb6565b6106bf9190611bd5565b6106c99190611bd5565b6106d39083611c0e565b90508281116106e257806106e4565b825b9695505050505050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa15801561074c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107709190611b61565b6001600160a01b0316336001600160a01b0316146107a05760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b0381166000908152600560205260409020600681015460ff166107dc5760405162461bcd60e51b815260040161050a90611c26565b60068101805460ff191690556040516001600160a01b038316907f6dd169357c2e2b04fd13a8807a11892b88875b7c70eeb73c3b6642c58516f0db90600090a25050565b3360009081526005602052604090206003810154806108515760405162461bcd60e51b815260040161050a90611c50565b600082600301819055507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663fc0c546a6040518163ffffffff1660e01b8152600401602060405180830381865afa1580156108b9573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108dd9190611b61565b60405163a9059cbb60e01b8152336004820152602481018390526001600160a01b03919091169063a9059cbb906044016020604051808303816000875af115801561092c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109509190611c7c565b5060405181815233907f25deb48f8299e9863bda34f0d343d51341ac7ac30bf63dbeb2e8212bc4a20bf1906020015b60405180910390a25050565b60006064600354670de0b6b3a764000060015460646109aa9190611bf7565b6109b96402540be40087611bb6565b6109c39190611bb6565b6109cd9190611bd5565b6109d79190611bd5565b6402540be4006001546109ea9190611bb6565b6109f49190611c0e565b600254610a019190611bb6565b610a0b9190611bd5565b90506402540be400600254610a209190611bb6565b8111610a2c57806105c8565b6402540be4006002546105c89190611bb6565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015610a9d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ac19190611b61565b6001600160a01b0316336001600160a01b031614610af15760405162461bcd60e51b815260040161050a90611b7e565b60008111610b2b5760405162461bcd60e51b8152602060048201526007602482015266056414c55455f360cc1b604482015260640161050a565b60038190556040518181527f383f05765c0b91a6aeaa9d95c63a0ac5b7cb19371e33e2aa1e3cac3f443dce5390602001610587565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015610bbe573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610be29190611b61565b6001600160a01b0316336001600160a01b031614610c125760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b0381166000908152600460205260409020600581015460ff16610c4e5760405162461bcd60e51b815260040161050a90611c26565b60058101805460ff191690556040516001600160a01b038316907f6900afc1a924abca16a7f560e2dac3d71008c1cd1d88de8a85b6e4267116d18690600090a25050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015610cf0573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d149190611b61565b6001600160a01b0316336001600160a01b031614610d445760405162461bcd60e51b815260040161050a90611b7e565b6032811115610d655760405162461bcd60e51b815260040161050a90611c9e565b60008190556040518181527f2f33e68d48a82acaa58e3dcb12a4c7738cdfe7041d35f0e29ec8c39b780b370c90602001610587565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663ec44acf26040518163ffffffff1660e01b8152600401602060405180830381865afa158015610df8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e1c9190611b61565b6001600160a01b0316336001600160a01b031614610e6b5760405162461bcd60e51b815260206004820152600c60248201526b54524144494e475f4f4e4c5960a01b604482015260640161050a565b6001600160a01b0380821660009081526005602090815260408083208685168452600690925290912054909116151580610eac57506001600160a01b038216155b80610ebc5750600681015460ff16155b15610ec657505050565b6001600160a01b03808416600081815260066020908152604080832080549588166001600160a01b0319968716811790915560018781018054918201815585529284209092018054909516841790945592517f0e67f4bbcd5c51b7365ca2dd861dc8094e393ca60de2ceae9d831761a839e92a9190a3505050565b6001600160a01b03811660009081526004602090815260409182902080548351818402810184019094528084526060939283018282801561063b576020028201919060005260206000209081546001600160a01b0316815260019091019060200180831161061d5750505050509050919050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015611013573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906110379190611b61565b6001600160a01b0316336001600160a01b0316146110675760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b03811661108d5760405162461bcd60e51b815260040161050a90611cc6565b6001600160a01b0381166000908152600460205260409020600581015460ff16156110f05760405162461bcd60e51b8152602060048201526013602482015272414c4c595f414c52454144595f41435449564560681b604482015260640161050a565b60058101805460ff191660011790556040516001600160a01b038316907f80495287b7fdd5e00b7c8c1eb065c5b63474d11ffb062cc82c13da77dda8424d90600090a25050565b6001600160a01b038082166000908152600660208181526040808420549094168084526005909152928220015490919060ff16611175576000611177565b805b9392505050565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031662b127836040518163ffffffff1660e01b8152600401602060405180830381865afa1580156111dd573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906112019190611b61565b6001600160a01b0316336001600160a01b0316146112525760405162461bcd60e51b815260206004820152600e60248201526d43414c4c4241434b535f4f4e4c5960901b604482015260640161050a565b6001600160a01b038086166000908152600660208181526040808420549094168084526005909152929091209081015460ff166112945760009250505061157c565b600060646402540be4006112ac888560020154610647565b6112b6908a611bb6565b6112c09190611bd5565b6112ca9190611bd5565b90506000856112de6402540be40084611bb6565b6112e89190611bd5565b6040516329bc0a1f60e11b815230600482015260248101829052600160448201529091507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690635378143e90606401600060405180830381600087803b15801561135a57600080fd5b505af115801561136e573d6000803e3d6000fd5b505084546001600160a01b031660009081526004602052604081206005810154909350909150819060ff16156114ad576064600054866113ae9190611bb6565b6113b89190611bd5565b91506064600054856113ca9190611bb6565b6113d49190611bd5565b90508a8360010160008282546113ea9190611c0e565b92505081905550808360020160008282546114059190611c0e565b92505081905550808360030160008282546114209190611c0e565b925050819055508183600401600082825461143b9190611c0e565b9091555061144b90508286611bf7565b94506114578185611bf7565b8654604080518e8152602081018590529081018590529195506001600160a01b038e8116929116907f0d54fedb563328d37f00fe5ba0bf7689519f8cf02318562adfe7b4bfab8cf4b49060600160405180910390a35b8a8660020160008282546114c19190611c0e565b92505081905550838660030160008282546114dc9190611c0e565b92505081905550838660040160008282546114f79190611c0e565b92505081905550848660050160008282546115129190611c0e565b9091555050604080518c8152602081018690529081018690526001600160a01b03808e1691908916907f74e9754b45c636e199e3d7bb764fae1a9acce47a984d10dcfd74849ec4babc4f9060600160405180910390a36115728286611c0e565b9750505050505050505b949350505050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa1580156115e2573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906116069190611b61565b6001600160a01b0316336001600160a01b0316146116365760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b03821661165c5760405162461bcd60e51b815260040161050a90611cc6565b6001600160a01b0382166000908152600560205260409020600681015460ff16156116c35760405162461bcd60e51b815260206004820152601760248201527652454645525245525f414c52454144595f41435449564560481b604482015260640161050a565b60068101805460ff191660011790556001600160a01b03821615611780576001600160a01b0382166000908152600460205260409020600581015460ff1661173f5760405162461bcd60e51b815260206004820152600f60248201526e414c4c595f4e4f545f41435449564560881b604482015260640161050a565b81546001600160a01b038085166001600160a01b03199283161784558254600181018455600093845260209093209092018054928616929091169190911790555b816001600160a01b0316836001600160a01b03167f15ad1d28b052a6cc2dd1d34d9e06a1847055d520e2163017e6e8aad6431b7f6a60405160405180910390a3505050565b3360009081526004602052604090206002810154806117f65760405162461bcd60e51b815260040161050a90611c50565b600082600201819055507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663fc0c546a6040518163ffffffff1660e01b8152600401602060405180830381865afa15801561185e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906118829190611b61565b60405163a9059cbb60e01b8152336004820152602481018390526001600160a01b03919091169063a9059cbb906044016020604051808303816000875af11580156118d1573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906118f59190611c7c565b5060405181815233907f3dfe9be199655709d01d635bf441264a809a090c98ed7aae9abdc85f7dcbc09d9060200161097f565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015611986573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906119aa9190611b61565b6001600160a01b0316336001600160a01b0316146119da5760405162461bcd60e51b815260040161050a90611b7e565b60328111156119fb5760405162461bcd60e51b815260040161050a90611c9e565b60028190556040518181527f4dec17ad9a229f707b7c2fb9531cd3b9c548f9eca80c03457ca38a0bb1df35fe90602001610587565b600060208284031215611a4257600080fd5b5035919050565b6001600160a01b0381168114611a5e57600080fd5b50565b600060208284031215611a7357600080fd5b813561117781611a49565b6020808252825182820181905260009190848201906040850190845b81811015611abf5783516001600160a01b031683529284019291840191600101611a9a565b50909695505050505050565b60008060408385031215611ade57600080fd5b50508035926020909101359150565b60008060408385031215611b0057600080fd5b8235611b0b81611a49565b91506020830135611b1b81611a49565b809150509250929050565b60008060008060808587031215611b3c57600080fd5b8435611b4781611a49565b966020860135965060408601359560600135945092505050565b600060208284031215611b7357600080fd5b815161117781611a49565b602080825260089082015267474f565f4f4e4c5960c01b604082015260600190565b634e487b7160e01b600052601160045260246000fd5b6000816000190483118215151615611bd057611bd0611ba0565b500290565b600082611bf257634e487b7160e01b600052601260045260246000fd5b500490565b600082821015611c0957611c09611ba0565b500390565b60008219821115611c2157611c21611ba0565b500190565b60208082526010908201526f414c52454144595f554e41435449564560801b604082015260600190565b6020808252601290820152714e4f5f50454e44494e475f5245574152445360701b604082015260600190565b600060208284031215611c8e57600080fd5b8151801515811461117757600080fd5b6020808252600e908201526d056414c55455f41424f56455f35360941b604082015260600190565b6020808252600990820152680414444524553535f360bc1b60408201526060019056fea26469706673582212209e104c72a5f8db529e198b7887e6a9a17845d7a693d0d885d2aed3fe64f7beb364736f6c634300080f0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061016e5760003560e01c806394df2c7c116100ce578063c3160c6811610087578063c3160c68146103d2578063c36acccd146103e5578063df374a9b1461040e578063e78c6fd214610417578063ea61c6021461042a578063ee6cf8841461043d578063f79ad43e1461044557600080fd5b806394df2c7c1461036a57806397365b741461037d5780639b8ab68414610390578063a6a7d393146103a3578063a73a3e35146103ac578063bc786541146103bf57600080fd5b806355c780281161012b57806355c780281461022957806365ae45271461023c57806365cbd307146102aa57806369c82c28146102b25780636a83de79146102bb5780637792a23114610344578063917abb961461035757600080fd5b806303e374641461017357806316fff074146101885780631727e82d146101cc578063201ad16d146101e357806332a7b732146101f65780634e583b3114610216575b600080fd5b610186610181366004611a30565b610458565b005b6101af7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b6101d560015481565b6040519081526020016101c3565b6101d56101f1366004611a61565b610592565b610209610204366004611a61565b6105ce565b6040516101c39190611a7e565b6101d5610224366004611acb565b610647565b610186610237366004611a61565b6106ee565b61028061024a366004611a61565b60046020819052600091825260409091206001810154600282015460038301549383015460059093015491939092909160ff1685565b6040805195865260208601949094529284019190915260608301521515608082015260a0016101c3565b610186610820565b6101d560035481565b61030b6102c9366004611a61565b60056020819052600091825260409091208054600282015460038301546004840154948401546006909401546001600160a01b03909316949193909260ff1686565b604080516001600160a01b03909716875260208701959095529385019290925260608401526080830152151560a082015260c0016101c3565b6101d5610352366004611a30565b61098b565b610186610365366004611a30565b610a3f565b610186610378366004611a61565b610b60565b61018661038b366004611a30565b610c92565b61018661039e366004611aed565b610d9a565b6101d560005481565b6102096103ba366004611a61565b610f41565b6101866103cd366004611a61565b610fb5565b6101af6103e0366004611a61565b611137565b6101af6103f3366004611a61565b6006602052600090815260409020546001600160a01b031681565b6101d560025481565b6101d5610425366004611b26565b61117e565b610186610438366004611aed565b611584565b6101866117c5565b610186610453366004611a30565b611928565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa1580156104b6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104da9190611b61565b6001600160a01b0316336001600160a01b0316146105135760405162461bcd60e51b815260040161050a90611b7e565b60405180910390fd5b60648111156105565760405162461bcd60e51b815260206004820152600f60248201526e056414c55455f41424f56455f31303608c1b604482015260640161050a565b60018190556040518181527fb85b70acaeb40f1a2351367c48842ee0ea24ec05d411d99d80bf7a020c0dbb0f906020015b60405180910390a150565b6001600160a01b03808216600090815260066020908152604080832054909316825260059052908120600201546105c89061098b565b92915050565b6001600160a01b03811660009081526005602090815260409182902060010180548351818402810184019094528084526060939283018282801561063b57602002820191906000526020600020905b81546001600160a01b0316815260019091019060200180831161061d575b50505050509050919050565b600080606460025485600261065c9190611bb6565b6106669190611bb6565b6106709190611bd5565b905060006064600154836106849190611bb6565b61068e9190611bd5565b90506000600354670de0b6b3a76400008684866106ab9190611bf7565b6106b59190611bb6565b6106bf9190611bd5565b6106c99190611bd5565b6106d39083611c0e565b90508281116106e257806106e4565b825b9695505050505050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa15801561074c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107709190611b61565b6001600160a01b0316336001600160a01b0316146107a05760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b0381166000908152600560205260409020600681015460ff166107dc5760405162461bcd60e51b815260040161050a90611c26565b60068101805460ff191690556040516001600160a01b038316907f6dd169357c2e2b04fd13a8807a11892b88875b7c70eeb73c3b6642c58516f0db90600090a25050565b3360009081526005602052604090206003810154806108515760405162461bcd60e51b815260040161050a90611c50565b600082600301819055507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663fc0c546a6040518163ffffffff1660e01b8152600401602060405180830381865afa1580156108b9573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108dd9190611b61565b60405163a9059cbb60e01b8152336004820152602481018390526001600160a01b03919091169063a9059cbb906044016020604051808303816000875af115801561092c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109509190611c7c565b5060405181815233907f25deb48f8299e9863bda34f0d343d51341ac7ac30bf63dbeb2e8212bc4a20bf1906020015b60405180910390a25050565b60006064600354670de0b6b3a764000060015460646109aa9190611bf7565b6109b96402540be40087611bb6565b6109c39190611bb6565b6109cd9190611bd5565b6109d79190611bd5565b6402540be4006001546109ea9190611bb6565b6109f49190611c0e565b600254610a019190611bb6565b610a0b9190611bd5565b90506402540be400600254610a209190611bb6565b8111610a2c57806105c8565b6402540be4006002546105c89190611bb6565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015610a9d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ac19190611b61565b6001600160a01b0316336001600160a01b031614610af15760405162461bcd60e51b815260040161050a90611b7e565b60008111610b2b5760405162461bcd60e51b8152602060048201526007602482015266056414c55455f360cc1b604482015260640161050a565b60038190556040518181527f383f05765c0b91a6aeaa9d95c63a0ac5b7cb19371e33e2aa1e3cac3f443dce5390602001610587565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015610bbe573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610be29190611b61565b6001600160a01b0316336001600160a01b031614610c125760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b0381166000908152600460205260409020600581015460ff16610c4e5760405162461bcd60e51b815260040161050a90611c26565b60058101805460ff191690556040516001600160a01b038316907f6900afc1a924abca16a7f560e2dac3d71008c1cd1d88de8a85b6e4267116d18690600090a25050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015610cf0573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d149190611b61565b6001600160a01b0316336001600160a01b031614610d445760405162461bcd60e51b815260040161050a90611b7e565b6032811115610d655760405162461bcd60e51b815260040161050a90611c9e565b60008190556040518181527f2f33e68d48a82acaa58e3dcb12a4c7738cdfe7041d35f0e29ec8c39b780b370c90602001610587565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663ec44acf26040518163ffffffff1660e01b8152600401602060405180830381865afa158015610df8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e1c9190611b61565b6001600160a01b0316336001600160a01b031614610e6b5760405162461bcd60e51b815260206004820152600c60248201526b54524144494e475f4f4e4c5960a01b604482015260640161050a565b6001600160a01b0380821660009081526005602090815260408083208685168452600690925290912054909116151580610eac57506001600160a01b038216155b80610ebc5750600681015460ff16155b15610ec657505050565b6001600160a01b03808416600081815260066020908152604080832080549588166001600160a01b0319968716811790915560018781018054918201815585529284209092018054909516841790945592517f0e67f4bbcd5c51b7365ca2dd861dc8094e393ca60de2ceae9d831761a839e92a9190a3505050565b6001600160a01b03811660009081526004602090815260409182902080548351818402810184019094528084526060939283018282801561063b576020028201919060005260206000209081546001600160a01b0316815260019091019060200180831161061d5750505050509050919050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015611013573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906110379190611b61565b6001600160a01b0316336001600160a01b0316146110675760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b03811661108d5760405162461bcd60e51b815260040161050a90611cc6565b6001600160a01b0381166000908152600460205260409020600581015460ff16156110f05760405162461bcd60e51b8152602060048201526013602482015272414c4c595f414c52454144595f41435449564560681b604482015260640161050a565b60058101805460ff191660011790556040516001600160a01b038316907f80495287b7fdd5e00b7c8c1eb065c5b63474d11ffb062cc82c13da77dda8424d90600090a25050565b6001600160a01b038082166000908152600660208181526040808420549094168084526005909152928220015490919060ff16611175576000611177565b805b9392505050565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031662b127836040518163ffffffff1660e01b8152600401602060405180830381865afa1580156111dd573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906112019190611b61565b6001600160a01b0316336001600160a01b0316146112525760405162461bcd60e51b815260206004820152600e60248201526d43414c4c4241434b535f4f4e4c5960901b604482015260640161050a565b6001600160a01b038086166000908152600660208181526040808420549094168084526005909152929091209081015460ff166112945760009250505061157c565b600060646402540be4006112ac888560020154610647565b6112b6908a611bb6565b6112c09190611bd5565b6112ca9190611bd5565b90506000856112de6402540be40084611bb6565b6112e89190611bd5565b6040516329bc0a1f60e11b815230600482015260248101829052600160448201529091507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690635378143e90606401600060405180830381600087803b15801561135a57600080fd5b505af115801561136e573d6000803e3d6000fd5b505084546001600160a01b031660009081526004602052604081206005810154909350909150819060ff16156114ad576064600054866113ae9190611bb6565b6113b89190611bd5565b91506064600054856113ca9190611bb6565b6113d49190611bd5565b90508a8360010160008282546113ea9190611c0e565b92505081905550808360020160008282546114059190611c0e565b92505081905550808360030160008282546114209190611c0e565b925050819055508183600401600082825461143b9190611c0e565b9091555061144b90508286611bf7565b94506114578185611bf7565b8654604080518e8152602081018590529081018590529195506001600160a01b038e8116929116907f0d54fedb563328d37f00fe5ba0bf7689519f8cf02318562adfe7b4bfab8cf4b49060600160405180910390a35b8a8660020160008282546114c19190611c0e565b92505081905550838660030160008282546114dc9190611c0e565b92505081905550838660040160008282546114f79190611c0e565b92505081905550848660050160008282546115129190611c0e565b9091555050604080518c8152602081018690529081018690526001600160a01b03808e1691908916907f74e9754b45c636e199e3d7bb764fae1a9acce47a984d10dcfd74849ec4babc4f9060600160405180910390a36115728286611c0e565b9750505050505050505b949350505050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa1580156115e2573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906116069190611b61565b6001600160a01b0316336001600160a01b0316146116365760405162461bcd60e51b815260040161050a90611b7e565b6001600160a01b03821661165c5760405162461bcd60e51b815260040161050a90611cc6565b6001600160a01b0382166000908152600560205260409020600681015460ff16156116c35760405162461bcd60e51b815260206004820152601760248201527652454645525245525f414c52454144595f41435449564560481b604482015260640161050a565b60068101805460ff191660011790556001600160a01b03821615611780576001600160a01b0382166000908152600460205260409020600581015460ff1661173f5760405162461bcd60e51b815260206004820152600f60248201526e414c4c595f4e4f545f41435449564560881b604482015260640161050a565b81546001600160a01b038085166001600160a01b03199283161784558254600181018455600093845260209093209092018054928616929091169190911790555b816001600160a01b0316836001600160a01b03167f15ad1d28b052a6cc2dd1d34d9e06a1847055d520e2163017e6e8aad6431b7f6a60405160405180910390a3505050565b3360009081526004602052604090206002810154806117f65760405162461bcd60e51b815260040161050a90611c50565b600082600201819055507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663fc0c546a6040518163ffffffff1660e01b8152600401602060405180830381865afa15801561185e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906118829190611b61565b60405163a9059cbb60e01b8152336004820152602481018390526001600160a01b03919091169063a9059cbb906044016020604051808303816000875af11580156118d1573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906118f59190611c7c565b5060405181815233907f3dfe9be199655709d01d635bf441264a809a090c98ed7aae9abdc85f7dcbc09d9060200161097f565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03166312d43a516040518163ffffffff1660e01b8152600401602060405180830381865afa158015611986573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906119aa9190611b61565b6001600160a01b0316336001600160a01b0316146119da5760405162461bcd60e51b815260040161050a90611b7e565b60328111156119fb5760405162461bcd60e51b815260040161050a90611c9e565b60028190556040518181527f4dec17ad9a229f707b7c2fb9531cd3b9c548f9eca80c03457ca38a0bb1df35fe90602001610587565b600060208284031215611a4257600080fd5b5035919050565b6001600160a01b0381168114611a5e57600080fd5b50565b600060208284031215611a7357600080fd5b813561117781611a49565b6020808252825182820181905260009190848201906040850190845b81811015611abf5783516001600160a01b031683529284019291840191600101611a9a565b50909695505050505050565b60008060408385031215611ade57600080fd5b50508035926020909101359150565b60008060408385031215611b0057600080fd5b8235611b0b81611a49565b91506020830135611b1b81611a49565b809150509250929050565b60008060008060808587031215611b3c57600080fd5b8435611b4781611a49565b966020860135965060408601359560600135945092505050565b600060208284031215611b7357600080fd5b815161117781611a49565b602080825260089082015267474f565f4f4e4c5960c01b604082015260600190565b634e487b7160e01b600052601160045260246000fd5b6000816000190483118215151615611bd057611bd0611ba0565b500290565b600082611bf257634e487b7160e01b600052601260045260246000fd5b500490565b600082821015611c0957611c09611ba0565b500390565b60008219821115611c2157611c21611ba0565b500190565b60208082526010908201526f414c52454144595f554e41435449564560801b604082015260600190565b6020808252601290820152714e4f5f50454e44494e475f5245574152445360701b604082015260600190565b600060208284031215611c8e57600080fd5b8151801515811461117757600080fd5b6020808252600e908201526d056414c55455f41424f56455f35360941b604082015260600190565b6020808252600990820152680414444524553535f360bc1b60408201526060019056fea26469706673582212209e104c72a5f8db529e198b7887e6a9a17845d7a693d0d885d2aed3fe64f7beb364736f6c634300080f0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 1074,
+        "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+        "label": "allyFeeP",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1076,
+        "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+        "label": "startReferrerFeeP",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1078,
+        "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+        "label": "openFeeP",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1080,
+        "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+        "label": "targetVolumeWETH",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1115,
+        "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+        "label": "allyDetails",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_address,t_struct(AllyDetails)1094_storage)"
+      },
+      {
+        "astId": 1120,
+        "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+        "label": "referrerDetails",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_address,t_struct(ReferrerDetails)1110_storage)"
+      },
+      {
+        "astId": 1124,
+        "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+        "label": "referrerByTrader",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_mapping(t_address,t_address)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)dyn_storage": {
+        "base": "t_address",
+        "encoding": "dynamic_array",
+        "label": "address[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_address,t_address)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_address,t_struct(AllyDetails)1094_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct GNSReferralsV6_2.AllyDetails)",
+        "numberOfBytes": "32",
+        "value": "t_struct(AllyDetails)1094_storage"
+      },
+      "t_mapping(t_address,t_struct(ReferrerDetails)1110_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct GNSReferralsV6_2.ReferrerDetails)",
+        "numberOfBytes": "32",
+        "value": "t_struct(ReferrerDetails)1110_storage"
+      },
+      "t_struct(AllyDetails)1094_storage": {
+        "encoding": "inplace",
+        "label": "struct GNSReferralsV6_2.AllyDetails",
+        "members": [
+          {
+            "astId": 1083,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "referrersReferred",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_address)dyn_storage"
+          },
+          {
+            "astId": 1085,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "volumeReferredWETH",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1087,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "pendingRewardsToken",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1089,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "totalRewardsToken",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1091,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "totalRewardsValueWETH",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1093,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "active",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_bool"
+          }
+        ],
+        "numberOfBytes": "192"
+      },
+      "t_struct(ReferrerDetails)1110_storage": {
+        "encoding": "inplace",
+        "label": "struct GNSReferralsV6_2.ReferrerDetails",
+        "members": [
+          {
+            "astId": 1096,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "ally",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address"
+          },
+          {
+            "astId": 1099,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "tradersReferred",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_address)dyn_storage"
+          },
+          {
+            "astId": 1101,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "volumeReferredWETH",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1103,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "pendingRewardsToken",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1105,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "totalRewardsToken",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1107,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "totalRewardsValueWETH",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 1109,
+            "contract": "contracts/contracts6_2/GNSReferralsV6_2.sol:GNSReferralsV6_2",
+            "label": "active",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_bool"
+          }
+        ],
+        "numberOfBytes": "224"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

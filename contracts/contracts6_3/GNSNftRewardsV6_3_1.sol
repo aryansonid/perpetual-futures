@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT
+
+///DEPLOY need storage 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import '../contract5/interfaces/StorageInterfaceV5.sol';
@@ -174,13 +176,13 @@ contract GNSNftRewardsV6_3_1 is Initializable {
     }
 
     // Distribute rewards
-    function distributeNftReward(TriggeredLimitId calldata _id, uint _reward, uint _tokenPriceDai) external onlyCallbacks{
+    function distributeNftReward(TriggeredLimitId calldata _id, uint _reward, uint _tokenPriceWETH) external onlyCallbacks{
         TriggeredLimit memory t = triggeredLimits[_id.trader][_id.pairIndex][_id.index][_id.order];
 
         require(t.block > 0, "NOT_TRIGGERED");
 
         uint nextRound = currentRound + 1;
-        uint linkEquivalentRewards = linkToTokenRewards(t.linkFee, _tokenPriceDai); // amount of link spent in gns
+        uint linkEquivalentRewards = linkToTokenRewards(t.linkFee, _tokenPriceWETH); // amount of link spent in gns
 
         // if we've somehow ended up with an odd rate revert to using full rewards
         if (linkEquivalentRewards > _reward)

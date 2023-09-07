@@ -56,10 +56,10 @@ interface NftInterfaceV5{
 pragma solidity 0.8.14;
 
 interface VaultInterfaceV5{
-	function sendDaiToTrader(address, uint) external;
-	function receiveDaiFromTrader(address, uint, uint) external;
-	function currentBalanceDai() external view returns(uint);
-	function distributeRewardDai(uint) external;
+	function sendWETHToTrader(address, uint) external;
+	function receiveWETHFromTrader(address, uint, uint) external;
+	function currentBalanceWETH() external view returns(uint);
+	function distributeRewardWETH(uint) external;
 }
 
 // File: contracts\interfaces\PairsStorageInterfaceV6.sol
@@ -84,7 +84,7 @@ interface PairsStorageInterfaceV6{
     function pairOracleFeeP(uint) external view returns(uint);
     function pairNftLimitOrderFeeP(uint) external view returns(uint);
     function pairReferralFeeP(uint) external view returns(uint);
-    function pairMinLevPosDai(uint) external view returns(uint);
+    function pairMinLevPosWETH(uint) external view returns(uint);
 }
 
 // File: contracts\interfaces\StorageInterfaceV5.sol
@@ -103,7 +103,7 @@ interface StorageInterfaceV5{
         uint pairIndex;
         uint index;
         uint initialPosToken;       // 1e18
-        uint positionSizeDai;       // 1e18
+        uint positionSizeWETH;       // 1e18
         uint openPrice;             // PRECISION
         bool buy;
         uint leverage;
@@ -112,8 +112,8 @@ interface StorageInterfaceV5{
     }
     struct TradeInfo{
         uint tokenId;
-        uint tokenPriceDai;         // PRECISION
-        uint openInterestDai;       // 1e18
+        uint tokenPriceWETH;         // PRECISION
+        uint openInterestWETH;       // 1e18
         uint tpLastUpdated;
         uint slLastUpdated;
         bool beingMarketClosed;
@@ -122,7 +122,7 @@ interface StorageInterfaceV5{
         address trader;
         uint pairIndex;
         uint index;
-        uint positionSize;          // 1e18 (DAI or GFARM2)
+        uint positionSize;          // 1e18 (WETH or GFARM2)
         uint spreadReductionP;
         bool buy;
         uint leverage;
@@ -152,16 +152,16 @@ interface StorageInterfaceV5{
     function PRECISION() external pure returns(uint);
     function gov() external view returns(address);
     function dev() external view returns(address);
-    function dai() external view returns(TokenInterfaceV5);
+    function WETH() external view returns(TokenInterfaceV5);
     function token() external view returns(TokenInterfaceV5);
     function linkErc677() external view returns(TokenInterfaceV5);
-    function tokenDaiRouter() external view returns(UniswapRouterInterfaceV5);
+    function tokenWETHRouter() external view returns(UniswapRouterInterfaceV5);
     function priceAggregator() external view returns(AggregatorInterfaceV6);
     function vault() external view returns(VaultInterfaceV5);
     function trading() external view returns(address);
     function callbacks() external view returns(address);
     function handleTokens(address,uint,bool) external;
-    function transferDai(address, address, uint) external;
+    function transferWETH(address, address, uint) external;
     function transferLinkToAggregator(address, uint, uint) external;
     function unregisterTrade(address, uint, uint) external;
     function unregisterPendingMarketOrder(uint, bool) external;
@@ -210,7 +210,7 @@ interface StorageInterfaceV5{
     function maxPendingMarketOrders() external view returns(uint);
     function maxGainP() external view returns(uint);
     function defaultLeverageUnlocked() external view returns(uint);
-    function openInterestDai(uint, uint) external view returns(uint);
+    function openInterestWETH(uint, uint) external view returns(uint);
     function getPendingOrderIds(address) external view returns(uint[] memory);
     function traders(address) external view returns(Trader memory);
     function nfts(uint) external view returns(NftInterfaceV5);
@@ -221,9 +221,9 @@ interface AggregatorInterfaceV6{
     function pairsStorage() external view returns(PairsStorageInterfaceV6);
     function nftRewards() external view returns(NftRewardsInterfaceV6);
     function getPrice(uint,OrderType,uint) external returns(uint);
-    function tokenPriceDai() external view returns(uint);
+    function tokenPriceWETH() external view returns(uint);
     function linkFee(uint,uint) external view returns(uint);
-    function tokenDaiReservesLp() external view returns(uint, uint);
+    function tokenWETHReservesLp() external view returns(uint, uint);
     function pendingSlOrders(uint) external view returns(PendingSl memory);
     function storePendingSlOrder(uint orderId, PendingSl calldata p) external;
     function unregisterPendingSlOrder(uint orderId) external;
@@ -262,8 +262,8 @@ contract GNSPairInfosV6_1 {
 
     // Pair parameters
     struct PairParams{
-        uint onePercentDepthAbove; // DAI
-        uint onePercentDepthBelow; // DAI
+        uint onePercentDepthAbove; // WETH
+        uint onePercentDepthBelow; // WETH
         uint rolloverFeePerBlockP; // PRECISION (%)
         uint fundingFeePerBlockP;  // PRECISION (%)
     }
@@ -272,8 +272,8 @@ contract GNSPairInfosV6_1 {
 
     // Pair acc funding fees
     struct PairFundingFees{
-        int accPerOiLong;  // 1e18 (DAI)
-        int accPerOiShort; // 1e18 (DAI)
+        int accPerOiLong;  // 1e18 (WETH)
+        int accPerOiShort; // 1e18 (WETH)
         uint lastUpdateBlock;
     }
 
@@ -281,7 +281,7 @@ contract GNSPairInfosV6_1 {
 
     // Pair acc rollover fees
     struct PairRolloverFees{
-        uint accPerCollateral; // 1e18 (DAI)
+        uint accPerCollateral; // 1e18 (WETH)
         uint lastUpdateBlock;
     }
 
@@ -289,8 +289,8 @@ contract GNSPairInfosV6_1 {
 
     // Trade initial acc fees
     struct TradeInitialAccFees{
-        uint rollover; // 1e18 (DAI)
-        int funding;   // 1e18 (DAI)
+        uint rollover; // 1e18 (WETH)
+        int funding;   // 1e18 (WETH)
         bool openedAfterUpdate;
     }
 
@@ -325,11 +325,11 @@ contract GNSPairInfosV6_1 {
     event FeesCharged(
         uint pairIndex,
         bool long,
-        uint collateral,   // 1e18 (DAI)
+        uint collateral,   // 1e18 (WETH)
         uint leverage,
         int percentProfit, // PRECISION (%)
-        uint rolloverFees, // 1e18 (DAI)
-        int fundingFees    // 1e18 (DAI)
+        uint rolloverFees, // 1e18 (WETH)
+        int fundingFees    // 1e18 (WETH)
     );
 
     constructor(StorageInterfaceV5 _storageT){
@@ -485,7 +485,7 @@ contract GNSPairInfosV6_1 {
     }
     function getPendingAccRolloverFees(
         uint pairIndex
-    ) public view returns(uint){ // 1e18 (DAI)
+    ) public view returns(uint){ // 1e18 (WETH)
         PairRolloverFees storage r = pairRolloverFees[pairIndex];
         
         return r.accPerCollateral +
@@ -512,22 +512,22 @@ contract GNSPairInfosV6_1 {
         valueLong = f.accPerOiLong;
         valueShort = f.accPerOiShort;
 
-        int openInterestDaiLong = int(storageT.openInterestDai(pairIndex, 0));
-        int openInterestDaiShort = int(storageT.openInterestDai(pairIndex, 1));
+        int openInterestWETHLong = int(storageT.openInterestWETH(pairIndex, 0));
+        int openInterestWETHShort = int(storageT.openInterestWETH(pairIndex, 1));
 
-        int fundingFeesPaidByLongs = (openInterestDaiLong - openInterestDaiShort)
+        int fundingFeesPaidByLongs = (openInterestWETHLong - openInterestWETHShort)
             * int(block.number - f.lastUpdateBlock)
             * int(pairParams[pairIndex].fundingFeePerBlockP)
             / int(PRECISION) / 100;
 
-        if(openInterestDaiLong > 0){
+        if(openInterestWETHLong > 0){
             valueLong += fundingFeesPaidByLongs * 1e18
-                / openInterestDaiLong;
+                / openInterestWETHLong;
         }
 
-        if(openInterestDaiShort > 0){
+        if(openInterestWETHShort > 0){
             valueShort += fundingFeesPaidByLongs * 1e18 * (-1)
-                / openInterestDaiShort;
+                / openInterestWETHShort;
         }
     }
 
@@ -536,7 +536,7 @@ contract GNSPairInfosV6_1 {
         uint openPrice,        // PRECISION
         uint pairIndex,
         bool long,
-        uint tradeOpenInterest // 1e18 (DAI)
+        uint tradeOpenInterest // 1e18 (WETH)
     ) external view returns(
         uint priceImpactP,     // PRECISION (%)
         uint priceAfterImpact  // PRECISION
@@ -544,7 +544,7 @@ contract GNSPairInfosV6_1 {
         (priceImpactP, priceAfterImpact) = getTradePriceImpactPure(
             openPrice,
             long,
-            storageT.openInterestDai(pairIndex, long ? 0 : 1),
+            storageT.openInterestWETH(pairIndex, long ? 0 : 1),
             tradeOpenInterest,
             long ?
                 pairParams[pairIndex].onePercentDepthAbove :
@@ -554,8 +554,8 @@ contract GNSPairInfosV6_1 {
     function getTradePriceImpactPure(
         uint openPrice,         // PRECISION
         bool long,
-        uint startOpenInterest, // 1e18 (DAI)
-        uint tradeOpenInterest, // 1e18 (DAI)
+        uint startOpenInterest, // 1e18 (WETH)
+        uint tradeOpenInterest, // 1e18 (WETH)
         uint onePercentDepth
     ) public pure returns(
         uint priceImpactP,      // PRECISION (%)
@@ -578,8 +578,8 @@ contract GNSPairInfosV6_1 {
         address trader,
         uint pairIndex,
         uint index,
-        uint collateral // 1e18 (DAI)
-    ) public view returns(uint){ // 1e18 (DAI)
+        uint collateral // 1e18 (WETH)
+    ) public view returns(uint){ // 1e18 (WETH)
         TradeInitialAccFees memory t = tradeInitialAccFees[trader][pairIndex][index];
 
         if(!t.openedAfterUpdate){
@@ -595,8 +595,8 @@ contract GNSPairInfosV6_1 {
     function getTradeRolloverFeePure(
         uint accRolloverFeesPerCollateral,
         uint endAccRolloverFeesPerCollateral,
-        uint collateral // 1e18 (DAI)
-    ) public pure returns(uint){ // 1e18 (DAI)
+        uint collateral // 1e18 (WETH)
+    ) public pure returns(uint){ // 1e18 (WETH)
         return (endAccRolloverFeesPerCollateral - accRolloverFeesPerCollateral)
             * collateral / 1e18;
     }
@@ -607,10 +607,10 @@ contract GNSPairInfosV6_1 {
         uint pairIndex,
         uint index,
         bool long,
-        uint collateral, // 1e18 (DAI)
+        uint collateral, // 1e18 (WETH)
         uint leverage
     ) public view returns(
-        int // 1e18 (DAI) | Positive => Fee, Negative => Reward
+        int // 1e18 (WETH) | Positive => Fee, Negative => Reward
     ){
         TradeInitialAccFees memory t = tradeInitialAccFees[trader][pairIndex][index];
 
@@ -630,10 +630,10 @@ contract GNSPairInfosV6_1 {
     function getTradeFundingFeePure(
         int accFundingFeesPerOi,
         int endAccFundingFeesPerOi,
-        uint collateral, // 1e18 (DAI)
+        uint collateral, // 1e18 (WETH)
         uint leverage
     ) public pure returns(
-        int // 1e18 (DAI) | Positive => Fee, Negative => Reward
+        int // 1e18 (WETH) | Positive => Fee, Negative => Reward
     ){
         return (endAccFundingFeesPerOi - accFundingFeesPerOi)
             * int(collateral) * int(leverage) / 1e18;
@@ -646,7 +646,7 @@ contract GNSPairInfosV6_1 {
         uint index,
         uint openPrice,  // PRECISION
         bool long,
-        uint collateral, // 1e18 (DAI)
+        uint collateral, // 1e18 (WETH)
         uint leverage
     ) external view returns(uint){ // PRECISION
         return getTradeLiquidationPricePure(
@@ -661,10 +661,10 @@ contract GNSPairInfosV6_1 {
     function getTradeLiquidationPricePure(
         uint openPrice,   // PRECISION
         bool long,
-        uint collateral,  // 1e18 (DAI)
+        uint collateral,  // 1e18 (WETH)
         uint leverage,
-        uint rolloverFee, // 1e18 (DAI)
-        int fundingFee    // 1e18 (DAI)
+        uint rolloverFee, // 1e18 (WETH)
+        int fundingFee    // 1e18 (WETH)
     ) public pure returns(uint){ // PRECISION
         int liqPriceDistance = int(openPrice) * (
                 int(collateral * LIQ_THRESHOLD_P / 100)
@@ -678,17 +678,17 @@ contract GNSPairInfosV6_1 {
         return liqPrice > 0 ? uint(liqPrice) : 0;
     }
 
-    // Dai sent to trader after PnL and fees
+    // WETH sent to trader after PnL and fees
     function getTradeValue(
         address trader,
         uint pairIndex,
         uint index,
         bool long,
-        uint collateral,   // 1e18 (DAI)
+        uint collateral,   // 1e18 (WETH)
         uint leverage,
         int percentProfit, // PRECISION (%)
-        uint closingFee    // 1e18 (DAI)
-    ) external onlyCallbacks returns(uint amount){ // 1e18 (DAI)
+        uint closingFee    // 1e18 (WETH)
+    ) external onlyCallbacks returns(uint amount){ // 1e18 (WETH)
         storeAccFundingFees(pairIndex);
 
         uint r = getTradeRolloverFee(trader, pairIndex, index, collateral);
@@ -699,12 +699,12 @@ contract GNSPairInfosV6_1 {
         emit FeesCharged(pairIndex, long, collateral, leverage, percentProfit, r, f);
     }
     function getTradeValuePure(
-        uint collateral,   // 1e18 (DAI)
+        uint collateral,   // 1e18 (WETH)
         int percentProfit, // PRECISION (%)
-        uint rolloverFee,  // 1e18 (DAI)
-        int fundingFee,    // 1e18 (DAI)
-        uint closingFee    // 1e18 (DAI)
-    ) public pure returns(uint){ // 1e18 (DAI)
+        uint rolloverFee,  // 1e18 (WETH)
+        int fundingFee,    // 1e18 (WETH)
+        uint closingFee    // 1e18 (WETH)
+    ) public pure returns(uint){ // 1e18 (WETH)
         int value = int(collateral)
             + int(collateral) * percentProfit / int(PRECISION) / 100
             - int(rolloverFee) - fundingFee;

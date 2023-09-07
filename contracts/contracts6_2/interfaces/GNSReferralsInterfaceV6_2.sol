@@ -6,9 +6,9 @@ interface GNSReferralsInterfaceV6_2 {
 
     function distributePotentialReward(
         address trader,
-        uint volumeDai,
+        uint volumeWETH,
         uint pairOpenFeeP,
-        uint tokenPriceDai
+        uint tokenPriceWETH
     ) external returns (uint);
 
     function getPercentOfOpenFeeP(address trader) external view returns (uint);

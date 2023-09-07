@@ -26,6 +26,8 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
     uint constant MAX_ORACLE_NODES = 20;
     uint constant MIN_ANSWERS = 3;
 
+    uint256 orderIds;
+
     // Params (adjustable)
     uint public minAnswers;
 
@@ -99,7 +101,7 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
 
     constructor(
         address _linkToken,
-        IUniswapV3Pool _tokenDaiLp,
+        IUniswapV3Pool _tokenWETHLp,
         uint32 _twapInterval,
         StorageInterfaceV5 _storageT,
         PairsStorageInterfaceV6 _pairsStorage,
@@ -107,7 +109,7 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
         uint _minAnswers,
         address[] memory _nodes,
         bytes32[2] memory _jobIds
-    ) TWAPPriceGetter(_tokenDaiLp, address(_storageT.token()), _twapInterval, PRECISION) {
+    ) TWAPPriceGetter(_tokenWETHLp, address(_storageT.token()), _twapInterval, PRECISION) {
         require(
             address(_storageT) != address(0) &&
                 address(_pairsStorage) != address(0) &&
@@ -233,50 +235,50 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
     function getPrice(
         uint pairIndex,
         OrderType orderType,
-        uint leveragedPosDai,
+        uint leveragedPosWETH,
         uint fromBlock
     ) external onlyTrading returns (uint) {
-        require(pairIndex <= type(uint16).max, "PAIR_OVERFLOW");
+        // require(pairIndex <= type(uint16).max, "PAIR_OVERFLOW");
 
-        bool isLookback = orderType == OrderType.LIMIT_OPEN || orderType == OrderType.LIMIT_CLOSE;
-        bytes32 job = isLookback ? jobIds[1] : jobIds[0];
+        // bool isLookback = orderType == OrderType.LIMIT_OPEN || orderType == OrderType.LIMIT_CLOSE;
+        // bytes32 job = isLookback ? jobIds[1] : jobIds[0];
 
-        Chainlink.Request memory linkRequest = buildChainlinkRequest(job, address(this), this.fulfill.selector);
+        // Chainlink.Request memory linkRequest = buildChainlinkRequest(job, address(this), this.fulfill.selector);
 
-        uint orderId;
-        {
-            (string memory from, string memory to, , uint _orderId) = pairsStorage.pairJob(pairIndex);
-            orderId = _orderId;
+        // uint orderId;
+        // {
+        //     (string memory from, string memory to, , uint _orderId) = pairsStorage.pairJob(pairIndex);
+        //     orderId = _orderId;
 
-            linkRequest.add("from", from);
-            linkRequest.add("to", to);
+        //     linkRequest.add("from", from);
+        //     linkRequest.add("to", to);
 
-            if (isLookback) {
-                linkRequest.addUint("fromBlock", fromBlock);
-            }
-        }
+        //     if (isLookback) {
+        //         linkRequest.addUint("fromBlock", fromBlock);
+        //     }
+        // }
 
-        uint length;
-        uint linkFeePerNode;
-        {
-            address[] memory _nodes = nodes;
-            length = _nodes.length;
-            linkFeePerNode = linkFee(pairIndex, leveragedPosDai) / length;
+        // uint length;
+        // uint linkFeePerNode;
+        // {
+        //     address[] memory _nodes = nodes;
+        //     length = _nodes.length;
+        //     linkFeePerNode = linkFee(pairIndex, leveragedPosWETH) / length;
 
-            require(linkFeePerNode <= type(uint112).max, "LINK_OVERFLOW");
+        //     require(linkFeePerNode <= type(uint112).max, "LINK_OVERFLOW");
 
-            orders[orderId] = Order(uint16(pairIndex), uint112(linkFeePerNode), orderType, true, isLookback);
-            for (uint i; i < length; ) {
-                orderIdByRequest[sendChainlinkRequestTo(_nodes[i], linkRequest, linkFeePerNode)] = orderId;
-                unchecked {
-                    ++i;
-                }
-            }
-        }
+        //     orders[orderId] = Order(uint16(pairIndex), uint112(linkFeePerNode), orderType, true, isLookback);
+        //     for (uint i; i < length; ) {
+        //         orderIdByRequest[sendChainlinkRequestTo(_nodes[i], linkRequest, linkFeePerNode)] = orderId;
+        //         unchecked {
+        //             ++i;
+        //         }
+        //     }
+        // }
 
-        emit PriceRequested(orderId, job, pairIndex, orderType, length, linkFeePerNode, fromBlock, isLookback);
+        // emit PriceRequested(orderId, job, pairIndex, orderType, length, linkFeePerNode, fromBlock, isLookback);
 
-        return orderId;
+        return orderIds++;
     }
 
     // Fulfill on-demand price requests
@@ -377,10 +379,10 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
     }
 
     // Calculate LINK fee for each request
-    function linkFee(uint pairIndex, uint leveragedPosDai) public view returns (uint) {
+    function linkFee(uint pairIndex, uint leveragedPosWETH) public view returns (uint) {
         (, int linkPriceUsd, , , ) = linkPriceFeed.latestRoundData();
 
-        return (pairsStorage.pairOracleFeeP(pairIndex) * leveragedPosDai * 1e8) / uint(linkPriceUsd) / PRECISION / 100;
+        return (pairsStorage.pairOracleFeeP(pairIndex) * leveragedPosWETH * 1e8) / uint(linkPriceUsd) / PRECISION / 100;
     }
 
     // Claim back LINK tokens (if contract will be replaced for example)
