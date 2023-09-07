@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "../contract5/interfaces/StorageInterfaceV5.sol";
+import "../interfaces/StorageInterfaceV5.sol";
+import '../interfaces/TradingCallbacksV6_4.sol';
 
 library TradeUtils {
     function _getTradeLastUpdated(

@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
-import "../contracts6_3/TWAPPriceGetter.sol";
-
+import "./TWAPPriceGetter.sol";
 import "./interfaces/CallbacksInterfaceV6_4.sol";
-import "../contract5/interfaces/ChainlinkFeedInterfaceV5.sol";
-import "../contract5/interfaces/StorageInterfaceV5.sol";
-
-import "../libraries/PackingUtils.sol";
+import "./interfaces/ChainlinkFeedInterfaceV5.sol";
+import "./interfaces/StorageInterfaceV5.sol";
+import "./libraries/PackingUtils.sol";
 
 pragma solidity 0.8.17;
 

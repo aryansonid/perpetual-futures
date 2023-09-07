@@ -4,9 +4,9 @@ pragma solidity 0.8.17;
 /// DEPLOY need storage and pair info
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/GNSBorrowingFeesInterfaceV6_4.sol";
-import "../contract5/interfaces/StorageInterfaceV5.sol";
+import "./interfaces/StorageInterfaceV5.sol";
 import "./interfaces/GNSPairInfosInterfaceV6.sol";
-import "../libraries/ChainUtils.sol";
+import "./libraries/ChainUtils.sol";
 
 contract GNSBorrowingFeesV6_4 is Initializable, GNSBorrowingFeesInterfaceV6_4 {
     // Constants

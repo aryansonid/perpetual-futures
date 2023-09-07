@@ -1,102 +1,12 @@
-/**
- *Submitted for verification at PolygonScan.com on 2021-10-12
- */
-
-// File: contracts\interfaces\TokenInterfaceV5.sol
-
-/// DEPLOY: could be deployed independently
-
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
-interface TokenInterfaceV5 {
-    function burn(address, uint256) external;
+import "./interfaces/StorageInterfaceV5.sol";
+import "./interfaces/AggregatorInterfaceV5.sol";
+import "./interfaces/PoolInterfaceV5.sol";
+import "./interfaces/NftInterfaceV5.sol";
+import "./interfaces/PausableInterfaceV5.sol";
 
-    function mint(address, uint256) external;
-
-    function transfer(address, uint256) external returns (bool);
-
-    function transferFrom(address, address, uint256) external returns (bool);
-
-    function balanceOf(address) external view returns (uint256);
-
-    function hasRole(bytes32, address) external view returns (bool);
-
-    function approve(address, uint256) external returns (bool);
-
-    function allowance(address, address) external view returns (uint256);
-}
-
-// File: contracts\interfaces\AggregatorInterfaceV5.sol
-
-pragma solidity 0.8.7;
-
-interface AggregatorInterfaceV5 {
-    enum OrderType {
-        MARKET_OPEN,
-        MARKET_CLOSE,
-        LIMIT_OPEN,
-        LIMIT_CLOSE
-    }
-
-    function getPrice(uint, OrderType, uint) external returns (uint);
-
-    function tokenPriceWETH() external view returns (uint);
-
-    function pairMinOpenLimitSlippageP(uint) external view returns (uint);
-
-    function closeFeeP(uint) external view returns (uint);
-
-    function linkFee(uint, uint) external view returns (uint);
-
-    function openFeeP(uint) external view returns (uint);
-
-    function pairMinLeverage(uint) external view returns (uint);
-
-    function pairMaxLeverage(uint) external view returns (uint);
-
-    function pairsCount() external view returns (uint);
-
-    function tokenWETHReservesLp() external view returns (uint, uint);
-
-    function referralP(uint) external view returns (uint);
-
-    function nftLimitOrderFeeP(uint) external view returns (uint);
-}
-
-// File: contracts\interfaces\PoolInterfaceV5.sol
-
-pragma solidity 0.8.7;
-
-interface PoolInterfaceV5 {
-    function increaseAccTokensPerLp(uint) external;
-}
-
-// File: contracts\interfaces\NftInterfaceV5.sol
-
-pragma solidity 0.8.7;
-
-interface NftInterfaceV5 {
-    function balanceOf(address) external view returns (uint);
-
-    function ownerOf(uint) external view returns (address);
-
-    function transferFrom(address, address, uint) external;
-
-    function tokenOfOwnerByIndex(address, uint) external view returns (uint);
-}
-
-// File: contracts\interfaces\PausableInterfaceV5.sol
-
-pragma solidity 0.8.7;
-
-interface PausableInterfaceV5 {
-    function isPaused() external view returns (bool);
-}
-
-// File: contracts\GFarmTradingStorageV5.sol
-
-pragma solidity 0.8.7;
 
 contract GFarmTradingStorageV5 {
     // Constants
