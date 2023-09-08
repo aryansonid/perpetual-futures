@@ -9,10 +9,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy("pairsStorage", {
     from: deployer,
-    contract: "GNSPairsStorageV6",
+    contract: "PairsStorage",
     args: [1],
     log: true,
   });
 };
 export default func;
-func.tags = ["GNSPairsStorageV6"];
+func.tags = ["PairsStorage"];

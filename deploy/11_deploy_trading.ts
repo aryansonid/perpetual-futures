@@ -5,15 +5,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
 
-  const { deployer} =
-    await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
   const Storage = await deployments.get("Storage");
   const referal = await deployments.get("referal");
   const pairsInfo = await deployments.get("pairsInfo");
   const borrowing = await deployments.get("borrowing");
   const reward = await deployments.get("reward");
-    const PackingUtils = await deployments.get("PackingUtils");
-
+  const PackingUtils = await deployments.get("PackingUtils");
 
   const TradeUtils = await deploy("TradeUtils", {
     from: deployer,
@@ -23,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy("trading", {
     from: deployer,
-    contract: "GNSTradingV6_4",
+    contract: "Trading",
     args: [
       Storage.address,
       reward.address,
@@ -33,12 +31,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       2,
       2,
     ],
-    libraries: { TradeUtils: TradeUtils.address, PackingUtils: PackingUtils.address },
+    libraries: {
+      TradeUtils: TradeUtils.address,
+      PackingUtils: PackingUtils.address,
+    },
 
     log: true,
   });
 };
 
 export default func;
-func.tags = ["GNSTradingV6_4"];
-func.dependencies = ["GFarmTradingStorageV5", "GNSPairsStorageV6"];
+func.tags = ["Trading"];
+func.dependencies = ["Storage", "PairsStorage"];

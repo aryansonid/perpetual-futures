@@ -10,11 +10,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy("referal", {
     from: deployer,
-    contract: "GNSReferralsV6_2",
+    contract: "Referrals",
     args: [Storage.address, 25, 25, 25, 25], /// need to change these input values
     log: true,
   });
 };
 export default func;
-func.tags = ["GNSReferralsV6_2"];
-func.dependencies = ["GNSPairsStorageV6"];
+func.tags = ["Referrals"];
+func.dependencies = ["PairsStorage"];

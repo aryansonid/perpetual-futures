@@ -21,11 +21,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy("Staking", {
     from: deployer,
-    contract: "GNSStakingV6_2",
+    contract: "Staking",
     args: [govFund, token.address, weth.address, nft, boostSp, 25], /// need to change these input values
     log: true,
   });
 };
 export default func;
-func.tags = ["GNSStakingV6_2"];
+func.tags = ["Staking"];
 func.dependencies = ["WETH"];

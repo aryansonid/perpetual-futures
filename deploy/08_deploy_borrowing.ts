@@ -11,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy("borrowing", {
     from: deployer,
-    contract: "GNSBorrowingFeesV6_4",
+    contract: "BorrowingFees",
     proxy: {
       owner: deployer,
       proxyContract: "OpenZeppelinTransparentProxy",
@@ -26,5 +26,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["GNSBorrowingFeesV6_4"];
-func.dependencies = ["GFarmTradingStorageV5", "GNSPairsStorageV6"];
+func.tags = ["BorrowingFees"];
+func.dependencies = ["Storage", "PairsStorage"];

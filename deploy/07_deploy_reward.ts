@@ -10,7 +10,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy("reward", {
     from: deployer,
-    contract: "GNSNftRewardsV6_3_1",
+    contract: "Rewards",
     proxy: {
       owner: deployer,
       proxyContract: "OpenZeppelinTransparentProxy",
@@ -25,5 +25,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["GNSNftRewardsV6_3_1"];
-func.dependencies = ["GFarmTradingStorageV5"];
+func.tags = ["Rewards"];
+func.dependencies = ["Storage"];

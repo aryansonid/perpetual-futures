@@ -13,10 +13,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const staking = await deployments.get("Staking");
   const reward = await deployments.get("reward");
 
-
   await deploy("callback", {
     from: deployer,
-    contract: "GNSTradingCallbacksV6_4",
+    contract: "TradingCallbacks",
     proxy: {
       owner: deployer,
       proxyContract: "OpenZeppelinTransparentProxy",
@@ -42,5 +41,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["GNSTradingCallbacksV6_4"];
-func.dependencies = ["GFarmTradingStorageV5", "GNSPairsStorageV6"];
+func.tags = ["TradingCallbacksInterface"];
+func.dependencies = ["Storage", "PairsStorage"];

@@ -38,7 +38,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy("aggregator", {
     from: deployer,
-    contract: "GNSPriceAggregatorV6_4",
+    contract: "PriceAggregator",
     args: [
       linkToken,
       lpPool.address,
@@ -56,5 +56,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["GNSPriceAggregatorV6_4"];
-func.dependencies = ["GFarmTradingStorageV5", "GNSPairsStorageV6"];
+func.tags = ["PriceAggregator"];
+func.dependencies = ["Storage", "PairsStorage"];

@@ -6,15 +6,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
 
   const { deployer } = await getNamedAccounts();
-    const WETH = await deployments.get("WETH");
-
+  const WETH = await deployments.get("WETH");
 
   await deploy("Storage", {
     from: deployer,
-    contract: "GFarmTradingStorageV5",
+    contract: "Storage",
     args: [WETH.address, deployer, deployer],
     log: true,
   });
 };
 export default func;
-func.tags = ["GFarmTradingStorageV5"];
+func.tags = ["Storage"];
