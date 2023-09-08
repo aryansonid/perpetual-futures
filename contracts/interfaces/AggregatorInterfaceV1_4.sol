@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 import "./PairsStorageInterfaceV6.sol";
-import "./ChainlinkFeedInterfaceV5.sol";
+import "./ChainlinkFeedInterface.sol";
 
-interface AggregatorInterfaceV6_4 {
+interface AggregatorInterfaceV1_4 {
     enum OrderType {
         MARKET_OPEN,
         MARKET_CLOSE,
@@ -21,5 +21,5 @@ interface AggregatorInterfaceV6_4 {
 
     function openFeeP(uint) external view returns (uint);
 
-    function linkPriceFeed() external view returns (ChainlinkFeedInterfaceV5);
+    function linkPriceFeed() external view returns (ChainlinkFeedInterface);
 }

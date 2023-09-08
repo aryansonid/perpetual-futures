@@ -1,10 +1,10 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
 import "./PairsStorageInterfaceV6.sol";
+import "./NftRewardsInterfaceV6.sol";
 
-interface AggregatorInterfaceV6_2 {
+interface AggregatorInterfaceV1_1 {
     enum OrderType {
         MARKET_OPEN,
         MARKET_CLOSE,
@@ -15,13 +15,15 @@ interface AggregatorInterfaceV6_2 {
 
     function pairsStorage() external view returns (PairsStorageInterfaceV6);
 
+    function nftRewards() external view returns (NftRewardsInterfaceV6);
+
     function getPrice(uint, OrderType, uint) external returns (uint);
 
-    function tokenPriceWETH() external returns (uint);
+    function tokenPriceWETH() external view returns (uint);
 
     function linkFee(uint, uint) external view returns (uint);
 
-    function openFeeP(uint) external view returns (uint);
+    function tokenWETHReservesLp() external view returns (uint, uint);
 
     function pendingSlOrders(uint) external view returns (PendingSl memory);
 

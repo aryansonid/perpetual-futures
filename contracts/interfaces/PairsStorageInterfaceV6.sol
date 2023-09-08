@@ -18,7 +18,9 @@ interface PairsStorageInterfaceV6 {
 
     function updateGroupCollateral(uint, uint, bool, bool) external;
 
-    function pairJob(uint) external returns (string memory, string memory, bytes32, uint);
+    function pairJob(
+        uint
+    ) external returns (string memory, string memory, bytes32, uint);
 
     function pairFeed(uint) external view returns (Feed memory);
 

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./StorageInterfaceV5.sol";
+import "./StorageInterface.sol";
 
 interface NftRewardsInterfaceV6 {
     struct TriggeredLimitId {
         address trader;
         uint pairIndex;
         uint index;
-        StorageInterfaceV5.LimitOrder order;
+        StorageInterface.LimitOrder order;
     }
     enum OpenLimitOrderType {
         LEGACY,

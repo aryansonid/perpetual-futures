@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface TradingCallbacksV6_4 {
+interface TradingCallbacksInterface {
     enum TradeType {
         MARKET,
         LIMIT
@@ -23,11 +23,22 @@ interface TradingCallbacksV6_4 {
         uint216 _placeholder; // for potential future data
     }
 
-    function tradeLastUpdated(address, uint, uint, TradeType) external view returns (LastUpdated memory);
+    function tradeLastUpdated(
+        address,
+        uint,
+        uint,
+        TradeType
+    ) external view returns (LastUpdated memory);
 
-    function setTradeLastUpdated(SimplifiedTradeId calldata, LastUpdated memory) external;
+    function setTradeLastUpdated(
+        SimplifiedTradeId calldata,
+        LastUpdated memory
+    ) external;
 
-    function setTradeData(SimplifiedTradeId calldata, TradeData memory) external;
+    function setTradeData(
+        SimplifiedTradeId calldata,
+        TradeData memory
+    ) external;
 
     function canExecuteTimeout() external view returns (uint);
 

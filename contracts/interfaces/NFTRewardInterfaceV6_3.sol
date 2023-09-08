@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./StorageInterfaceV5.sol";
+import "./StorageInterface.sol";
 
 interface NftRewardsInterfaceV6_3_1 {
     struct TriggeredLimitId {
         address trader;
         uint pairIndex;
         uint index;
-        StorageInterfaceV5.LimitOrder order;
+        StorageInterface.LimitOrder order;
     }
     enum OpenLimitOrderType {
         LEGACY,
@@ -16,17 +16,34 @@ interface NftRewardsInterfaceV6_3_1 {
         MOMENTUM
     }
 
-    function storeFirstToTrigger(TriggeredLimitId calldata, address, uint) external;
+    function storeFirstToTrigger(
+        TriggeredLimitId calldata,
+        address,
+        uint
+    ) external;
 
     function storeTriggerSameBlock(TriggeredLimitId calldata, address) external;
 
     function unregisterTrigger(TriggeredLimitId calldata) external;
 
-    function distributeNftReward(TriggeredLimitId calldata, uint, uint) external;
+    function distributeNftReward(
+        TriggeredLimitId calldata,
+        uint,
+        uint
+    ) external;
 
-    function openLimitOrderTypes(address, uint, uint) external view returns (OpenLimitOrderType);
+    function openLimitOrderTypes(
+        address,
+        uint,
+        uint
+    ) external view returns (OpenLimitOrderType);
 
-    function setOpenLimitOrderType(address, uint, uint, OpenLimitOrderType) external;
+    function setOpenLimitOrderType(
+        address,
+        uint,
+        uint,
+        OpenLimitOrderType
+    ) external;
 
     function triggered(TriggeredLimitId calldata) external view returns (bool);
 
@@ -34,7 +51,14 @@ interface NftRewardsInterfaceV6_3_1 {
 
     function botInUse(bytes32) external view returns (bool);
 
-    function getNftBotHashes(uint, address, uint, address, uint, uint) external pure returns (bytes32, bytes32);
+    function getNftBotHashes(
+        uint,
+        address,
+        uint,
+        address,
+        uint,
+        uint
+    ) external pure returns (bytes32, bytes32);
 
     function setNftBotInUse(bytes32, bytes32) external;
 

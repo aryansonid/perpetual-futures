@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface GNSBorrowingFeesInterfaceV6_4 {
+interface BorrowingFeesInterface {
     // Structs
     struct PairGroup {
         uint16 groupIndex;
@@ -93,8 +93,17 @@ interface GNSBorrowingFeesInterfaceV6_4 {
         uint48 feeExponent,
         uint72 maxOi
     );
-    event PairGroupUpdated(uint indexed pairIndex, uint16 indexed prevGroupIndex, uint16 indexed newGroupIndex);
-    event GroupUpdated(uint16 indexed groupIndex, uint32 feePerBlock, uint72 maxOi, uint48 feeExponent);
+    event PairGroupUpdated(
+        uint indexed pairIndex,
+        uint16 indexed prevGroupIndex,
+        uint16 indexed newGroupIndex
+    );
+    event GroupUpdated(
+        uint16 indexed groupIndex,
+        uint32 feePerBlock,
+        uint72 maxOi,
+        uint48 feeExponent
+    );
     event TradeInitialAccFeesStored(
         address indexed trader,
         uint indexed pairIndex,
@@ -110,8 +119,18 @@ interface GNSBorrowingFeesInterfaceV6_4 {
         bool long,
         uint positionSizeDai // 1e18
     );
-    event PairAccFeesUpdated(uint indexed pairIndex, uint currentBlock, uint64 accFeeLong, uint64 accFeeShort);
-    event GroupAccFeesUpdated(uint16 indexed groupIndex, uint currentBlock, uint64 accFeeLong, uint64 accFeeShort);
+    event PairAccFeesUpdated(
+        uint indexed pairIndex,
+        uint currentBlock,
+        uint64 accFeeLong,
+        uint64 accFeeShort
+    );
+    event GroupAccFeesUpdated(
+        uint16 indexed groupIndex,
+        uint currentBlock,
+        uint64 accFeeLong,
+        uint64 accFeeShort
+    );
     event GroupOiUpdated(
         uint16 indexed groupIndex,
         bool indexed long,
@@ -122,9 +141,13 @@ interface GNSBorrowingFeesInterfaceV6_4 {
     );
 
     // Functions
-    function getTradeLiquidationPrice(LiqPriceInput calldata) external view returns (uint); // PRECISION
+    function getTradeLiquidationPrice(
+        LiqPriceInput calldata
+    ) external view returns (uint); // PRECISION
 
-    function getTradeBorrowingFee(BorrowingFeeInput memory) external view returns (uint); // 1e18 (DAI)
+    function getTradeBorrowingFee(
+        BorrowingFeeInput memory
+    ) external view returns (uint); // 1e18 (DAI)
 
     function handleTradeAction(
         address trader,
@@ -135,7 +158,11 @@ interface GNSBorrowingFeesInterfaceV6_4 {
         bool long
     ) external;
 
-    function withinMaxGroupOi(uint pairIndex, bool long, uint positionSizeDai) external view returns (bool);
+    function withinMaxGroupOi(
+        uint pairIndex,
+        bool long,
+        uint positionSizeDai
+    ) external view returns (bool);
 
     function getPairMaxOi(uint pairIndex) external view returns (uint);
 }

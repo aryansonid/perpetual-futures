@@ -22,8 +22,7 @@ contract IWETH {
     ) public returns (bool);
 }
 
-
-interface TokenInterfaceV5 {
+interface TokenInterface {
     function burn(address, uint256) external;
 
     function mint(address, uint256) external;

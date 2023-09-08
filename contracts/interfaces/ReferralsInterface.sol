@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface GNSReferralsInterfaceV6_2 {
-    function registerPotentialReferrer(address trader, address referral) external;
+interface ReferralsInterface {
+    function registerPotentialReferrer(
+        address trader,
+        address referral
+    ) external;
 
     function distributePotentialReward(
         address trader,
@@ -13,5 +16,7 @@ interface GNSReferralsInterfaceV6_2 {
 
     function getPercentOfOpenFeeP(address trader) external view returns (uint);
 
-    function getTraderReferrer(address trader) external view returns (address referrer);
+    function getTraderReferrer(
+        address trader
+    ) external view returns (address referrer);
 }

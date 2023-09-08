@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "./TWAPPriceGetter.sol";
-import "./interfaces/CallbacksInterfaceV6_4.sol";
-import "./interfaces/ChainlinkFeedInterfaceV5.sol";
-import "./interfaces/StorageInterfaceV5.sol";
+import "./interfaces/CallbacksInterface.sol";
+import "./interfaces/ChainlinkFeedInterface.sol";
+import "./interfaces/StorageInterface.sol";
 import "./libraries/PackingUtils.sol";
 
 pragma solidity 0.8.17;
 
-contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
+contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     using Chainlink for Chainlink.Request;
     using PackingUtils for uint;
 
     // Contracts (constant)
-    StorageInterfaceV5 public immutable storageT;
+    StorageInterface public immutable storageT;
 
     // Contracts (adjustable)
     PairsStorageInterfaceV6 public pairsStorage;
-    ChainlinkFeedInterfaceV5 public linkPriceFeed;
+    ChainlinkFeedInterface public linkPriceFeed;
 
     // Params (constant)
     uint constant PRECISION = 1e10;
@@ -95,19 +95,29 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
         bool usedInMedian
     );
 
-    event CallbackExecuted(CallbacksInterfaceV6_4.AggregatorAnswer a, OrderType orderType);
+    event CallbackExecuted(
+        CallbacksInterface.AggregatorAnswer a,
+        OrderType orderType
+    );
 
     constructor(
         address _linkToken,
         IUniswapV3Pool _tokenWETHLp,
         uint32 _twapInterval,
-        StorageInterfaceV5 _storageT,
+        StorageInterface _storageT,
         PairsStorageInterfaceV6 _pairsStorage,
-        ChainlinkFeedInterfaceV5 _linkPriceFeed,
+        ChainlinkFeedInterface _linkPriceFeed,
         uint _minAnswers,
         address[] memory _nodes,
         bytes32[2] memory _jobIds
-    ) TWAPPriceGetter(_tokenWETHLp, address(_storageT.token()), _twapInterval, PRECISION) {
+    )
+        TWAPPriceGetter(
+            _tokenWETHLp,
+            address(_storageT.token()),
+            _twapInterval,
+            PRECISION
+        )
+    {
         require(
             address(_storageT) != address(0) &&
                 address(_pairsStorage) != address(0) &&
@@ -146,7 +156,9 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
     }
 
     // Manage contracts
-    function updatePairsStorage(PairsStorageInterfaceV6 value) external onlyGov {
+    function updatePairsStorage(
+        PairsStorageInterfaceV6 value
+    ) external onlyGov {
         require(address(value) != address(0), "VALUE_0");
 
         pairsStorage = value;
@@ -154,7 +166,9 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
         emit PairsStorageUpdated(address(value));
     }
 
-    function updateLinkPriceFeed(ChainlinkFeedInterfaceV5 value) external onlyGov {
+    function updateLinkPriceFeed(
+        ChainlinkFeedInterface value
+    ) external onlyGov {
         require(address(value) != address(0), "VALUE_0");
 
         linkPriceFeed = value;
@@ -280,43 +294,66 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
     }
 
     // Fulfill on-demand price requests
-    function fulfill(bytes32 requestId, uint priceData) external recordChainlinkFulfillment(requestId) {
+    function fulfill(
+        bytes32 requestId,
+        uint priceData
+    ) external recordChainlinkFulfillment(requestId) {
         uint orderId = orderIdByRequest[requestId];
         delete orderIdByRequest[requestId];
 
         Order memory r = orders[orderId];
         bool usedInMedian = false;
 
-        PairsStorageInterfaceV6.Feed memory f = pairsStorage.pairFeed(r.pairIndex);
+        PairsStorageInterfaceV6.Feed memory f = pairsStorage.pairFeed(
+            r.pairIndex
+        );
         uint feedPrice = fetchFeedPrice(f);
 
         if (r.active) {
             if (r.isLookback) {
                 LookbackOrderAnswer memory newAnswer;
-                (newAnswer.open, newAnswer.high, newAnswer.low, newAnswer.ts) = priceData.unpack256To64();
+                (
+                    newAnswer.open,
+                    newAnswer.high,
+                    newAnswer.low,
+                    newAnswer.ts
+                ) = priceData.unpack256To64();
 
                 require(
                     (newAnswer.high == 0 && newAnswer.low == 0) ||
-                        (newAnswer.high >= newAnswer.open && newAnswer.low <= newAnswer.open && newAnswer.low > 0),
+                        (newAnswer.high >= newAnswer.open &&
+                            newAnswer.low <= newAnswer.open &&
+                            newAnswer.low > 0),
                     "INVALID_CANDLE"
                 );
 
                 if (
-                    isPriceWithinDeviation(newAnswer.high, feedPrice, f.maxDeviationP) &&
-                    isPriceWithinDeviation(newAnswer.low, feedPrice, f.maxDeviationP)
+                    isPriceWithinDeviation(
+                        newAnswer.high,
+                        feedPrice,
+                        f.maxDeviationP
+                    ) &&
+                    isPriceWithinDeviation(
+                        newAnswer.low,
+                        feedPrice,
+                        f.maxDeviationP
+                    )
                 ) {
                     usedInMedian = true;
 
-                    LookbackOrderAnswer[] storage answers = lookbackOrderAnswers[orderId];
+                    LookbackOrderAnswer[]
+                        storage answers = lookbackOrderAnswers[orderId];
                     answers.push(newAnswer);
 
                     if (answers.length == minAnswers) {
-                        CallbacksInterfaceV6_4.AggregatorAnswer memory a;
+                        CallbacksInterface.AggregatorAnswer memory a;
                         a.orderId = orderId;
                         (a.open, a.high, a.low) = medianLookbacks(answers);
                         a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
 
-                        CallbacksInterfaceV6_4 c = CallbacksInterfaceV6_4(storageT.callbacks());
+                        CallbacksInterface c = CallbacksInterface(
+                            storageT.callbacks()
+                        );
 
                         if (r.orderType == OrderType.LIMIT_OPEN) {
                             c.executeNftOpenOrderCallback(a);
@@ -340,13 +377,15 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
                     answers.push(price);
 
                     if (answers.length == minAnswers) {
-                        CallbacksInterfaceV6_4.AggregatorAnswer memory a;
+                        CallbacksInterface.AggregatorAnswer memory a;
 
                         a.orderId = orderId;
                         a.price = median(answers);
                         a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
 
-                        CallbacksInterfaceV6_4 c = CallbacksInterfaceV6_4(storageT.callbacks());
+                        CallbacksInterface c = CallbacksInterface(
+                            storageT.callbacks()
+                        );
 
                         if (r.orderType == OrderType.MARKET_OPEN) {
                             c.openTradeMarketCallback(a);
@@ -377,45 +416,67 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
     }
 
     // Calculate LINK fee for each request
-    function linkFee(uint pairIndex, uint leveragedPosWETH) public view returns (uint) {
+    function linkFee(
+        uint pairIndex,
+        uint leveragedPosWETH
+    ) public view returns (uint) {
         (, int linkPriceUsd, , , ) = linkPriceFeed.latestRoundData();
 
-        return (pairsStorage.pairOracleFeeP(pairIndex) * leveragedPosWETH * 1e8) / uint(linkPriceUsd) / PRECISION / 100;
+        return
+            (pairsStorage.pairOracleFeeP(pairIndex) * leveragedPosWETH * 1e8) /
+            uint(linkPriceUsd) /
+            PRECISION /
+            100;
     }
 
     // Claim back LINK tokens (if contract will be replaced for example)
     function claimBackLink() external onlyGov {
-        TokenInterfaceV5 link = storageT.linkErc677();
+        TokenInterface link = storageT.linkErc677();
 
         link.transfer(storageT.gov(), link.balanceOf(address(this)));
     }
 
     // Utils
-    function fetchFeedPrice(PairsStorageInterfaceV6.Feed memory f) private view returns (uint) {
+    function fetchFeedPrice(
+        PairsStorageInterfaceV6.Feed memory f
+    ) private view returns (uint) {
         if (f.feed1 == address(0)) {
             return 0;
         }
 
         uint feedPrice;
-        (, int feedPrice1, , , ) = ChainlinkFeedInterfaceV5(f.feed1).latestRoundData();
+        (, int feedPrice1, , , ) = ChainlinkFeedInterface(f.feed1)
+            .latestRoundData();
 
-        if (f.feedCalculation == PairsStorageInterfaceV6.FeedCalculation.DEFAULT) {
+        if (
+            f.feedCalculation == PairsStorageInterfaceV6.FeedCalculation.DEFAULT
+        ) {
             feedPrice = uint((feedPrice1 * int(PRECISION)) / 1e8);
-        } else if (f.feedCalculation == PairsStorageInterfaceV6.FeedCalculation.INVERT) {
+        } else if (
+            f.feedCalculation == PairsStorageInterfaceV6.FeedCalculation.INVERT
+        ) {
             feedPrice = uint((int(PRECISION) * 1e8) / feedPrice1);
         } else {
-            (, int feedPrice2, , , ) = ChainlinkFeedInterfaceV5(f.feed2).latestRoundData();
+            (, int feedPrice2, , , ) = ChainlinkFeedInterface(f.feed2)
+                .latestRoundData();
             feedPrice = uint((feedPrice1 * int(PRECISION)) / feedPrice2);
         }
 
         return feedPrice;
     }
 
-    function isPriceWithinDeviation(uint price, uint feedPrice, uint maxDeviationP) private pure returns (bool) {
+    function isPriceWithinDeviation(
+        uint price,
+        uint feedPrice,
+        uint maxDeviationP
+    ) private pure returns (bool) {
         return
             price == 0 ||
             feedPrice == 0 ||
-            ((price >= feedPrice ? price - feedPrice : feedPrice - price) * PRECISION * 100) / feedPrice <=
+            ((price >= feedPrice ? price - feedPrice : feedPrice - price) *
+                PRECISION *
+                100) /
+                feedPrice <=
             maxDeviationP;
     }
 
@@ -452,7 +513,9 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
                 : array[array.length / 2];
     }
 
-    function medianLookbacks(LookbackOrderAnswer[] memory array) private pure returns (uint open, uint high, uint low) {
+    function medianLookbacks(
+        LookbackOrderAnswer[] memory array
+    ) private pure returns (uint open, uint high, uint low) {
         uint length = array.length;
 
         uint[] memory opens = new uint[](length);
@@ -476,9 +539,15 @@ contract GNSPriceAggregatorV6_4 is ChainlinkClient, TWAPPriceGetter {
         bool isLengthEven = length % 2 == 0;
         uint halfLength = length / 2;
 
-        open = isLengthEven ? (opens[halfLength - 1] + opens[halfLength]) / 2 : opens[halfLength];
-        high = isLengthEven ? (highs[halfLength - 1] + highs[halfLength]) / 2 : highs[halfLength];
-        low = isLengthEven ? (lows[halfLength - 1] + lows[halfLength]) / 2 : lows[halfLength];
+        open = isLengthEven
+            ? (opens[halfLength - 1] + opens[halfLength]) / 2
+            : opens[halfLength];
+        high = isLengthEven
+            ? (highs[halfLength - 1] + highs[halfLength]) / 2
+            : highs[halfLength];
+        low = isLengthEven
+            ? (lows[halfLength - 1] + lows[halfLength]) / 2
+            : lows[halfLength];
     }
 
     // Storage v5 compatibility

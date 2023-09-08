@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface CallbacksInterfaceV6_4 {
+interface CallbacksInterface {
     struct AggregatorAnswer {
         uint orderId;
         uint price;

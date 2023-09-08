@@ -1,20 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./TokenInterfaceV5.sol";
+import "./TokenInterface.sol";
 import "./NftInterfaceV5.sol";
 import "./IGToken.sol";
-import "./AggregatorInterfaceV6_4.sol";
+import "./AggregatorInterfaceV1_4.sol";
 
-// import "./PairsStorageInterfaceV6.sol";
-// import "./ChainlinkFeedInterfaceV5.sol";
-// import "./PoolInterfaceV5.sol";
-// import "./PausableInterfaceV5.sol";
-// import "./IStateCopyUtils.sol";
-// import "./NFTRewardInterfaceV6_3.sol";
-// import "./AggregatorInterfaceV6_2.sol";
-
-interface StorageInterfaceV5 {
+interface StorageInterface {
     enum LimitOrder {
         TP,
         SL,
@@ -79,13 +71,13 @@ interface StorageInterfaceV5 {
 
     function dev() external view returns (address);
 
-    function WETH() external view returns (TokenInterfaceV5);
+    function WETH() external view returns (TokenInterface);
 
-    function token() external view returns (TokenInterfaceV5);
+    function token() external view returns (TokenInterface);
 
-    function linkErc677() external view returns (TokenInterfaceV5);
+    function linkErc677() external view returns (TokenInterface);
 
-    function priceAggregator() external view returns (AggregatorInterfaceV6_4);
+    function priceAggregator() external view returns (AggregatorInterfaceV1_4);
 
     function vault() external view returns (IGToken);
 

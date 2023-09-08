@@ -3,12 +3,12 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/NFTRewardInterfaceV6_3.sol";
-import "./interfaces/AggregatorInterfaceV6_3_1.sol";
+import "./interfaces/AggregatorInterfaceV1_3.sol";
 import "./interfaces/IStateCopyUtils.sol";
 
-contract GNSNftRewardsV6_3_1 is Initializable {
+contract Rewards is Initializable {
     // Contracts (constant)
-    StorageInterfaceV5 public storageT;
+    StorageInterface public storageT;
 
     // Params (constant)
     uint constant ROUND_LENGTH = 50;
@@ -33,7 +33,7 @@ contract GNSNftRewardsV6_3_1 is Initializable {
         address trader;
         uint pairIndex;
         uint index;
-        StorageInterfaceV5.LimitOrder order;
+        StorageInterface.LimitOrder order;
     }
     struct RoundDetails {
         uint240 tokens;
@@ -55,7 +55,7 @@ contract GNSNftRewardsV6_3_1 is Initializable {
 
     mapping(address => uint) public tokensToClaim; // rewards other than pool (first & same block)
 
-    mapping(address => mapping(uint => mapping(uint => mapping(StorageInterfaceV5.LimitOrder => TriggeredLimit))))
+    mapping(address => mapping(uint => mapping(uint => mapping(StorageInterface.LimitOrder => TriggeredLimit))))
         public triggeredLimits; // limits being triggered
 
     mapping(address => mapping(uint => mapping(uint => OpenLimitOrderType)))
@@ -96,7 +96,7 @@ contract GNSNftRewardsV6_3_1 is Initializable {
     event TokensClaimed(address bot, uint tokens);
 
     function initialize(
-        StorageInterfaceV5 _storageT,
+        StorageInterface _storageT,
         uint _triggerTimeout,
         uint _sameBlockLimit
     ) external initializer {
@@ -155,7 +155,7 @@ contract GNSNftRewardsV6_3_1 is Initializable {
             revert("UNKNOWN_CHAIN");
         }
 
-        StorageInterfaceV5.OpenLimitOrder[]
+        StorageInterface.OpenLimitOrder[]
             memory openLimitOrders = IStateCopyUtils(address(storageT))
                 .getOpenLimitOrders();
         require(start < openLimitOrders.length, "START_TOO_BIG");
@@ -165,7 +165,7 @@ contract GNSNftRewardsV6_3_1 is Initializable {
         }
 
         for (uint i = start; i <= end; ) {
-            StorageInterfaceV5.OpenLimitOrder memory o = openLimitOrders[i];
+            StorageInterface.OpenLimitOrder memory o = openLimitOrders[i];
             openLimitOrderTypes[o.trader][o.pairIndex][
                 o.index
             ] = OpenLimitOrderType(
@@ -444,7 +444,7 @@ contract GNSNftRewardsV6_3_1 is Initializable {
         uint linkFee,
         uint tokenPrice
     ) public view returns (uint) {
-        (, int linkPriceUsd, , , ) = AggregatorInterfaceV6_3_1(
+        (, int linkPriceUsd, , , ) = AggregatorInterfaceV1_3(
             address(storageT.priceAggregator())
         ).linkPriceFeed().latestRoundData();
         return (linkFee * uint(linkPriceUsd) * PRECISION) / tokenPrice / 1e8;

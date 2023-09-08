@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "../interfaces/StorageInterfaceV5.sol";
-import '../interfaces/TradingCallbacksV6_4.sol';
+import "../interfaces/StorageInterface.sol";
+import "../interfaces/TradingCallbacksInterface.sol";
 
 library TradeUtils {
     function _getTradeLastUpdated(
@@ -10,20 +10,32 @@ library TradeUtils {
         address trader,
         uint pairIndex,
         uint index,
-        TradingCallbacksV6_4.TradeType _type
+        TradingCallbacksInterface.TradeType _type
     )
         internal
         view
         returns (
-            TradingCallbacksV6_4,
-            TradingCallbacksV6_4.LastUpdated memory,
-            TradingCallbacksV6_4.SimplifiedTradeId memory
+            TradingCallbacksInterface,
+            TradingCallbacksInterface.LastUpdated memory,
+            TradingCallbacksInterface.SimplifiedTradeId memory
         )
     {
-        TradingCallbacksV6_4 callbacks = TradingCallbacksV6_4(_callbacks);
-        TradingCallbacksV6_4.LastUpdated memory l = callbacks.tradeLastUpdated(trader, pairIndex, index, _type);
+        TradingCallbacksInterface callbacks = TradingCallbacksInterface(
+            _callbacks
+        );
+        TradingCallbacksInterface.LastUpdated memory l = callbacks
+            .tradeLastUpdated(trader, pairIndex, index, _type);
 
-        return (callbacks, l, TradingCallbacksV6_4.SimplifiedTradeId(trader, pairIndex, index, _type));
+        return (
+            callbacks,
+            l,
+            TradingCallbacksInterface.SimplifiedTradeId(
+                trader,
+                pairIndex,
+                index,
+                _type
+            )
+        );
     }
 
     function setTradeLastUpdated(
@@ -31,14 +43,21 @@ library TradeUtils {
         address trader,
         uint pairIndex,
         uint index,
-        TradingCallbacksV6_4.TradeType _type,
+        TradingCallbacksInterface.TradeType _type,
         uint blockNumber
     ) external {
         uint32 b = uint32(blockNumber);
-        TradingCallbacksV6_4 callbacks = TradingCallbacksV6_4(_callbacks);
+        TradingCallbacksInterface callbacks = TradingCallbacksInterface(
+            _callbacks
+        );
         callbacks.setTradeLastUpdated(
-            TradingCallbacksV6_4.SimplifiedTradeId(trader, pairIndex, index, _type),
-            TradingCallbacksV6_4.LastUpdated(b, b, b, b)
+            TradingCallbacksInterface.SimplifiedTradeId(
+                trader,
+                pairIndex,
+                index,
+                _type
+            ),
+            TradingCallbacksInterface.LastUpdated(b, b, b, b)
         );
     }
 
@@ -47,13 +66,13 @@ library TradeUtils {
         address trader,
         uint pairIndex,
         uint index,
-        TradingCallbacksV6_4.TradeType _type,
+        TradingCallbacksInterface.TradeType _type,
         uint blockNumber
     ) external {
         (
-            TradingCallbacksV6_4 callbacks,
-            TradingCallbacksV6_4.LastUpdated memory l,
-            TradingCallbacksV6_4.SimplifiedTradeId memory id
+            TradingCallbacksInterface callbacks,
+            TradingCallbacksInterface.LastUpdated memory l,
+            TradingCallbacksInterface.SimplifiedTradeId memory id
         ) = _getTradeLastUpdated(_callbacks, trader, pairIndex, index, _type);
 
         l.sl = uint32(blockNumber);
@@ -65,13 +84,13 @@ library TradeUtils {
         address trader,
         uint pairIndex,
         uint index,
-        TradingCallbacksV6_4.TradeType _type,
+        TradingCallbacksInterface.TradeType _type,
         uint blockNumber
     ) external {
         (
-            TradingCallbacksV6_4 callbacks,
-            TradingCallbacksV6_4.LastUpdated memory l,
-            TradingCallbacksV6_4.SimplifiedTradeId memory id
+            TradingCallbacksInterface callbacks,
+            TradingCallbacksInterface.LastUpdated memory l,
+            TradingCallbacksInterface.SimplifiedTradeId memory id
         ) = _getTradeLastUpdated(_callbacks, trader, pairIndex, index, _type);
 
         l.tp = uint32(blockNumber);
@@ -80,48 +99,60 @@ library TradeUtils {
 
     function isTpInTimeout(
         address _callbacks,
-        TradingCallbacksV6_4.SimplifiedTradeId memory id,
+        TradingCallbacksInterface.SimplifiedTradeId memory id,
         uint currentBlock
     ) external view returns (bool) {
-        (TradingCallbacksV6_4 callbacks, TradingCallbacksV6_4.LastUpdated memory l, ) = _getTradeLastUpdated(
-            _callbacks,
-            id.trader,
-            id.pairIndex,
-            id.index,
-            id.tradeType
-        );
+        (
+            TradingCallbacksInterface callbacks,
+            TradingCallbacksInterface.LastUpdated memory l,
+
+        ) = _getTradeLastUpdated(
+                _callbacks,
+                id.trader,
+                id.pairIndex,
+                id.index,
+                id.tradeType
+            );
 
         return currentBlock < uint256(l.tp) + callbacks.canExecuteTimeout();
     }
 
     function isSlInTimeout(
         address _callbacks,
-        TradingCallbacksV6_4.SimplifiedTradeId memory id,
+        TradingCallbacksInterface.SimplifiedTradeId memory id,
         uint currentBlock
     ) external view returns (bool) {
-        (TradingCallbacksV6_4 callbacks, TradingCallbacksV6_4.LastUpdated memory l, ) = _getTradeLastUpdated(
-            _callbacks,
-            id.trader,
-            id.pairIndex,
-            id.index,
-            id.tradeType
-        );
+        (
+            TradingCallbacksInterface callbacks,
+            TradingCallbacksInterface.LastUpdated memory l,
+
+        ) = _getTradeLastUpdated(
+                _callbacks,
+                id.trader,
+                id.pairIndex,
+                id.index,
+                id.tradeType
+            );
 
         return currentBlock < uint256(l.sl) + callbacks.canExecuteTimeout();
     }
 
     function isLimitInTimeout(
         address _callbacks,
-        TradingCallbacksV6_4.SimplifiedTradeId memory id,
+        TradingCallbacksInterface.SimplifiedTradeId memory id,
         uint currentBlock
     ) external view returns (bool) {
-        (TradingCallbacksV6_4 callbacks, TradingCallbacksV6_4.LastUpdated memory l, ) = _getTradeLastUpdated(
-            _callbacks,
-            id.trader,
-            id.pairIndex,
-            id.index,
-            id.tradeType
-        );
+        (
+            TradingCallbacksInterface callbacks,
+            TradingCallbacksInterface.LastUpdated memory l,
+
+        ) = _getTradeLastUpdated(
+                _callbacks,
+                id.trader,
+                id.pairIndex,
+                id.index,
+                id.tradeType
+            );
 
         return currentBlock < uint256(l.limit) + callbacks.canExecuteTimeout();
     }
@@ -131,14 +162,21 @@ library TradeUtils {
         address trader,
         uint pairIndex,
         uint index,
-        TradingCallbacksV6_4.TradeType _type,
+        TradingCallbacksInterface.TradeType _type,
         uint maxSlippageP
     ) external {
         require(maxSlippageP <= type(uint40).max, "OVERFLOW");
-        TradingCallbacksV6_4 callbacks = TradingCallbacksV6_4(_callbacks);
+        TradingCallbacksInterface callbacks = TradingCallbacksInterface(
+            _callbacks
+        );
         callbacks.setTradeData(
-            TradingCallbacksV6_4.SimplifiedTradeId(trader, pairIndex, index, _type),
-            TradingCallbacksV6_4.TradeData(uint40(maxSlippageP), 0)
+            TradingCallbacksInterface.SimplifiedTradeId(
+                trader,
+                pairIndex,
+                index,
+                _type
+            ),
+            TradingCallbacksInterface.TradeData(uint40(maxSlippageP), 0)
         );
     }
 }

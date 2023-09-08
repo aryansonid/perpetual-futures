@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface AggregatorInterfaceV5 {
+interface AggregatorInterfaceV1 {
     enum OrderType {
         MARKET_OPEN,
         MARKET_CLOSE,

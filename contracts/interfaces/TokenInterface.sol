@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface TokenInterfaceV5 {
+interface TokenInterface {
     function burn(address, uint256) external;
 
     function mint(address, uint256) external;

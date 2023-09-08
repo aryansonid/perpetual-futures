@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "./interfaces/StorageInterfaceV5.sol";
+import "./interfaces/StorageInterface.sol";
 import "./interfaces/NFTRewardInterfaceV6_3.sol";
-import "./interfaces/GNSPairInfosInterfaceV6.sol";
-import "./interfaces/GNSReferralsInterfaceV6_2.sol";
-import "./interfaces/GNSStakingInterfaceV6_2.sol";
+import "./interfaces/PairInfosInterface.sol";
+import "./interfaces/ReferralsInterface.sol";
+import "./interfaces/StakingInterface.sol";
 import "./libraries/ChainUtils.sol";
-import "./interfaces/GNSBorrowingFeesInterfaceV6_4.sol";
+import "./interfaces/BorrowingFeesInterface.sol";
 
 pragma solidity 0.8.17;
 
-contract GNSTradingCallbacksV6_4 is Initializable {
+contract TradingCallbacks is Initializable {
     // Contracts (constant)
-    StorageInterfaceV5 public storageT;
+    StorageInterface public storageT;
     NftRewardsInterfaceV6_3_1 public nftRewards;
-    GNSPairInfosInterfaceV6 public pairInfos;
-    GNSReferralsInterfaceV6_2 public referrals;
-    GNSStakingInterfaceV6_2 public staking;
+    PairInfosInterface public pairInfos;
+    ReferralsInterface public referrals;
+    StakingInterface public staking;
 
     // Params (constant)
     uint constant PRECISION = 1e10; // 10 decimals
@@ -41,7 +41,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         public tradeLastUpdated; // Block numbers for last updated
 
     // v6.3.2 Storage/State
-    GNSBorrowingFeesInterfaceV6_4 public borrowingFees;
+    BorrowingFeesInterface public borrowingFees;
 
     mapping(uint => uint) public pairMaxLeverage;
 
@@ -131,7 +131,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     // Events
     event MarketExecuted(
         uint indexed orderId,
-        StorageInterfaceV5.Trade t,
+        StorageInterface.Trade t,
         bool open,
         uint price,
         uint priceImpactP,
@@ -143,9 +143,9 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     event LimitExecuted(
         uint indexed orderId,
         uint limitIndex,
-        StorageInterfaceV5.Trade t,
+        StorageInterface.Trade t,
         address indexed nftHolder,
-        StorageInterfaceV5.LimitOrder orderType,
+        StorageInterface.LimitOrder orderType,
         uint price,
         uint priceImpactP,
         uint positionSizeWETH,
@@ -170,7 +170,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     event NftOrderCanceled(
         uint indexed orderId,
         address indexed nftHolder,
-        StorageInterfaceV5.LimitOrder orderType,
+        StorageInterface.LimitOrder orderType,
         CancelReason cancelReason
     );
 
@@ -201,11 +201,11 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     error Forbidden();
 
     function initialize(
-        StorageInterfaceV5 _storageT,
+        StorageInterface _storageT,
         NftRewardsInterfaceV6_3_1 _nftRewards,
-        GNSPairInfosInterfaceV6 _pairInfos,
-        GNSReferralsInterfaceV6_2 _referrals,
-        GNSStakingInterfaceV6_2 _staking,
+        PairInfosInterface _pairInfos,
+        ReferralsInterface _referrals,
+        StakingInterface _staking,
         address vaultToApprove,
         uint _WETHVaultFeeP,
         uint _lpFeeP,
@@ -236,13 +236,13 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         sssFeeP = _sssFeeP;
 
         canExecuteTimeout = _canExecuteTimeout;
-        TokenInterfaceV5 t = storageT.WETH();
+        TokenInterface t = storageT.WETH();
         t.approve(address(staking), type(uint256).max);
         t.approve(vaultToApprove, type(uint256).max);
     }
 
     function initializeV2(
-        GNSBorrowingFeesInterfaceV6_4 _borrowingFees
+        BorrowingFeesInterface _borrowingFees
     ) external reinitializer(2) {
         if (address(_borrowingFees) == address(0)) {
             revert WrongParams();
@@ -375,7 +375,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     function openTradeMarketCallback(
         AggregatorAnswer memory a
     ) external onlyPriceAggregator notDone {
-        StorageInterfaceV5.PendingMarketOrder memory o = getPendingMarketOrder(
+        StorageInterface.PendingMarketOrder memory o = getPendingMarketOrder(
             a.orderId
         );
 
@@ -383,7 +383,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             return;
         }
 
-        StorageInterfaceV5.Trade memory t = o.trade;
+        StorageInterface.Trade memory t = o.trade;
 
         (
             uint priceImpactP,
@@ -410,7 +410,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
         if (cancelReason == CancelReason.NONE) {
             (
-                StorageInterfaceV5.Trade memory finalTrade,
+                StorageInterface.Trade memory finalTrade,
                 uint tokenPriceWETH
             ) = registerTrade(t, 1500, 0);
 
@@ -451,7 +451,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     function closeTradeMarketCallback(
         AggregatorAnswer memory a
     ) external onlyPriceAggregator notDone {
-        StorageInterfaceV5.PendingMarketOrder memory o = getPendingMarketOrder(
+        StorageInterface.PendingMarketOrder memory o = getPendingMarketOrder(
             a.orderId
         );
 
@@ -459,7 +459,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             return;
         }
 
-        StorageInterfaceV5.Trade memory t = getOpenTrade(
+        StorageInterface.Trade memory t = getOpenTrade(
             o.trade.trader,
             o.trade.pairIndex,
             o.trade.index
@@ -470,12 +470,12 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             : (a.price == 0 ? CancelReason.MARKET_CLOSED : CancelReason.NONE);
 
         if (cancelReason != CancelReason.NO_TRADE) {
-            StorageInterfaceV5.TradeInfo memory i = getOpenTradeInfo(
+            StorageInterface.TradeInfo memory i = getOpenTradeInfo(
                 t.trader,
                 t.pairIndex,
                 t.index
             );
-            AggregatorInterfaceV6_4 aggregator = storageT.priceAggregator();
+            AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
 
             Values memory v;
             v.levPosWETH =
@@ -560,7 +560,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     function executeNftOpenOrderCallback(
         AggregatorAnswer memory a
     ) external onlyPriceAggregator notDone {
-        StorageInterfaceV5.PendingNftOrder memory n = storageT
+        StorageInterface.PendingNftOrder memory n = storageT
             .reqID_pendingNftOrder(a.orderId);
 
         CancelReason cancelReason = !storageT.hasOpenLimitOrder(
@@ -572,7 +572,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             : CancelReason.NONE;
 
         if (cancelReason == CancelReason.NONE) {
-            StorageInterfaceV5.OpenLimitOrder memory o = storageT
+            StorageInterface.OpenLimitOrder memory o = storageT
                 .getOpenLimitOrder(n.trader, n.pairIndex, n.index);
 
             NftRewardsInterfaceV6_3_1.OpenLimitOrderType t = nftRewards
@@ -621,10 +621,10 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
             if (cancelReason == CancelReason.NONE) {
                 (
-                    StorageInterfaceV5.Trade memory finalTrade,
+                    StorageInterface.Trade memory finalTrade,
                     uint tokenPriceWETH
                 ) = registerTrade(
-                        StorageInterfaceV5.Trade(
+                        StorageInterface.Trade(
                             o.trader,
                             o.pairIndex,
                             0,
@@ -651,7 +651,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                     n.index,
                     finalTrade,
                     n.nftHolder,
-                    StorageInterfaceV5.LimitOrder.OPEN,
+                    StorageInterface.LimitOrder.OPEN,
                     finalTrade.openPrice,
                     priceImpactP,
                     (finalTrade.initialPosToken * tokenPriceWETH) / PRECISION,
@@ -666,7 +666,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             emit NftOrderCanceled(
                 a.orderId,
                 n.nftHolder,
-                StorageInterfaceV5.LimitOrder.OPEN,
+                StorageInterface.LimitOrder.OPEN,
                 cancelReason
             );
         }
@@ -686,25 +686,25 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     function executeNftCloseOrderCallback(
         AggregatorAnswer memory a
     ) external onlyPriceAggregator notDone {
-        StorageInterfaceV5.PendingNftOrder memory o = storageT
+        StorageInterface.PendingNftOrder memory o = storageT
             .reqID_pendingNftOrder(a.orderId);
         NftRewardsInterfaceV6_3_1.TriggeredLimitId
             memory triggeredLimitId = NftRewardsInterfaceV6_3_1
                 .TriggeredLimitId(o.trader, o.pairIndex, o.index, o.orderType);
-        StorageInterfaceV5.Trade memory t = getOpenTrade(
+        StorageInterface.Trade memory t = getOpenTrade(
             o.trader,
             o.pairIndex,
             o.index
         );
 
-        AggregatorInterfaceV6_4 aggregator = storageT.priceAggregator();
+        AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
 
         CancelReason cancelReason = a.open == 0
             ? CancelReason.MARKET_CLOSED
             : (t.leverage == 0 ? CancelReason.NO_TRADE : CancelReason.NONE);
 
         if (cancelReason == CancelReason.NONE) {
-            StorageInterfaceV5.TradeInfo memory i = getOpenTradeInfo(
+            StorageInterface.TradeInfo memory i = getOpenTradeInfo(
                 t.trader,
                 t.pairIndex,
                 t.index
@@ -718,9 +718,9 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                 PRECISION;
             v.posWETH = v.levPosWETH / t.leverage;
 
-            if (o.orderType == StorageInterfaceV5.LimitOrder.LIQ) {
+            if (o.orderType == StorageInterface.LimitOrder.LIQ) {
                 v.liqPrice = borrowingFees.getTradeLiquidationPrice(
-                    GNSBorrowingFeesInterfaceV6_4.LiqPriceInput(
+                    BorrowingFeesInterface.LiqPriceInput(
                         t.trader,
                         t.pairIndex,
                         t.index,
@@ -732,10 +732,10 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                 );
             }
 
-            v.price = o.orderType == StorageInterfaceV5.LimitOrder.TP
+            v.price = o.orderType == StorageInterface.LimitOrder.TP
                 ? t.tp
                 : (
-                    o.orderType == StorageInterfaceV5.LimitOrder.SL
+                    o.orderType == StorageInterface.LimitOrder.SL
                         ? t.sl
                         : v.liqPrice
                 );
@@ -746,7 +746,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                 a.high >= v.price;
 
             if (v.exactExecution) {
-                v.reward1 = o.orderType == StorageInterfaceV5.LimitOrder.LIQ
+                v.reward1 = o.orderType == StorageInterface.LimitOrder.LIQ
                     ? (v.posWETH * 5) / 100
                     : (v.levPosWETH *
                         pairsStored.pairNftLimitOrderFeeP(t.pairIndex)) /
@@ -755,17 +755,17 @@ contract GNSTradingCallbacksV6_4 is Initializable {
             } else {
                 v.price = a.open;
 
-                v.reward1 = o.orderType == StorageInterfaceV5.LimitOrder.LIQ
+                v.reward1 = o.orderType == StorageInterface.LimitOrder.LIQ
                     ? (
                         (t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice)
                             ? (v.posWETH * 5) / 100
                             : 0
                     )
                     : (
-                        ((o.orderType == StorageInterfaceV5.LimitOrder.TP &&
+                        ((o.orderType == StorageInterface.LimitOrder.TP &&
                             t.tp > 0 &&
                             (t.buy ? a.open >= t.tp : a.open <= t.tp)) ||
-                            (o.orderType == StorageInterfaceV5.LimitOrder.SL &&
+                            (o.orderType == StorageInterface.LimitOrder.SL &&
                                 t.sl > 0 &&
                                 (t.buy ? a.open <= t.sl : a.open >= t.sl)))
                             ? (v.levPosWETH *
@@ -798,7 +798,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                     v.profitP,
                     v.posWETH,
                     i.openInterestWETH,
-                    o.orderType == StorageInterfaceV5.LimitOrder.LIQ
+                    o.orderType == StorageInterface.LimitOrder.LIQ
                         ? v.reward1
                         : (v.levPosWETH *
                             pairsStored.pairCloseFeeP(t.pairIndex)) /
@@ -851,11 +851,11 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
     // Shared code between market & limit callbacks
     function registerTrade(
-        StorageInterfaceV5.Trade memory trade,
+        StorageInterface.Trade memory trade,
         uint nftId,
         uint limitIndex
-    ) private returns (StorageInterfaceV5.Trade memory, uint) {
-        AggregatorInterfaceV6_4 aggregator = storageT.priceAggregator();
+    ) private returns (StorageInterface.Trade memory, uint) {
+        AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
         PairsStorageInterfaceV6 pairsStored = aggregator.pairsStorage();
 
         Values memory v;
@@ -920,7 +920,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
                     trade.trader,
                     trade.pairIndex,
                     limitIndex,
-                    StorageInterfaceV5.LimitOrder.OPEN
+                    StorageInterface.LimitOrder.OPEN
                 ),
                 v.reward3,
                 v.tokenPriceWETH
@@ -981,7 +981,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         // 6. Store final trade in storage contract
         storageT.storeTrade(
             trade,
-            StorageInterfaceV5.TradeInfo(
+            StorageInterface.TradeInfo(
                 0,
                 v.tokenPriceWETH,
                 trade.positionSizeWETH * trade.leverage,
@@ -1004,7 +1004,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     }
 
     function unregisterTrade(
-        StorageInterfaceV5.Trade memory trade,
+        StorageInterface.Trade memory trade,
         bool marketOrder,
         int percentProfit, // PRECISION
         uint currentWETHPos, // 1e18
@@ -1101,7 +1101,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
     // Utils (getters)
     function _getTradeValue(
-        StorageInterfaceV5.Trade memory trade,
+        StorageInterface.Trade memory trade,
         uint currentWETHPos, // 1e18
         int percentProfit, // PRECISION
         uint closingFees // 1e18
@@ -1128,12 +1128,12 @@ contract GNSTradingCallbacksV6_4 is Initializable {
     }
 
     function _getBorrowingFeeAdjustedPercentProfit(
-        StorageInterfaceV5.Trade memory trade,
+        StorageInterface.Trade memory trade,
         uint currentWETHPos, // 1e18
         int percentProfit // PRECISION
     ) private view returns (int netProfitP, uint borrowingFee) {
         borrowingFee = borrowingFees.getTradeBorrowingFee(
-            GNSBorrowingFeesInterfaceV6_4.BorrowingFeeInput(
+            BorrowingFeesInterface.BorrowingFeeInput(
                 trade.trader,
                 trade.pairIndex,
                 trade.index,
@@ -1320,7 +1320,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
 
     function getPendingMarketOrder(
         uint orderId
-    ) private view returns (StorageInterfaceV5.PendingMarketOrder memory) {
+    ) private view returns (StorageInterface.PendingMarketOrder memory) {
         return storageT.reqID_pendingMarketOrder(orderId);
     }
 
@@ -1332,7 +1332,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         address trader,
         uint pairIndex,
         uint index
-    ) private view returns (StorageInterfaceV5.Trade memory) {
+    ) private view returns (StorageInterface.Trade memory) {
         return storageT.openTrades(trader, pairIndex, index);
     }
 
@@ -1340,7 +1340,7 @@ contract GNSTradingCallbacksV6_4 is Initializable {
         address trader,
         uint pairIndex,
         uint index
-    ) private view returns (StorageInterfaceV5.TradeInfo memory) {
+    ) private view returns (StorageInterface.TradeInfo memory) {
         return storageT.openTradesInfo(trader, pairIndex, index);
     }
 

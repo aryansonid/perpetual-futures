@@ -1,29 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./interfaces/StorageInterfaceV5.sol";
-import "./interfaces/AggregatorInterfaceV5.sol";
+import "./interfaces/StorageInterface.sol";
+import "./interfaces/AggregatorInterfaceV1.sol";
 import "./interfaces/PoolInterfaceV5.sol";
 import "./interfaces/NftInterfaceV5.sol";
 import "./interfaces/PausableInterfaceV5.sol";
 
-
-contract GFarmTradingStorageV5 {
+contract Storage {
     // Constants
     uint public constant PRECISION = 1e10;
     bytes32 public constant MINTER_ROLE =
         0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6;
-    TokenInterfaceV5 public WETH;
-    TokenInterfaceV5 public constant linkErc677 =
-        TokenInterfaceV5(0xb0897686c545045aFc77CF20eC7A532E3120E0F1);
+    TokenInterface public WETH;
+    TokenInterface public constant linkErc677 =
+        TokenInterface(0xb0897686c545045aFc77CF20eC7A532E3120E0F1);
 
     // Contracts (updatable)
-    AggregatorInterfaceV5 public priceAggregator;
+    AggregatorInterfaceV1 public priceAggregator;
     PoolInterfaceV5 public pool;
     PausableInterfaceV5 public trading;
     PausableInterfaceV5 public callbacks;
-    TokenInterfaceV5 public token =
-        TokenInterfaceV5(0x7075cAB6bCCA06613e2d071bd918D1a0241379E2);
+    TokenInterface public token =
+        TokenInterface(0x7075cAB6bCCA06613e2d071bd918D1a0241379E2);
     NftInterfaceV5[5] public nfts = [
         NftInterfaceV5(0xF9A4c522E327935BD1F5a338c121E14e4cc1f898),
         NftInterfaceV5(0x77cd42B925e1A82f41d852D6BE727CFc88fddBbC),
@@ -176,7 +175,7 @@ contract GFarmTradingStorageV5 {
     event SpreadReductionsUpdated(uint[5]);
 
     constructor(address _WETH, address _gov, address _dev) {
-        WETH = TokenInterfaceV5(_WETH);
+        WETH = TokenInterface(_WETH);
         gov = _gov;
         dev = _dev;
     }
@@ -207,7 +206,7 @@ contract GFarmTradingStorageV5 {
         emit AddressUpdated("dev", _dev);
     }
 
-    function updateToken(TokenInterfaceV5 _newToken) external onlyGov {
+    function updateToken(TokenInterface _newToken) external onlyGov {
         require(trading.isPaused() && callbacks.isPaused(), "NOT_PAUSED");
         require(address(_newToken) != address(0));
         token = _newToken;
@@ -242,7 +241,7 @@ contract GFarmTradingStorageV5 {
 
     function setPriceAggregator(address _aggregator) external onlyGov {
         require(_aggregator != address(0));
-        priceAggregator = AggregatorInterfaceV5(_aggregator);
+        priceAggregator = AggregatorInterfaceV1(_aggregator);
         emit AddressUpdated("priceAggregator", _aggregator);
     }
 
