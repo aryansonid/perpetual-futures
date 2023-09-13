@@ -9,14 +9,19 @@ library ChainUtils {
     IArbSys public constant ARB_SYS = IArbSys(address(100));
 
     function getBlockNumber() internal view returns (uint) {
-        if (block.chainid == ARBITRUM_MAINNET || block.chainid == ARBITRUM_GOERLI) {
+        if (
+            block.chainid == ARBITRUM_MAINNET ||
+            block.chainid == ARBITRUM_GOERLI
+        ) {
             return ARB_SYS.arbBlockNumber();
         }
 
         return block.number;
     }
 
-    function getUint48BlockNumber(uint blockNumber) internal pure returns (uint48) {
+    function getUint48BlockNumber(
+        uint blockNumber
+    ) internal pure returns (uint48) {
         require(blockNumber <= type(uint48).max, "OVERFLOW");
         return uint48(blockNumber);
     }

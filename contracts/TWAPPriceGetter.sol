@@ -25,7 +25,12 @@ abstract contract TWAPPriceGetter {
     event UniV3PoolUpdated(IUniswapV3Pool newValue);
     event TwapIntervalUpdated(uint32 newValue);
 
-    constructor(IUniswapV3Pool _uniV3Pool, address _token, uint32 _twapInterval, uint _precision) {
+    constructor(
+        IUniswapV3Pool _uniV3Pool,
+        address _token,
+        uint32 _twapInterval,
+        uint _precision
+    ) {
         require(
             address(_uniV3Pool) != address(0) &&
                 _twapInterval >= MIN_TWAP_PERIOD &&
@@ -51,7 +56,11 @@ abstract contract TWAPPriceGetter {
     }
 
     function _updateTwapInterval(uint32 _twapInterval) internal {
-        require(_twapInterval >= MIN_TWAP_PERIOD && _twapInterval <= MAX_TWAP_PERIOD, "WRONG_VALUE");
+        require(
+            _twapInterval >= MIN_TWAP_PERIOD &&
+                _twapInterval <= MAX_TWAP_PERIOD,
+            "WRONG_VALUE"
+        );
         twapInterval = _twapInterval;
         emit TwapIntervalUpdated(_twapInterval);
     }
@@ -68,12 +77,20 @@ abstract contract TWAPPriceGetter {
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
         int56 twapIntervalInt = int56(int32(twapInterval));
 
-        int24 arithmeticMeanTick = int24(tickCumulativesDelta / twapIntervalInt);
+        int24 arithmeticMeanTick = int24(
+            tickCumulativesDelta / twapIntervalInt
+        );
         // Always round to negative infinity
-        if (tickCumulativesDelta < 0 && (tickCumulativesDelta % twapIntervalInt != 0)) arithmeticMeanTick--;
+        if (
+            tickCumulativesDelta < 0 &&
+            (tickCumulativesDelta % twapIntervalInt != 0)
+        ) arithmeticMeanTick--;
 
         uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(arithmeticMeanTick);
-        price = (FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint96.Q96) * precision) / 2 ** 96;
+        price =
+            (FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint96.Q96) *
+                precision) /
+            2 ** 96;
 
         if (!isGnsToken0InLp) {
             price = precision ** 2 / price;

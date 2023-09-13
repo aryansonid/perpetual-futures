@@ -44,8 +44,8 @@ contract Storage {
     uint[5] public spreadReductionsP = [15, 20, 25, 30, 35]; // %
 
     // Gov & dev addresses (updatable)
-    address public gov = 0xC66FbE50Dd33c9AAdd65707F7088D597C86fE00F; //TODO need to change to our
-    address public dev = 0xd39A38bD2D2d552f3908ff698a5530aa397fb92d; //TODO need to change to our
+    address public gov; //TODO need to change to our
+    address public dev; //TODO need to change to our
 
     // Gov & dev fees
     uint public devFeesToken; // 1e18
@@ -187,8 +187,9 @@ contract Storage {
     }
     modifier onlyTrading() {
         require(
-            isTradingContract[msg.sender] &&
-                token.hasRole(MINTER_ROLE, msg.sender)
+            isTradingContract[msg.sender]
+            // &&
+            //     token.hasRole(MINTER_ROLE, msg.sender)
         );
         _;
     }
@@ -221,7 +222,7 @@ contract Storage {
 
     // Trading + callbacks contracts
     function addTradingContract(address _trading) external onlyGov {
-        require(token.hasRole(MINTER_ROLE, _trading), "NOT_MINTER"); /// TODO : need to have a gtoken type token of our own
+        // require(token.hasRole(MINTER_ROLE, _trading), "NOT_MINTER"); /// TODO : need to have a gtoken type token of our own
         require(_trading != address(0));
         isTradingContract[_trading] = true;
         emit TradingContractAdded(_trading);
@@ -693,6 +694,10 @@ contract Storage {
         }
     }
 
+    function mintWETH(address _to, uint _amount) external onlyTrading {
+        WETH.mint(_to, _amount);
+    }
+
     function transferLinkToAggregator(
         address _from,
         uint _pairIndex,
@@ -795,5 +800,9 @@ contract Storage {
 
     function getSpreadReductionsArray() external view returns (uint[5] memory) {
         return spreadReductionsP;
+    }
+
+    function getGov() external view returns (address _gov) {
+        return gov;
     }
 }

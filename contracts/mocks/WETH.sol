@@ -41,7 +41,7 @@ contract WETH {
         Deposit(msg.sender, msg.value);
     }
 
-    function mint(uint256 amount, address to) public {
+    function mint(address to, uint256 amount) public {
         balanceOf[to] += amount;
         Deposit(to, amount);
     }

@@ -289,11 +289,54 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         // }
 
         // emit PriceRequested(orderId, job, pairIndex, orderType, length, linkFeePerNode, fromBlock, isLookback);
-
-        return orderIds++;
+        orderIds++;
+        orders[orderIds] = Order(
+            uint16(pairIndex),
+            uint112(0),
+            orderType,
+            true,
+            false
+        );
+       
+        return orderIds;
     }
 
     // Fulfill on-demand price requests
+    function Mfulfill(uint256 orderId, uint price) external {
+        Order memory r = orders[orderId];
+        bool usedInMedian = false;
+
+        usedInMedian = true;
+
+        CallbacksInterface.AggregatorAnswer memory a;
+
+        a.orderId = orderId;
+        a.price = price;
+        a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
+
+        CallbacksInterface c = CallbacksInterface(storageT.callbacks());
+
+        if (r.orderType == OrderType.MARKET_OPEN) {
+            c.openTradeMarketCallback(a);
+        } else {
+            c.closeTradeMarketCallback(a);
+        }
+
+        emit CallbackExecuted(a, r.orderType);
+
+        emit PriceReceived(
+            "0x",
+            orderId,
+            msg.sender,
+            r.pairIndex,
+            0,
+            0,
+            r.linkFeePerNode,
+            r.isLookback,
+            usedInMedian
+        );
+    }
+
     function fulfill(
         bytes32 requestId,
         uint priceData

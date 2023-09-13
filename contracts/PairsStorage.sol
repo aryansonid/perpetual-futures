@@ -12,8 +12,7 @@ import "./interfaces/NftRewardsInterfaceV6.sol";
 
 contract PairsStorage {
     // Contracts (constant)
-    StorageInterface constant storageT =
-        StorageInterface(0xaee4d11a16B2bc65EDD6416Fb626EB404a6D65BD);
+    StorageInterface public storageT;
 
     // Params (constant)
     uint constant MIN_LEVERAGE = 2;
@@ -82,14 +81,15 @@ contract PairsStorage {
     event FeeAdded(uint index, string name);
     event FeeUpdated(uint index);
 
-    constructor(uint _currentOrderId) {
+    constructor(uint _currentOrderId, address _storage) {
         require(_currentOrderId > 0, "ORDER_ID_0");
         currentOrderId = _currentOrderId;
+        storageT = StorageInterface(_storage);
     }
 
     // Modifiers
     modifier onlyGov() {
-        require(msg.sender == storageT.gov(), "GOV_ONLY");
+        require(msg.sender == storageT.gov(), "GOV_ONLY"); //// TODO check error function returned an unexpected amount of data
         _;
     }
 
@@ -142,13 +142,11 @@ contract PairsStorage {
         Pair calldata _pair
     )
         public
-        onlyGov
-        feedOk(_pair.feed)
-        groupListed(_pair.groupIndex)
-        feeListed(_pair.feeIndex)
+        onlyGov // feedOk(_pair.feed)
+    // groupListed(_pair.groupIndex) /// TODO : uncomment
+    // feeListed(_pair.feeIndex)
     {
         require(!isPairListed[_pair.from][_pair.to], "PAIR_ALREADY_LISTED");
-
         pairs[pairsCount] = _pair;
         isPairListed[_pair.from][_pair.to] = true;
 

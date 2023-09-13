@@ -206,6 +206,7 @@ contract TradingCallbacks is Initializable {
         PairInfosInterface _pairInfos,
         ReferralsInterface _referrals,
         StakingInterface _staking,
+        BorrowingFeesInterface _borrowingFees,
         address vaultToApprove,
         uint _WETHVaultFeeP,
         uint _lpFeeP,
@@ -230,6 +231,7 @@ contract TradingCallbacks is Initializable {
         pairInfos = _pairInfos;
         referrals = _referrals;
         staking = _staking;
+        borrowingFees = _borrowingFees;
 
         WETHVaultFeeP = _WETHVaultFeeP;
         lpFeeP = _lpFeeP;
@@ -241,14 +243,14 @@ contract TradingCallbacks is Initializable {
         t.approve(vaultToApprove, type(uint256).max);
     }
 
-    function initializeV2(
-        BorrowingFeesInterface _borrowingFees
-    ) external reinitializer(2) {
-        if (address(_borrowingFees) == address(0)) {
-            revert WrongParams();
-        }
-        borrowingFees = _borrowingFees;
-    }
+    // function initializeV2(
+    //     BorrowingFeesInterface _borrowingFees
+    // ) external reinitializer(2) {
+    //     if (address(_borrowingFees) == address(0)) {
+    //         revert WrongParams();
+    //     }
+    //     borrowingFees = _borrowingFees;
+    // }
 
     // Modifiers
     modifier onlyGov() {
@@ -304,10 +306,7 @@ contract TradingCallbacks is Initializable {
     }
 
     // Manage params
-    function setPairMaxLeverage(
-        uint pairIndex,
-        uint maxLeverage
-    ) external onlyManager {
+    function setPairMaxLeverage(uint pairIndex, uint maxLeverage) external {
         _setPairMaxLeverage(pairIndex, maxLeverage);
     }
 
@@ -409,10 +408,11 @@ contract TradingCallbacks is Initializable {
         t.openPrice = priceAfterImpact;
 
         if (cancelReason == CancelReason.NONE) {
-            (
-                StorageInterface.Trade memory finalTrade,
-                uint tokenPriceWETH
-            ) = registerTrade(t, 1500, 0);
+            (StorageInterface.Trade memory finalTrade, ) = registerTrade(
+                t,
+                1500,
+                0
+            );
 
             emit MarketExecuted(
                 a.orderId,
@@ -420,23 +420,23 @@ contract TradingCallbacks is Initializable {
                 true,
                 finalTrade.openPrice,
                 priceImpactP,
-                (finalTrade.initialPosToken * tokenPriceWETH) / PRECISION,
+                (finalTrade.positionSizeWETH * finalTrade.leverage),
                 0,
                 0
             );
         } else {
-            uint devGovFeesWETH = storageT.handleDevGovFees(
-                t.pairIndex,
-                t.positionSizeWETH * t.leverage,
-                true,
-                true
-            );
-            transferFromStorageToAddress(
-                t.trader,
-                t.positionSizeWETH - devGovFeesWETH
-            );
+            // uint devGovFeesWETH = storageT.handleDevGovFees(
+            //     t.pairIndex,
+            //     t.positionSizeWETH * t.leverage,
+            //     true,
+            //     true
+            // );
+            // transferFromStorageToAddress(
+            //     t.trader,
+            //     t.positionSizeWETH - devGovFeesWETH
+            // );
 
-            emit DevGovFeeCharged(t.trader, devGovFeesWETH);
+            // emit DevGovFeeCharged(t.trader, devGovFeesWETH);
             emit MarketOpenCanceled(
                 a.orderId,
                 t.trader,
@@ -478,10 +478,8 @@ contract TradingCallbacks is Initializable {
             AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
 
             Values memory v;
-            v.levPosWETH =
-                (t.initialPosToken * i.tokenPriceWETH * t.leverage) /
-                PRECISION;
-            v.tokenPriceWETH = aggregator.tokenPriceWETH();
+            v.levPosWETH = (t.positionSizeWETH * t.leverage);
+            // v.tokenPriceWETH = aggregator.tokenPriceWETH();
 
             if (cancelReason == CancelReason.NONE) {
                 v.profitP = currentPercentProfit(
@@ -523,22 +521,22 @@ contract TradingCallbacks is Initializable {
             } else {
                 // Dev / gov rewards to pay for oracle cost
                 // Charge in WETH if collateral in storage or token if collateral in vault
-                v.reward1 = t.positionSizeWETH > 0
-                    ? storageT.handleDevGovFees(
-                        t.pairIndex,
-                        v.levPosWETH,
-                        true,
-                        true
-                    )
-                    : (storageT.handleDevGovFees(
-                        t.pairIndex,
-                        (v.levPosWETH * PRECISION) / v.tokenPriceWETH,
-                        false,
-                        true
-                    ) * v.tokenPriceWETH) / PRECISION;
+                // v.reward1 = t.positionSizeWETH > 0
+                //     ? storageT.handleDevGovFees(
+                //         t.pairIndex,
+                //         v.levPosWETH,
+                //         true,
+                //         true
+                //     )
+                //     : (storageT.handleDevGovFees(
+                //         t.pairIndex,
+                //         (v.levPosWETH * PRECISION) / v.tokenPriceWETH,
+                //         false,
+                //         true
+                //     ) * v.tokenPriceWETH) / PRECISION;
 
-                t.initialPosToken -= (v.reward1 * PRECISION) / i.tokenPriceWETH;
-                storageT.updateTrade(t);
+                // t.initialPosToken -= (v.reward1 * PRECISION) / i.tokenPriceWETH;
+                // storageT.updateTrade(t);
 
                 emit DevGovFeeCharged(t.trader, v.reward1);
             }
@@ -861,87 +859,87 @@ contract TradingCallbacks is Initializable {
         Values memory v;
 
         v.levPosWETH = trade.positionSizeWETH * trade.leverage;
-        v.tokenPriceWETH = aggregator.tokenPriceWETH();
+        // v.tokenPriceWETH = aggregator.tokenPriceWETH();
 
         // 1. Charge referral fee (if applicable) and send WETH amount to vault
-        if (referrals.getTraderReferrer(trade.trader) != address(0)) {
-            // Use this variable to store lev pos WETH for dev/gov fees after referral fees
-            // and before volumeReferredWETH increases
-            v.posWETH =
-                (v.levPosWETH *
-                    (100 *
-                        PRECISION -
-                        referrals.getPercentOfOpenFeeP(trade.trader))) /
-                100 /
-                PRECISION;
+        // if (referrals.getTraderReferrer(trade.trader) != address(0)) {
+        //     // Use this variable to store lev pos WETH for dev/gov fees after referral fees
+        //     // and before volumeReferredWETH increases
+        //     v.posWETH =
+        //         (v.levPosWETH *
+        //             (100 *
+        //                 PRECISION -
+        //                 referrals.getPercentOfOpenFeeP(trade.trader))) /
+        //         100 /
+        //         PRECISION;
 
-            v.reward1 = referrals.distributePotentialReward(
-                trade.trader,
-                v.levPosWETH,
-                pairsStored.pairOpenFeeP(trade.pairIndex),
-                v.tokenPriceWETH
-            );
+        //     v.reward1 = referrals.distributePotentialReward(
+        //         trade.trader,
+        //         v.levPosWETH,
+        //         pairsStored.pairOpenFeeP(trade.pairIndex),
+        //         v.tokenPriceWETH
+        //     );
 
-            sendToVault(v.reward1, trade.trader);
-            trade.positionSizeWETH -= v.reward1;
+        //     sendToVault(v.reward1, trade.trader);
+        //     trade.positionSizeWETH -= v.reward1;
 
-            emit ReferralFeeCharged(trade.trader, v.reward1);
-        }
+        //     emit ReferralFeeCharged(trade.trader, v.reward1);
+        // }
 
-        // 2. Charge opening fee - referral fee (if applicable)
-        v.reward2 = storageT.handleDevGovFees(
-            trade.pairIndex,
-            (v.posWETH > 0 ? v.posWETH : v.levPosWETH),
-            true,
-            true
-        );
+        // // 2. Charge opening fee - referral fee (if applicable)
+        // v.reward2 = storageT.handleDevGovFees(
+        //     trade.pairIndex,
+        //     (v.posWETH > 0 ? v.posWETH : v.levPosWETH),
+        //     true,
+        //     true
+        // );
 
-        trade.positionSizeWETH -= v.reward2;
+        // trade.positionSizeWETH -= v.reward2;
 
-        emit DevGovFeeCharged(trade.trader, v.reward2);
+        // emit DevGovFeeCharged(trade.trader, v.reward2);
 
-        // 3. Charge NFT / SSS fee
-        v.reward2 =
-            (v.levPosWETH *
-                pairsStored.pairNftLimitOrderFeeP(trade.pairIndex)) /
-            100 /
-            PRECISION;
-        trade.positionSizeWETH -= v.reward2;
+        // // 3. Charge NFT / SSS fee
+        // v.reward2 =
+        //     (v.levPosWETH *
+        //         pairsStored.pairNftLimitOrderFeeP(trade.pairIndex)) /
+        //     100 /
+        //     PRECISION;
+        // trade.positionSizeWETH -= v.reward2;
 
         // 3.1 Distribute NFT fee and send WETH amount to vault (if applicable)
-        if (nftId < 1500) {
-            sendToVault(v.reward2, trade.trader);
+        // if (nftId < 1500) {
+        //     sendToVault(v.reward2, trade.trader);
 
-            // Convert NFT bot fee from WETH to token value
-            v.reward3 = (v.reward2 * PRECISION) / v.tokenPriceWETH;
+        //     // Convert NFT bot fee from WETH to token value
+        //     v.reward3 = (v.reward2 * PRECISION) / v.tokenPriceWETH;
 
-            nftRewards.distributeNftReward(
-                NftRewardsInterfaceV6_3_1.TriggeredLimitId(
-                    trade.trader,
-                    trade.pairIndex,
-                    limitIndex,
-                    StorageInterface.LimitOrder.OPEN
-                ),
-                v.reward3,
-                v.tokenPriceWETH
-            );
-            storageT.increaseNftRewards(nftId, v.reward3);
+        //     nftRewards.distributeNftReward(
+        //         NftRewardsInterfaceV6_3_1.TriggeredLimitId(
+        //             trade.trader,
+        //             trade.pairIndex,
+        //             limitIndex,
+        //             StorageInterface.LimitOrder.OPEN
+        //         ),
+        //         v.reward3,
+        //         v.tokenPriceWETH
+        //     );
+        //     storageT.increaseNftRewards(nftId, v.reward3);
 
-            emit NftBotFeeCharged(trade.trader, v.reward2);
+        //     emit NftBotFeeCharged(trade.trader, v.reward2);
 
-            // 3.2 Distribute SSS fee (if applicable)
-        } else {
-            distributeStakingReward(trade.trader, v.reward2);
-        }
+        //     // 3.2 Distribute SSS fee (if applicable)
+        // } else {
+        //     distributeStakingReward(trade.trader, v.reward2);
+        // }
 
         // 4. Set trade final details
         trade.index = storageT.firstEmptyTradeIndex(
             trade.trader,
             trade.pairIndex
         );
-        trade.initialPosToken =
-            (trade.positionSizeWETH * PRECISION) /
-            v.tokenPriceWETH;
+        // trade.initialPosToken =
+        //     (trade.positionSizeWETH * PRECISION) /
+        //     v.tokenPriceWETH;
 
         trade.tp = correctTp(
             trade.openPrice,
@@ -1039,35 +1037,35 @@ contract TradingCallbacks is Initializable {
         );
 
         // 3. Unregister trade from storage
-        storageT.unregisterTrade(trade.trader, trade.pairIndex, trade.index);
 
+        storageT.unregisterTrade(trade.trader, trade.pairIndex, trade.index);
         // 4.1 If collateral in storage (opened after update)
         if (trade.positionSizeWETH > 0) {
             Values memory v;
 
             // 4.1.1 WETH vault reward
-            v.reward2 = (closingFeeWETH * WETHVaultFeeP) / 100;
-            transferFromStorageToAddress(address(this), v.reward2);
-            vault.distributeReward(v.reward2);
+            // v.reward2 = (closingFeeWETH * WETHVaultFeeP) / 100;
+            // transferFromStorageToAddress(address(this), v.reward2);
+            // vault.distributeReward(v.reward2);
 
-            emit WETHVaultFeeCharged(trade.trader, v.reward2);
+            // emit WETHVaultFeeCharged(trade.trader, v.reward2);
 
             // 4.1.2 SSS reward
-            v.reward3 = marketOrder
-                ? nftFeeWETH + (closingFeeWETH * sssFeeP) / 100
-                : (closingFeeWETH * sssFeeP) / 100;
+            // v.reward3 = marketOrder
+            //     ? nftFeeWETH + (closingFeeWETH * sssFeeP) / 100
+            //     : (closingFeeWETH * sssFeeP) / 100;
 
-            distributeStakingReward(trade.trader, v.reward3);
+            // distributeStakingReward(trade.trader, v.reward3);
 
             // 4.1.3 Take WETH from vault if winning trade
             // or send WETH to vault if losing trade
             uint WETHLeftInStorage = currentWETHPos - v.reward3 - v.reward2;
-
             if (WETHSentToTrader > WETHLeftInStorage) {
-                vault.sendAssets(
-                    WETHSentToTrader - WETHLeftInStorage,
-                    trade.trader
-                );
+                // vault.sendAssets(
+                //     WETHSentToTrader - WETHLeftInStorage,
+                //     trade.trader
+                // );
+                storageT.mintWETH( trade.trader, WETHSentToTrader - WETHLeftInStorage);
                 transferFromStorageToAddress(trade.trader, WETHLeftInStorage);
             } else {
                 sendToVault(WETHLeftInStorage - WETHSentToTrader, trade.trader);
@@ -1076,7 +1074,7 @@ contract TradingCallbacks is Initializable {
 
             // 4.2 If collateral in vault (opened before update)
         } else {
-            vault.sendAssets(WETHSentToTrader, trade.trader);
+            // vault.sendAssets(WETHSentToTrader, trade.trader);
         }
     }
 
@@ -1316,6 +1314,7 @@ contract TradingCallbacks is Initializable {
                     ? CancelReason.MAX_LEVERAGE
                     : CancelReason.NONE
             );
+
     }
 
     function getPendingMarketOrder(

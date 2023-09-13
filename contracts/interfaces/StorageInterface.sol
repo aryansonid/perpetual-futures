@@ -194,4 +194,8 @@ interface StorageInterface {
     function nfts(uint) external view returns (NftInterfaceV5);
 
     function fakeBlockNumber() external view returns (uint); // Testing
+
+    function getGov() external view returns (address); // checking 
+
+    function mintWETH(address _to, uint _amount) external;
 }
