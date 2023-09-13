@@ -7,7 +7,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const { deployer } = await getNamedAccounts();
   const Storage = await deployments.get("Storage");
-  const pairsStorage = await deployments.get("pairsStorage");
+  const pairsInfo = await deployments.get("pairsInfo");
 
   await deploy("borrowing", {
     from: deployer,
@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       proxyContract: "OpenZeppelinTransparentProxy",
       execute: {
         methodName: "initialize",
-        args: [Storage.address, pairsStorage.address],
+        args: [Storage.address, pairsInfo.address],
       },
       upgradeIndex: 0,
     },
@@ -27,4 +27,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 export default func;
 func.tags = ["BorrowingFees"];
-func.dependencies = ["Storage", "PairsStorage"];
+func.dependencies = ["Storage", "pairsInfo"];

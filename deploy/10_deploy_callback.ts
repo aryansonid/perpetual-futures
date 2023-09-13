@@ -12,6 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const pairsInfo = await deployments.get("pairsInfo");
   const staking = await deployments.get("Staking");
   const reward = await deployments.get("reward");
+  const borrowingFee = await deployments.get("borrowing");
 
   await deploy("callback", {
     from: deployer,
@@ -27,6 +28,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           pairsInfo.address,
           referal.address,
           staking.address,
+          borrowingFee.address,
           vault,
           0,
           50,

@@ -4,7 +4,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
-
   const { deployer } = await getNamedAccounts();
   const Storage = await deployments.get("Storage");
   const referal = await deployments.get("referal");
@@ -28,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       pairsInfo.address,
       referal.address,
       borrowing.address,
-      2,
+      1500,
       2,
     ],
     libraries: {

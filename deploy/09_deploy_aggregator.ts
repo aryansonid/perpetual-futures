@@ -36,7 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     log: true,
   });
 
-  await deploy("aggregator", {
+  await deploy("PriceAggregator", {
     from: deployer,
     contract: "PriceAggregator",
     args: [
