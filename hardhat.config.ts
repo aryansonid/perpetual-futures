@@ -80,6 +80,7 @@ const config: HardhatUserConfig = {
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
     vault: 6,
+    trader: 7,
   },
 
   networks: {
@@ -94,7 +95,7 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: "your key",
+    apiKey: "IE5ATP8BJBRRKYA2BDXYNWXVYWI7YAISH3",
   },
 };
 
