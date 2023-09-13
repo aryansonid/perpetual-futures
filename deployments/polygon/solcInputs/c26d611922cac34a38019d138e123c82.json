@@ -1,7 +1,7 @@
 {
   "language": "Solidity",
   "sources": {
-    "contracts/Mock/MockLiqPool.sol": {
+    "contracts/mocks/MockLiqPool.sol": {
       "content": "pragma solidity 0.8.14;\n\ncontract MockLiqPool {\n    address public token0;\n\n    constructor(address _token) {\n        token0 = _token;\n    }\n}\n"
     }
   },
