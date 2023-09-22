@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
-interface IGToken {
+interface IToken {
     function manager() external view returns (address);
 
     function admin() external view returns (address);

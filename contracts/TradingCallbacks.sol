@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+pragma solidity 0.8.20;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/NFTRewardInterfaceV6_3.sol";
 import "./interfaces/PairInfosInterface.sol";
@@ -8,8 +9,6 @@ import "./interfaces/ReferralsInterface.sol";
 import "./interfaces/StakingInterface.sol";
 import "./libraries/ChainUtils.sol";
 import "./interfaces/BorrowingFeesInterface.sol";
-
-pragma solidity 0.8.17;
 
 contract TradingCallbacks is Initializable {
     // Contracts (constant)
@@ -1010,7 +1009,7 @@ contract TradingCallbacks is Initializable {
         uint closingFeeWETH, // 1e18
         uint nftFeeWETH // 1e18 (= SSS reward if market order)
     ) private returns (uint WETHSentToTrader) {
-        IGToken vault = storageT.vault();
+        IToken vault = storageT.vault();
 
         // 1. Calculate net PnL (after all closing and holding fees)
         (WETHSentToTrader, ) = _getTradeValue(
@@ -1065,10 +1064,13 @@ contract TradingCallbacks is Initializable {
                 //     WETHSentToTrader - WETHLeftInStorage,
                 //     trade.trader
                 // );
-                storageT.mintWETH( trade.trader, WETHSentToTrader - WETHLeftInStorage);
+                storageT.mintWETH(
+                    trade.trader,
+                    WETHSentToTrader - WETHLeftInStorage
+                );
                 transferFromStorageToAddress(trade.trader, WETHLeftInStorage);
             } else {
-                sendToVault(WETHLeftInStorage - WETHSentToTrader, trade.trader);
+                // sendToVault(WETHLeftInStorage - WETHSentToTrader, trade.trader);
                 transferFromStorageToAddress(trade.trader, WETHSentToTrader);
             }
 
@@ -1176,7 +1178,7 @@ contract TradingCallbacks is Initializable {
         uint currentPrice,
         bool buy,
         uint leverage
-    ) private pure returns (int p) {
+    ) private view returns (int p) {
         int maxPnlP = int(MAX_GAIN_P) * int(PRECISION);
 
         p = openPrice > 0
@@ -1198,7 +1200,7 @@ contract TradingCallbacks is Initializable {
         uint leverage,
         uint tp,
         bool buy
-    ) private pure returns (uint) {
+    ) private view returns (uint) {
         if (
             tp == 0 ||
             currentPercentProfit(openPrice, tp, buy, leverage) ==
@@ -1220,7 +1222,7 @@ contract TradingCallbacks is Initializable {
         uint leverage,
         uint sl,
         bool buy
-    ) private pure returns (uint) {
+    ) private view returns (uint) {
         if (
             sl > 0 &&
             currentPercentProfit(openPrice, sl, buy, leverage) <
@@ -1314,7 +1316,6 @@ contract TradingCallbacks is Initializable {
                     ? CancelReason.MAX_LEVERAGE
                     : CancelReason.NONE
             );
-
     }
 
     function getPendingMarketOrder(

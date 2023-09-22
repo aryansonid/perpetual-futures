@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
@@ -237,7 +237,6 @@ contract PairInfos {
         bool long
     ) external onlyCallbacks {
         storeAccFundingFees(pairIndex);
-
         TradeInitialAccFees storage t = tradeInitialAccFees[trader][pairIndex][
             index
         ];
@@ -395,7 +394,6 @@ contract PairInfos {
         if (!t.openedAfterUpdate) {
             return 0;
         }
-
         return
             getTradeRolloverFeePure(
                 t.rollover,
@@ -437,7 +435,6 @@ contract PairInfos {
         if (!t.openedAfterUpdate) {
             return 0;
         }
-
         (int pendingLong, int pendingShort) = getPendingAccFundingFees(
             pairIndex
         );
@@ -544,7 +541,6 @@ contract PairInfos {
             collateral,
             leverage
         );
-
         amount = getTradeValuePure(collateral, percentProfit, r, f, closingFee);
 
         emit FeesCharged(
@@ -564,7 +560,7 @@ contract PairInfos {
         uint rolloverFee, // 1e18 (WETH)
         int fundingFee, // 1e18 (WETH)
         uint closingFee // 1e18 (WETH)
-    ) public pure returns (uint) {
+    ) public view returns (uint) {
         // 1e18 (WETH)
         int value = int(collateral) +
             (int(collateral) * percentProfit) /

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import "./TokenInterface.sol";
 import "./NftInterfaceV5.sol";
-import "./IGToken.sol";
+import "./IToken.sol";
 import "./AggregatorInterfaceV1_4.sol";
 
 interface StorageInterface {
@@ -79,7 +79,7 @@ interface StorageInterface {
 
     function priceAggregator() external view returns (AggregatorInterfaceV1_4);
 
-    function vault() external view returns (IGToken);
+    function vault() external view returns (IToken);
 
     function trading() external view returns (address);
 
@@ -195,7 +195,7 @@ interface StorageInterface {
 
     function fakeBlockNumber() external view returns (uint); // Testing
 
-    function getGov() external view returns (address); // checking 
+    function getGov() external view returns (address); // checking
 
     function mintWETH(address _to, uint _amount) external;
 }

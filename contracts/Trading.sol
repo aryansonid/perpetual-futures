@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT
+pragma solidity 0.8.20;
+
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/PairInfosInterface.sol";
 import "./interfaces/ReferralsInterface.sol";
@@ -8,8 +10,6 @@ import "./libraries/ChainUtils.sol";
 import "./libraries/TradeUtils.sol";
 import "./libraries/PackingUtils.sol";
 import "./interfaces/NFTRewardInterfaceV6_3.sol";
-
-pragma solidity 0.8.17;
 
 contract Trading is Delegatable {
     using TradeUtils for address;

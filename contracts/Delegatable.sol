@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 abstract contract Delegatable {
     mapping(address => address) public delegations;
@@ -15,11 +15,16 @@ abstract contract Delegatable {
         delegations[msg.sender] = address(0);
     }
 
-    function delegatedAction(address trader, bytes calldata call_data) external returns (bytes memory) {
+    function delegatedAction(
+        address trader,
+        bytes calldata call_data
+    ) external returns (bytes memory) {
         require(delegations[trader] == msg.sender, "DELEGATE_NOT_APPROVED");
 
         senderOverride = trader;
-        (bool success, bytes memory result) = address(this).delegatecall(call_data);
+        (bool success, bytes memory result) = address(this).delegatecall(
+            call_data
+        );
         if (!success) {
             // Next 5 lines from https://ethereum.stackexchange.com/a/83577 (return the original revert reason)
             if (result.length < 68) revert();

@@ -1,11 +1,5 @@
-/**
- *Submitted for verification at PolygonScan.com on 2022-08-16
- */
-
-// File: contracts\interfaces\UniswapRouterInterface.sol
 // SPDX-License-Identifier: MIT
-
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";

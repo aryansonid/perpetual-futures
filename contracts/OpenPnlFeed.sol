@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
-import '@chainlink/contracts/src/v0.8/ChainlinkClient.sol';
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+pragma solidity 0.8.20;
 
-import './interfaces/IGToken.sol';
-import './interfaces/IOwnable.sol';
-import './interfaces/IOpenTradesPnlFeed.sol';
+import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./interfaces/IToken.sol";
+import "./interfaces/IOwnable.sol";
+import "./interfaces/IOpenTradesPnlFeed.sol";
 
-pragma solidity 0.8.17;
-
-contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
+contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
     using Chainlink for Chainlink.Request;
-    
+
     // Constants
     uint public immutable LINK_FEE_BALANCE_DIVIDER;
     uint constant MIN_ANSWERS = 3;
@@ -20,9 +19,9 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
     uint constant MAX_REQUESTS_EVERY = 1 days;
     uint constant MIN_REQUESTS_COUNT = 3;
     uint constant MAX_REQUESTS_COUNT = 10;
-    
+
     // Params
-    IGToken public immutable gToken;
+    IToken public immutable vault;
 
     uint public requestsStart = 2 days;
     uint public requestsEvery = 6 hours;
@@ -37,12 +36,13 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
     uint public nextEpochValuesRequestCount;
     uint public nextEpochValuesLastRequest;
 
+    uint public requestId;
     uint public lastRequestId;
-    mapping(bytes32 => uint) public requestIds;   // chainlink request id => requestId
-    mapping(uint => Request) public requests;     // requestId => request
+    mapping(bytes32 => uint) public requestIds; // chainlink request id => requestId
+    mapping(uint => Request) public requests; // requestId => request
     mapping(uint => int[]) public requestAnswers; // requestId => open pnl (1e18)
 
-    struct Request{
+    struct Request {
         bool initiated;
         bool active;
         uint linkFeePerNode;
@@ -54,10 +54,7 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
     event OraclesUpdated(address[] newValues);
     event JobUpdated(bytes32 newValue);
 
-    event NextEpochValuesReset(
-        uint indexed currEpoch,
-        uint requestsResetCount
-    );
+    event NextEpochValuesReset(uint indexed currEpoch, uint requestsResetCount);
 
     event NewEpochForced(uint indexed newEpoch);
 
@@ -97,62 +94,68 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
     constructor(
         uint _LINK_FEE_BALANCE_DIVIDER,
         address _linkToken,
-        IGToken _gToken,
+        IToken _vault,
         address[] memory _oracles,
         bytes32 _job,
         uint _minAnswers
-    ){
-        require(_LINK_FEE_BALANCE_DIVIDER > 0
-            && _linkToken != address(0)
-            && address(_gToken) != address(0)
-            && _oracles.length > 0
-            && _job != bytes32(0)
-            && _minAnswers >= MIN_ANSWERS
-            && _minAnswers % 2 == 1
-            && _minAnswers <= _oracles.length / 2, "WRONG_PARAMS");
-        
+    ) {
+        require(
+            _LINK_FEE_BALANCE_DIVIDER > 0 &&
+                _linkToken != address(0) &&
+                address(_vault) != address(0) &&
+                _oracles.length > 0 &&
+                _job != bytes32(0) &&
+                _minAnswers >= MIN_ANSWERS &&
+                _minAnswers % 2 == 1 &&
+                _minAnswers <= _oracles.length / 2,
+            "WRONG_PARAMS"
+        );
+
         LINK_FEE_BALANCE_DIVIDER = _LINK_FEE_BALANCE_DIVIDER;
-        
+
         setChainlinkToken(_linkToken);
 
-        gToken = _gToken;
+        vault = _vault;
         oracles = _oracles;
         job = _job;
         minAnswers = _minAnswers;
     }
 
     // Modifiers
-    modifier onlyGTokenOwner { // 2-week timelock
-        require(msg.sender == IOwnable(address(gToken)).owner(), "ONLY_OWNER");
+    modifier onlyOwner() {
+        // 2-week timelock
+        require(msg.sender == IOwnable(address(vault)).owner(), "ONLY_OWNER");
         _;
     }
 
-    modifier onlyGTokenManager { // 3-day timelock
-        require(msg.sender == gToken.manager(), "ONLY_MANAGER");
+    modifier onlyManager() {
+        // 3-day timelock
+        require(msg.sender == vault.manager(), "ONLY_MANAGER");
         _;
     }
 
-    modifier onlyGTokenAdmin { // bypasses timelock, emergency functions only
-        require(msg.sender == gToken.admin(), "ONLY_ADMIN");
+    modifier onlyAdmin() {
+        // bypasses timelock, emergency functions only
+        require(msg.sender == vault.admin(), "ONLY_ADMIN");
         _;
     }
 
     // Manage parameters
-    function updateRequestsStart(uint newValue) public onlyGTokenOwner{
+    function updateRequestsStart(uint newValue) public onlyOwner {
         require(newValue >= MIN_REQUESTS_START, "BELOW_MIN");
         require(newValue <= MAX_REQUESTS_START, "ABOVE_MAX");
         requestsStart = newValue;
         emit NumberParamUpdated("requestsStart", newValue);
     }
 
-    function updateRequestsEvery(uint newValue) public onlyGTokenOwner{
+    function updateRequestsEvery(uint newValue) public onlyOwner {
         require(newValue >= MIN_REQUESTS_EVERY, "BELOW_MIN");
         require(newValue <= MAX_REQUESTS_EVERY, "ABOVE_MAX");
         requestsEvery = newValue;
         emit NumberParamUpdated("requestsEvery", newValue);
     }
 
-    function updateRequestsCount(uint newValue) public onlyGTokenOwner{
+    function updateRequestsCount(uint newValue) public onlyOwner {
         require(newValue >= MIN_REQUESTS_COUNT, "BELOW_MIN");
         require(newValue <= MAX_REQUESTS_COUNT, "ABOVE_MAX");
         requestsCount = newValue;
@@ -163,13 +166,13 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
         uint newRequestsStart,
         uint newRequestsEvery,
         uint newRequestsCount
-    ) external onlyGTokenOwner{
+    ) external onlyOwner {
         updateRequestsStart(newRequestsStart);
         updateRequestsEvery(newRequestsEvery);
         updateRequestsCount(newRequestsCount);
     }
 
-    function updateMinAnswers(uint newValue) external onlyGTokenManager{
+    function updateMinAnswers(uint newValue) external onlyManager {
         require(newValue >= MIN_ANSWERS, "BELOW_MIN");
         require(newValue % 2 == 1, "EVEN");
         require(newValue <= oracles.length / 2, "ABOVE_MAX");
@@ -177,27 +180,27 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
         emit NumberParamUpdated("minAnswers", newValue);
     }
 
-    function updateOracle(uint _index, address newValue) external onlyGTokenOwner{
+    function updateOracle(uint _index, address newValue) external onlyOwner {
         require(_index < oracles.length, "INDEX_TOO_BIG");
         require(newValue != address(0), "VALUE_0");
         oracles[_index] = newValue;
         emit OracleUpdated(_index, newValue);
     }
 
-    function updateOracles(address[] memory newValues) external onlyGTokenOwner{
+    function updateOracles(address[] memory newValues) external onlyOwner {
         require(newValues.length >= minAnswers * 2, "ARRAY_TOO_SMALL");
         oracles = newValues;
         emit OraclesUpdated(newValues);
     }
 
-    function updateJob(bytes32 newValue) external onlyGTokenManager{
+    function updateJob(bytes32 newValue) external onlyManager {
         require(newValue != bytes32(0), "VALUE_0");
         job = newValue;
         emit JobUpdated(newValue);
     }
 
     // Emergency function in case of oracle manipulation
-    function resetNextEpochValueRequests() external onlyGTokenAdmin{
+    function resetNextEpochValueRequests() external onlyAdmin {
         uint reqToResetCount = nextEpochValuesRequestCount;
         require(reqToResetCount > 0, "NO_REQUEST_TO_RESET");
 
@@ -206,80 +209,80 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
         nextEpochValuesRequestCount = 0;
         nextEpochValuesLastRequest = 0;
 
-        for(uint i; i < reqToResetCount; i++){
+        for (uint i; i < reqToResetCount; i++) {
             requests[lastRequestId - i].active = false;
         }
 
-        emit NextEpochValuesReset(
-            gToken.currentEpoch(),
-            reqToResetCount
-        );
+        emit NextEpochValuesReset(vault.currentEpoch(), reqToResetCount);
     }
 
     // Safety function that anyone can call in case the function above is used in an abusive manner,
     // which could theoretically delay withdrawals indefinitely since it prevents new epochs
-    function forceNewEpoch() external{
-        require(block.timestamp - gToken.currentEpochStart()
-            >= requestsStart + requestsEvery * requestsCount,"TOO_EARLY");
+    function forceNewEpoch() external {
+        require(
+            block.timestamp - vault.currentEpochStart() >=
+                requestsStart + requestsEvery * requestsCount,
+            "TOO_EARLY"
+        );
         uint newEpoch = startNewEpoch();
         emit NewEpochForced(newEpoch);
     }
 
-    // Called by gToken contract
-    function newOpenPnlRequestOrEpoch() external{
+    // Called by  contract
+    function newOpenPnlRequestOrEpoch() external {
         bool firstRequest = nextEpochValuesLastRequest == 0;
 
-        if(firstRequest
-            && block.timestamp - gToken.currentEpochStart() >= requestsStart){
+        if (
+            firstRequest &&
+            block.timestamp - vault.currentEpochStart() >= requestsStart
+        ) {
             makeOpenPnlRequest();
-
-        }else if(!firstRequest
-            && block.timestamp - nextEpochValuesLastRequest >= requestsEvery){
-            if(nextEpochValuesRequestCount < requestsCount){
+        } else if (
+            !firstRequest &&
+            block.timestamp - nextEpochValuesLastRequest >= requestsEvery
+        ) {
+            if (nextEpochValuesRequestCount < requestsCount) {
                 makeOpenPnlRequest();
-                
-            }else if(nextEpochValues.length >= requestsCount){
+            } else if (nextEpochValues.length >= requestsCount) {
                 startNewEpoch();
             }
         }
     }
 
     // Create requests
-    function makeOpenPnlRequest() private{
-        Chainlink.Request memory linkRequest = buildChainlinkRequest(
-            job,
-            address(this),
-            this.fulfill.selector
-        );
+    function makeOpenPnlRequest() private {
+        // Chainlink.Request memory linkRequest = buildChainlinkRequest(
+        //     job,
+        //     address(this),
+        //     this.fulfill.selector
+        // );
 
-        uint linkFeePerNode = IERC20(chainlinkTokenAddress())
-            .balanceOf(address(this))
-            / LINK_FEE_BALANCE_DIVIDER
-            / oracles.length;
+        // uint linkFeePerNode = IERC20(chainlinkTokenAddress()).balanceOf(
+        //     address(this)
+        // ) /
+        //     LINK_FEE_BALANCE_DIVIDER /
+        //     oracles.length;
 
         requests[++lastRequestId] = Request({
             initiated: true,
             active: true,
-            linkFeePerNode: linkFeePerNode
+            linkFeePerNode: 0
         });
 
         nextEpochValuesRequestCount++;
         nextEpochValuesLastRequest = block.timestamp;
-        
-        for(uint i; i < oracles.length; i ++){
-            requestIds[sendChainlinkRequestTo(
-                oracles[i],
-                linkRequest,
-                linkFeePerNode
-            )] = lastRequestId;
+
+        ++requestId;
+        for (uint i; i < oracles.length; i++) {
+            requestIds[bytes32(requestId)] = lastRequestId;
         }
 
         emit NextEpochValueRequested(
-            gToken.currentEpoch(),
+            vault.currentEpoch(),
             lastRequestId,
             job,
             oracles.length,
-            linkFeePerNode
+            0
         );
     }
 
@@ -287,13 +290,12 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
     function fulfill(
         bytes32 requestId,
         int value // 1e18
-    ) external recordChainlinkFulfillment(requestId){
-
+    ) external /*recordChainlinkFulfillment(requestId)*/ {
         uint reqId = requestIds[requestId];
         delete requestIds[requestId];
 
         Request memory r = requests[reqId];
-        uint currentEpoch = gToken.currentEpoch();
+        uint currentEpoch = vault.currentEpoch();
 
         emit RequestValueReceived(
             !r.active,
@@ -305,14 +307,14 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
             r.linkFeePerNode
         );
 
-        if(!r.active){
+        if (!r.active) {
             return;
         }
 
         int[] storage answers = requestAnswers[reqId];
         answers.push(value);
 
-        if(answers.length == minAnswers){
+        if (answers.length == minAnswers) {
             int medianValue = median(answers);
             nextEpochValues.push(medianValue);
 
@@ -329,23 +331,24 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
     }
 
     // Increment epoch and update feed value
-    function startNewEpoch() private returns(uint newEpoch){
+    function startNewEpoch() private returns (uint newEpoch) {
         nextEpochValuesRequestCount = 0;
         nextEpochValuesLastRequest = 0;
 
-        uint currentEpochPositiveOpenPnl = gToken.currentEpochPositiveOpenPnl();
+        uint currentEpochPositiveOpenPnl = vault.currentEpochPositiveOpenPnl();
 
         // If all responses arrived, use mean, otherwise it means we forced a new epoch,
         // so as a safety we use the last epoch value
-        int newEpochOpenPnl = nextEpochValues.length >= requestsCount ?
-            average(nextEpochValues) : int(currentEpochPositiveOpenPnl);
+        int newEpochOpenPnl = nextEpochValues.length >= requestsCount
+            ? average(nextEpochValues)
+            : int(currentEpochPositiveOpenPnl);
 
-        uint finalNewEpochPositiveOpenPnl = gToken.updateAccPnlPerTokenUsed(
+        uint finalNewEpochPositiveOpenPnl = vault.updateAccPnlPerTokenUsed(
             currentEpochPositiveOpenPnl,
             newEpochOpenPnl > 0 ? uint(newEpochOpenPnl) : 0
         );
 
-        newEpoch = gToken.currentEpoch();
+        newEpoch = vault.currentEpoch();
 
         emit NewEpoch(
             newEpoch,
@@ -359,12 +362,14 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
     }
 
     // Median function
-    function swap(int[] memory array, uint i, uint j) private pure{
+    function swap(int[] memory array, uint i, uint j) private pure {
         (array[i], array[j]) = (array[j], array[i]);
     }
-    
-    function sort(int[] memory array, uint begin, uint end) private pure{
-        if (begin >= end) { return; }
+
+    function sort(int[] memory array, uint begin, uint end) private pure {
+        if (begin >= end) {
+            return;
+        }
 
         uint j = begin;
         int pivot = array[j];
@@ -379,19 +384,20 @@ contract GTokenOpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed{
         sort(array, begin, j);
         sort(array, j + 1, end);
     }
-    
-    function median(int[] memory array) private pure returns(int){
+
+    function median(int[] memory array) private pure returns (int) {
         sort(array, 0, array.length);
 
-        return array.length % 2 == 0 ?
-            (array[array.length / 2 - 1] + array[array.length / 2]) / 2 :
-            array[array.length / 2];
+        return
+            array.length % 2 == 0
+                ? (array[array.length / 2 - 1] + array[array.length / 2]) / 2
+                : array[array.length / 2];
     }
 
     // Average function
-    function average(int[] memory array) private pure returns(int){
+    function average(int[] memory array) private pure returns (int) {
         int sum;
-        for(uint i; i < array.length; i++){
+        for (uint i; i < array.length; i++) {
             sum += array[i];
         }
 

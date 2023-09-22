@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 /// DEPLOY need storage and pair info
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -237,7 +237,7 @@ contract BorrowingFees is Initializable, BorrowingFeesInterface {
         PendingAccFeesInput memory input
     )
         public
-        pure
+        view
         returns (uint64 newAccFeeLong, uint64 newAccFeeShort, uint64 delta)
     {
         require(input.currentBlock >= input.accLastUpdatedBlock, "BLOCK_ORDER");
@@ -512,7 +512,6 @@ contract BorrowingFees is Initializable, BorrowingFeesInterface {
         if (pairGroups.length > 0) {
             firstPairGroup = pairGroups[0];
         }
-
         // If pair has had no group after trade was opened, initialize with pair borrowing fee
         if (
             pairGroups.length == 0 || firstPairGroup.block > initialFees.block

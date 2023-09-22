@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-pragma solidity 0.8.17;
+pragma solidity 0.8.20;
 
 interface INft is IERC721 {
     function mint(address to, uint tokenId) external;

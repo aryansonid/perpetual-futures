@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
+pragma solidity 0.8.20;
+
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "./TWAPPriceGetter.sol";
 import "./interfaces/CallbacksInterface.sol";
 import "./interfaces/ChainlinkFeedInterface.sol";
 import "./interfaces/StorageInterface.sol";
 import "./libraries/PackingUtils.sol";
-
-pragma solidity 0.8.17;
 
 contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     using Chainlink for Chainlink.Request;
@@ -297,7 +297,7 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
             true,
             false
         );
-       
+
         return orderIds;
     }
 
