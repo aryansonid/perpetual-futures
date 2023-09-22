@@ -8,7 +8,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.17",
+        version: "0.8.20",
         settings: {
           optimizer: {
             enabled: true,
@@ -81,6 +81,14 @@ const config: HardhatUserConfig = {
     },
     vault: 6,
     trader: 7,
+    manager: {
+      default: 8,
+      polygon: "0x95C30fb60380175059781d3a730757d254b4485B",
+    },
+    owner: {
+      default: 9,
+      polygon: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
+    },
   },
 
   networks: {

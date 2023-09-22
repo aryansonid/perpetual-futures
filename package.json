@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@chainlink/contracts": "^0.6.1",
-    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.9",
     "@uniswap/v3-core": "1.0.2-solc-0.8-simulate"
   }
 }
