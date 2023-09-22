@@ -1,18 +1,17 @@
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { getContract } from "../test/test";
+import { ethers } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute } = deployments;
-  const { deployer } = await getNamedAccounts();
-  const Storage = await deployments.get("Storage");
+  const { deployer, owner } = await getNamedAccounts();
+  const OpenPnlFeed = await deployments.get("OpenPnlFeed");
   const referal = await deployments.get("referal");
   const pairsStorage = await deployments.get("pairsStorage");
   const trading = await deployments.get("trading");
   const callback = await deployments.get("callback");
   const PriceAggregator = await deployments.get("PriceAggregator");
-  const borrowing = await getContract("borrowing");
   await execute(
     "Storage",
     { from: deployer, log: true },
@@ -55,12 +54,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
 
-  await borrowing.setPairParams(0, {
-    groupIndex: 0,
-    feePerBlock: 100000000,
-    feeExponent: 1,
-    maxOi: 10000,
-  });
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    0,
+    {
+      groupIndex: 0,
+      feePerBlock: 10,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000"),
+    }
+  );
 
   await execute("pairsStorage", { from: deployer, log: true }, "addPair", {
     from: "0x00000000219ab540356cbb839cbe05303d7705fa",
@@ -83,7 +88,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     0,
     100
   );
+
+  await execute(
+    "vault",
+    { from: deployer, log: true },
+    "updateOpenTradesPnlFeed",
+    OpenPnlFeed.address
+  );
+
+  console.log("setup done");
 };
 
 export default func;
 func.tags = ["setup"];
+func.dependencies = ["vault"];

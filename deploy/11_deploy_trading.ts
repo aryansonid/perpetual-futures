@@ -2,7 +2,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const { deployments, getNamedAccounts } = hre;
+  const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const Storage = await deployments.get("Storage");
@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     log: true,
   });
 
-  await deploy("trading", {
+  const trading = await deploy("trading", {
     from: deployer,
     contract: "Trading",
     args: [
@@ -27,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       pairsInfo.address,
       referal.address,
       borrowing.address,
-      1500,
+      ethers.toBigInt("1500000000000000000000"),
       2,
     ],
     libraries: {
@@ -37,6 +37,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     log: true,
   });
+
+  const networkName = hre.network.name;
+
+  if (networkName != "hardhat") {
+    await hre.run("verify:verify", {
+      address: trading.address,
+      constructorArguments: [
+        Storage.address,
+        reward.address,
+        pairsInfo.address,
+        referal.address,
+        borrowing.address,
+        ethers.toBigInt("1500000000000000000000"),
+        2,
+      ],
+      libraries: {
+        TradeUtils: TradeUtils.address,
+      },
+    });
+  }
 };
 
 export default func;
