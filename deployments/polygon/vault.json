@@ -1,5 +1,5 @@
 {
-  "address": "0x9CC2Fcef7AC1C6F6fedD016541fd19b087E2cC33",
+  "address": "0x4df5d6eCE4982eE2D25bd13176713801668cA2BF",
   "abi": [
     {
       "anonymous": false,
@@ -129,6 +129,363 @@
       "inputs": [
         {
           "indexed": false,
+          "internalType": "uint256",
+          "name": "newAccValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "AccBlockWeightedMarketCapStored",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "newEpoch",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "prevPositiveOpenPnl",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newPositiveOpenPnl",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newEpochPositiveOpenPnl",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "int256",
+          "name": "newAccPnlPerTokenUsed",
+          "type": "int256"
+        }
+      ],
+      "name": "AccPnlPerTokenUsedUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newValue",
+          "type": "address"
+        }
+      ],
+      "name": "AddressParamUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assetsLessDeplete",
+          "type": "uint256"
+        }
+      ],
+      "name": "AssetsReceived",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        }
+      ],
+      "name": "AssetsSent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "CurrentMaxSupplyUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Depleted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        }
+      ],
+      "name": "Deposit",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "depositId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "shares",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "assetsDeposited",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "assetsDiscount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "atTimestamp",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lockDuration",
+              "type": "uint256"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct IToken.LockedDeposit",
+          "name": "d",
+          "type": "tuple"
+        }
+      ],
+      "name": "DepositLocked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "depositId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "shares",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "assetsDeposited",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "assetsDiscount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "atTimestamp",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lockDuration",
+              "type": "uint256"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct IToken.LockedDeposit",
+          "name": "d",
+          "type": "tuple"
+        }
+      ],
+      "name": "DepositUnlocked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
           "internalType": "uint8",
           "name": "version",
           "type": "uint8"
@@ -149,260 +506,366 @@
         {
           "indexed": false,
           "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "NumberParamUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "OpenTradesPnlFeedCallFailed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Refilled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardDistributed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "ShareToAssetsPriceUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
           "name": "value",
           "type": "uint256"
         }
       ],
-      "name": "NumberUpdated",
+      "name": "Transfer",
       "type": "event"
     },
     {
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "address",
-          "name": "bot",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
           "type": "address"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "fromRound",
+          "name": "assets",
           "type": "uint256"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "toRound",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "tokens",
+          "name": "shares",
           "type": "uint256"
         }
       ],
-      "name": "PoolTokensClaimed",
+      "name": "Withdraw",
       "type": "event"
     },
     {
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "address",
-          "name": "bot",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
           "type": "address"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "tokens",
+          "name": "shares",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "currEpoch",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "unlockEpoch",
           "type": "uint256"
         }
       ],
-      "name": "TokensClaimed",
+      "name": "WithdrawCanceled",
       "type": "event"
     },
     {
       "anonymous": false,
       "inputs": [
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
           "indexed": false,
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "id",
-          "type": "tuple"
+          "internalType": "uint256[2]",
+          "name": "newValue",
+          "type": "uint256[2]"
+        }
+      ],
+      "name": "WithdrawLockThresholdsPUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "address",
-          "name": "first",
+          "name": "owner",
           "type": "address"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "sameBlockCount",
+          "name": "shares",
           "type": "uint256"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "sameBlockLimit",
+          "name": "currEpoch",
           "type": "uint256"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "uint256",
-          "name": "reward",
+          "name": "unlockEpoch",
           "type": "uint256"
         }
       ],
-      "name": "TriggerRewarded",
+      "name": "WithdrawRequested",
       "type": "event"
     },
     {
       "anonymous": false,
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "indexed": false,
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "id",
-          "type": "tuple"
-        }
-      ],
-      "name": "TriggerUnregistered",
+      "inputs": [],
+      "name": "dailyAccPnlDeltaReset",
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
+      "inputs": [],
+      "name": "MIN_LOCK_DURATION",
+      "outputs": [
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "indexed": false,
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "id",
-          "type": "tuple"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "bot",
-          "type": "address"
-        },
-        {
-          "indexed": false,
           "internalType": "uint256",
-          "name": "linkFee",
-          "type": "uint256"
-        }
-      ],
-      "name": "TriggeredFirst",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "indexed": false,
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "id",
-          "type": "tuple"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "bot",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "linkContribution",
-          "type": "uint256"
-        }
-      ],
-      "name": "TriggeredSameBlock",
-      "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
           "name": "",
-          "type": "bytes32"
+          "type": "uint256"
         }
       ],
-      "name": "botInUse",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "accBlockWeightedMarketCap",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "accBlockWeightedMarketCapLastStored",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "accPnlPerToken",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "accPnlPerTokenUsed",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "accRewardsPerToken",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
       "outputs": [
         {
           "internalType": "bool",
@@ -410,55 +873,25 @@
           "type": "bool"
         }
       ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "asset",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_fromRound",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_toRound",
-          "type": "uint256"
-        }
-      ],
-      "name": "claimPoolTokens",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [],
-      "name": "claimTokens",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "start",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "end",
-          "type": "uint256"
-        }
-      ],
-      "name": "copyOldLimitTypes",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "currentOrder",
+      "name": "assetsToDeplete",
       "outputs": [
         {
           "internalType": "uint256",
@@ -471,7 +904,7 @@
     },
     {
       "inputs": [],
-      "name": "currentRound",
+      "name": "availableAssets",
       "outputs": [
         {
           "internalType": "uint256",
@@ -484,113 +917,482 @@
     },
     {
       "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "unlockEpoch",
+          "type": "uint256"
+        }
+      ],
+      "name": "cancelWithdrawRequest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "collateralizationP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        }
+      ],
+      "name": "convertToAssets",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        }
+      ],
+      "name": "convertToShares",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentBalanceWETH",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentEpoch",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentEpochPositiveOpenPnl",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentEpochStart",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentMaxSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dailyAccPnlDelta",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dailyMinted",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "subtractedValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "decreaseAllowance",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "deposit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lockDuration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "depositWithDiscountAndLock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        }
+      ],
+      "name": "distributeReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "depositId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getLockedDeposit",
+      "outputs": [
         {
           "components": [
             {
               "internalType": "address",
-              "name": "trader",
+              "name": "owner",
               "type": "address"
             },
             {
               "internalType": "uint256",
-              "name": "pairIndex",
+              "name": "shares",
               "type": "uint256"
             },
             {
               "internalType": "uint256",
-              "name": "index",
+              "name": "assetsDeposited",
               "type": "uint256"
             },
             {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
+              "internalType": "uint256",
+              "name": "assetsDiscount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "atTimestamp",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lockDuration",
+              "type": "uint256"
             }
           ],
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "_id",
+          "internalType": "struct IToken.LockedDeposit",
+          "name": "",
           "type": "tuple"
-        },
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
         {
           "internalType": "uint256",
-          "name": "_reward",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_tokenPriceWETH",
+          "name": "currentBlock",
           "type": "uint256"
         }
       ],
-      "name": "distributeNftReward",
-      "outputs": [],
+      "name": "getPendingAccBlockWeightedMarketCap",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "addedValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "increaseAllowance",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [
         {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_symbol",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "asset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "manager",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "admin",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "lockedDepositNft",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "pnlHandler",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "openTradesPnlFeed",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct Vault.ContractAddresses",
+          "name": "_contractAddresses",
+          "type": "tuple"
+        },
+        {
           "internalType": "uint256",
-          "name": "triggerBlock",
+          "name": "_MIN_LOCK_DURATION",
           "type": "uint256"
         },
         {
-          "internalType": "address",
-          "name": "bot",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
-          "name": "nftId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "trader",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "pairIndex",
+          "name": "_maxAccOpenPnlDelta",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "index",
+          "name": "_maxdailyAccPnlDelta",
           "type": "uint256"
-        }
-      ],
-      "name": "getNftBotHashes",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
         },
         {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "contract StorageInterface",
-          "name": "_storageT",
-          "type": "address"
+          "internalType": "uint256[2]",
+          "name": "_withdrawLockThresholdsP",
+          "type": "uint256[2]"
         },
         {
           "internalType": "uint256",
-          "name": "_triggerTimeout",
+          "name": "_maxSupplyIncreaseDailyP",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "_sameBlockLimit",
+          "name": "_lossesBurnP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxSupplyMintDailyP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxDiscountP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxDiscountThresholdP",
           "type": "uint256"
         }
       ],
@@ -600,19 +1402,41 @@
       "type": "function"
     },
     {
-      "inputs": [
+      "inputs": [],
+      "name": "initializeV2",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastDailyAccPnlDeltaReset",
+      "outputs": [
         {
           "internalType": "uint256",
-          "name": "linkFee",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenPrice",
+          "name": "",
           "type": "uint256"
         }
       ],
-      "name": "linkToTokenRewards",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastMaxSupplyUpdate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastdailyMintedReset",
       "outputs": [
         {
           "internalType": "uint256",
@@ -626,17 +1450,744 @@
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "nftHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "collatP",
+          "type": "uint256"
         },
         {
-          "internalType": "bytes32",
-          "name": "botHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "lockDuration",
+          "type": "uint256"
         }
       ],
-      "name": "nftBotInUse",
+      "name": "lockDiscountP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lockedDepositNft",
+      "outputs": [
+        {
+          "internalType": "contract INft",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "lockedDeposits",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "assetsDeposited",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "assetsDiscount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "atTimestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lockDuration",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lockedDepositsCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lossesBurnP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "makeWithdrawRequest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "manager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "marketCap",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxAccOpenPnlDelta",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxAccPnlPerToken",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "maxDeposit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxDiscountP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxDiscountThresholdP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "maxMint",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "maxRedeem",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxSupplyIncreaseDailyP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxSupplyMintDailyP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "maxWithdraw",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxdailyAccPnlDelta",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "mint",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lockDuration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "mintWithDiscountAndLock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "openTradesPnlFeed",
+      "outputs": [
+        {
+          "internalType": "contract IOpenTradesPnlFeed",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pnlHandler",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        }
+      ],
+      "name": "previewDeposit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        }
+      ],
+      "name": "previewMint",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        }
+      ],
+      "name": "previewRedeem",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        }
+      ],
+      "name": "previewWithdraw",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "receiveAssets",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "redeem",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "sendAssets",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "shareToAssetsPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "storeAccBlockWeightedMarketCap",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalAssets",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalClosedPnl",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalDeposited",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalDiscounts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalLiability",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalLockedDiscounts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalRewards",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "totalSharesBeingWithdrawn",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
       "outputs": [
         {
           "internalType": "bool",
@@ -644,155 +2195,6 @@
           "type": "bool"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "openLimitOrderTypes",
-      "outputs": [
-        {
-          "internalType": "enum Rewards.OpenLimitOrderType",
-          "name": "",
-          "type": "uint8"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "roundOrdersToClaim",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "roundTokens",
-      "outputs": [
-        {
-          "internalType": "uint240",
-          "name": "tokens",
-          "type": "uint240"
-        },
-        {
-          "internalType": "uint16",
-          "name": "totalEntries",
-          "type": "uint16"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "sameBlockLimit",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "_id",
-          "type": "tuple"
-        }
-      ],
-      "name": "sameBlockTriggers",
-      "outputs": [
-        {
-          "internalType": "address[]",
-          "name": "",
-          "type": "address[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "nftHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "botHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "setNftBotInUse",
-      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -800,40 +2202,21 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_trader",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "_pairIndex",
+          "name": "amount",
           "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_index",
-          "type": "uint256"
-        },
-        {
-          "internalType": "enum Rewards.OpenLimitOrderType",
-          "name": "_type",
-          "type": "uint8"
         }
       ],
-      "name": "setOpenLimitOrderType",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "setStateCopyAsDone",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "stateCopied",
+      "name": "transferFrom",
       "outputs": [
         {
           "internalType": "bool",
@@ -841,202 +2224,46 @@
           "type": "bool"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "storageT",
-      "outputs": [
-        {
-          "internalType": "contract StorageInterface",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "_id",
-          "type": "tuple"
-        },
-        {
-          "internalType": "address",
-          "name": "_bot",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_linkFee",
-          "type": "uint256"
-        }
-      ],
-      "name": "storeFirstToTrigger",
+      "name": "tryNewOpenPnlRequestOrEpoch",
       "outputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "_id",
-          "type": "tuple"
-        },
-        {
-          "internalType": "address",
-          "name": "_bot",
-          "type": "address"
-        }
-      ],
-      "name": "storeTriggerSameBlock",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "_id",
-          "type": "tuple"
-        }
-      ],
-      "name": "timedOut",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "tokensClaimed",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "tokensClaimedTotal",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "tokensToClaim",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
+      "name": "tryResetdailyAccPnlDelta",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "triggerTimeout",
+      "name": "tryUpdateCurrentMaxSupply",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tvl",
       "outputs": [
         {
           "internalType": "uint256",
@@ -1050,39 +2277,270 @@
     {
       "inputs": [
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "_id",
-          "type": "tuple"
+          "internalType": "uint256",
+          "name": "depositId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
         }
       ],
-      "name": "triggered",
+      "name": "unlockDeposit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "prevPositiveOpenPnl",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "newPositiveOpenPnl",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateAccPnlPerTokenUsed",
       "outputs": [
         {
-          "internalType": "bool",
+          "internalType": "uint256",
           "name": "",
-          "type": "bool"
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newValue",
+          "type": "address"
+        }
+      ],
+      "name": "updateAdmin",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "i",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateEpoch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateLossesBurnP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newValue",
+          "type": "address"
+        }
+      ],
+      "name": "updateManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMaxAccOpenPnlDelta",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMaxDiscountP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMaxDiscountThresholdP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMaxdailyAccPnlDelta",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newValue",
+          "type": "address"
+        }
+      ],
+      "name": "updateOpenTradesPnlFeed",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newValue",
+          "type": "address"
+        }
+      ],
+      "name": "updatePnlHandler",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[2]",
+          "name": "newValue",
+          "type": "uint256[2]"
+        }
+      ],
+      "name": "updateWithdrawLockThresholdsP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updatemaxSupplyIncreaseDailyP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "updatemaxSupplyMintDailyP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawEpochsTimelock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawLockThresholdsP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -1099,103 +2557,17 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "enum StorageInterface.LimitOrder",
-          "name": "",
-          "type": "uint8"
         }
       ],
-      "name": "triggeredLimits",
+      "name": "withdrawRequests",
       "outputs": [
         {
-          "internalType": "address",
-          "name": "first",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
-          "name": "block",
+          "name": "",
           "type": "uint256"
-        },
-        {
-          "internalType": "uint240",
-          "name": "linkFee",
-          "type": "uint240"
-        },
-        {
-          "internalType": "uint16",
-          "name": "sameBlockLimit",
-          "type": "uint16"
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "trader",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pairIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            },
-            {
-              "internalType": "enum StorageInterface.LimitOrder",
-              "name": "order",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Rewards.TriggeredLimitId",
-          "name": "_id",
-          "type": "tuple"
-        }
-      ],
-      "name": "unregisterTrigger",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_sameBlockLimit",
-          "type": "uint256"
-        }
-      ],
-      "name": "updateSameBlockLimit",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_triggerTimeout",
-          "type": "uint256"
-        }
-      ],
-      "name": "updateTriggerTimeout",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -1220,79 +2592,93 @@
       "type": "constructor"
     }
   ],
-  "transactionHash": "0x362b267c30386a5f844e238a938a17a8fec45062cf5347909343b5d794c416db",
+  "transactionHash": "0x1cb9e0a75d3c750cb30ed02de887422b1a3e2c4bdd879808f3df68843b855cf0",
   "receipt": {
     "to": null,
     "from": "0xa667403454F483dE81A0363Af7FcEE563819D910",
-    "contractAddress": "0x9CC2Fcef7AC1C6F6fedD016541fd19b087E2cC33",
-    "transactionIndex": 10,
-    "gasUsed": "813799",
-    "logsBloom": "0x00000000000000000000000000000000400000000000000000000000020000000000000002000000000000000000000000008000000000000000000000000000000000000000000000000000000002800000000000000000000100000000000000000000000000000000000000000000000000800000000080000000000000000000000000000000000000000000000000000000000080000000080000800000200000000000000000000000000400000000000000000004000000000000004000002020000000000001000000040000000000000400000000100002001100000000000000200080200000000000000000000000010000000000000000100000",
-    "blockHash": "0xdd2a67070fc5a40858757cff2556d6c348abfc7c73f27fc6f3625740656e2ee2",
-    "transactionHash": "0x362b267c30386a5f844e238a938a17a8fec45062cf5347909343b5d794c416db",
+    "contractAddress": "0x4df5d6eCE4982eE2D25bd13176713801668cA2BF",
+    "transactionIndex": 17,
+    "gasUsed": "1342759",
+    "logsBloom": "0x00000000000000000000000000000000400000000000000000800000000000000000000000000000000000000000000000408000000000000000000000000000000000000000000000000000080002800001000000000000000100000000004000000000020004000000000000000800000100800000000080000000000000400000000000000000000000000000000000000000000080000000000000800000200000000000000000000000000400000000000000000000000000000000004000000020000000008001000000040000000000008400000000100040001120000000000000000000000000000000000000000000010000000000000000100000",
+    "blockHash": "0xe42044450429ce7ccda1906cfd58b78f0c1e26471edd73d3006589de4cb37f3c",
+    "transactionHash": "0x1cb9e0a75d3c750cb30ed02de887422b1a3e2c4bdd879808f3df68843b855cf0",
     "logs": [
       {
-        "transactionIndex": 10,
-        "blockNumber": 40382723,
-        "transactionHash": "0x362b267c30386a5f844e238a938a17a8fec45062cf5347909343b5d794c416db",
-        "address": "0x9CC2Fcef7AC1C6F6fedD016541fd19b087E2cC33",
+        "transactionIndex": 17,
+        "blockNumber": 40382769,
+        "transactionHash": "0x1cb9e0a75d3c750cb30ed02de887422b1a3e2c4bdd879808f3df68843b855cf0",
+        "address": "0x4df5d6eCE4982eE2D25bd13176713801668cA2BF",
         "topics": [
           "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b",
-          "0x000000000000000000000000ddb775a9eb6dbcdeef75b80e9fad534916a4a927"
+          "0x000000000000000000000000e53bf05df491fbc46603733d0a99eaccf8f38841"
         ],
         "data": "0x",
-        "logIndex": 34,
-        "blockHash": "0xdd2a67070fc5a40858757cff2556d6c348abfc7c73f27fc6f3625740656e2ee2"
+        "logIndex": 49,
+        "blockHash": "0xe42044450429ce7ccda1906cfd58b78f0c1e26471edd73d3006589de4cb37f3c"
       },
       {
-        "transactionIndex": 10,
-        "blockNumber": 40382723,
-        "transactionHash": "0x362b267c30386a5f844e238a938a17a8fec45062cf5347909343b5d794c416db",
-        "address": "0x9CC2Fcef7AC1C6F6fedD016541fd19b087E2cC33",
+        "transactionIndex": 17,
+        "blockNumber": 40382769,
+        "transactionHash": "0x1cb9e0a75d3c750cb30ed02de887422b1a3e2c4bdd879808f3df68843b855cf0",
+        "address": "0x4df5d6eCE4982eE2D25bd13176713801668cA2BF",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000a667403454f483de81a0363af7fcee563819d910"
+        ],
+        "data": "0x",
+        "logIndex": 50,
+        "blockHash": "0xe42044450429ce7ccda1906cfd58b78f0c1e26471edd73d3006589de4cb37f3c"
+      },
+      {
+        "transactionIndex": 17,
+        "blockNumber": 40382769,
+        "transactionHash": "0x1cb9e0a75d3c750cb30ed02de887422b1a3e2c4bdd879808f3df68843b855cf0",
+        "address": "0x4df5d6eCE4982eE2D25bd13176713801668cA2BF",
         "topics": [
           "0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498"
         ],
         "data": "0x0000000000000000000000000000000000000000000000000000000000000001",
-        "logIndex": 35,
-        "blockHash": "0xdd2a67070fc5a40858757cff2556d6c348abfc7c73f27fc6f3625740656e2ee2"
+        "logIndex": 51,
+        "blockHash": "0xe42044450429ce7ccda1906cfd58b78f0c1e26471edd73d3006589de4cb37f3c"
       },
       {
-        "transactionIndex": 10,
-        "blockNumber": 40382723,
-        "transactionHash": "0x362b267c30386a5f844e238a938a17a8fec45062cf5347909343b5d794c416db",
-        "address": "0x9CC2Fcef7AC1C6F6fedD016541fd19b087E2cC33",
+        "transactionIndex": 17,
+        "blockNumber": 40382769,
+        "transactionHash": "0x1cb9e0a75d3c750cb30ed02de887422b1a3e2c4bdd879808f3df68843b855cf0",
+        "address": "0x4df5d6eCE4982eE2D25bd13176713801668cA2BF",
         "topics": [
           "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f"
         ],
         "data": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000aa7ce248e2df0273334e61b20b6e75553c60cbe0",
-        "logIndex": 36,
-        "blockHash": "0xdd2a67070fc5a40858757cff2556d6c348abfc7c73f27fc6f3625740656e2ee2"
+        "logIndex": 52,
+        "blockHash": "0xe42044450429ce7ccda1906cfd58b78f0c1e26471edd73d3006589de4cb37f3c"
       },
       {
-        "transactionIndex": 10,
-        "blockNumber": 40382723,
-        "transactionHash": "0x362b267c30386a5f844e238a938a17a8fec45062cf5347909343b5d794c416db",
+        "transactionIndex": 17,
+        "blockNumber": 40382769,
+        "transactionHash": "0x1cb9e0a75d3c750cb30ed02de887422b1a3e2c4bdd879808f3df68843b855cf0",
         "address": "0x0000000000000000000000000000000000001010",
         "topics": [
           "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
           "0x0000000000000000000000000000000000000000000000000000000000001010",
           "0x000000000000000000000000a667403454f483de81a0363af7fcee563819d910",
-          "0x0000000000000000000000005082f249cdb2f2c1ee035e4f423c46ea2dab3ab1"
+          "0x000000000000000000000000be188d6641e8b680743a4815dfa0f6208038960f"
         ],
-        "data": "0x00000000000000000000000000000000000000000000000000073a5d5cc8af0000000000000000000000000000000000000000000000000041fdcd316f4eb6f40000000000000000000000000000000000000000000001f980afba2286bcc00000000000000000000000000000000000000000000000000041f692d4128607f40000000000000000000000000000000000000000000001f980b6f47fe3856f00",
-        "logIndex": 37,
-        "blockHash": "0xdd2a67070fc5a40858757cff2556d6c348abfc7c73f27fc6f3625740656e2ee2"
+        "data": "0x000000000000000000000000000000000000000000000000000d5f7aede6687b00000000000000000000000000000000000000000000000041138672b640108800000000000000000000000000000000000000000000347c8d58fcd5ddb1c99a000000000000000000000000000000000000000000000000410626f7c859a80d00000000000000000000000000000000000000000000347c8d665c50cb983215",
+        "logIndex": 53,
+        "blockHash": "0xe42044450429ce7ccda1906cfd58b78f0c1e26471edd73d3006589de4cb37f3c"
       }
     ],
-    "blockNumber": 40382723,
-    "cumulativeGasUsed": "1867661",
+    "blockNumber": 40382769,
+    "cumulativeGasUsed": "2821400",
     "status": 1,
     "byzantium": true
   },
   "args": [
-    "0xDdb775A9eB6DbcDeeF75b80E9Fad534916a4A927",
+    "0xe53BF05DF491fBC46603733d0A99EacCf8f38841",
     "0xaa7Ce248e2df0273334e61B20b6E75553C60Cbe0",
-    "0x7a1ac61e0000000000000000000000008b80672ad8a146bbaad3dd1f7f17ee730a994e7100000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000005"
+    "0x00d21ba5000000000000000000000000000000000000000000000000000000000000026000000000000000000000000000000000000000000000000000000000000002a00000000000000000000000009d867d968f2261c60c969b58caf8959b2c1347e0000000000000000000000000a667403454f483de81a0363af7fcee563819d91000000000000000000000000095c30fb60380175059781d3a730757d254b4485b0000000000000000000000009ced9c76935922089ca1b06a5eb6d29ca6057bd100000000000000000000000000000000219ab540356cbb839cbe05303d7705fa00000000000000000000000000311596ded19bc46e46b1be27b610f843ab403700000000000000000000000000000000219ab540356cbb839cbe05303d7705fa00000000000000000000000000000000000000000000000000000000000061a80000000000000000000000000000000000000000000000056bc75e2d631000000000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000008ac7230489e80000000000000000000000000000000000000000000000000001158e460913d000000000000000000000000000000000000000000000000000008ac7230489e800000000000000000000000000000000000000000000000000008ac7230489e8000000000000000000000000000000000000000000000000000000b1a2bc2ec500000000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000056bc75e2d6310000000000000000000000000000000000000000000000000000000000000000000057661756c7400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000015600000000000000000000000000000000000000000000000000000000000000"
   ],
   "numDeployments": 1,
   "solcInputHash": "0e89febeebc7444140de8e67c9067d2c",
@@ -1302,12 +2688,32 @@
   "execute": {
     "methodName": "initialize",
     "args": [
-      "0x8b80672AD8A146BbaAd3dd1f7f17Ee730a994e71",
-      5,
-      5
+      "vault",
+      "V",
+      {
+        "asset": "0x9D867d968F2261c60C969b58Caf8959B2c1347e0",
+        "owner": "0xa667403454F483dE81A0363Af7FcEE563819D910",
+        "manager": "0x95C30fb60380175059781d3a730757d254b4485B",
+        "admin": "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
+        "lockedDepositNft": "0x00000000219ab540356cbb839cbe05303d7705fa",
+        "pnlHandler": "0x00311596deD19Bc46E46b1Be27b610f843aB4037",
+        "openTradesPnlFeed": "0x00000000219ab540356cbb839cbe05303d7705fa"
+      },
+      25000,
+      "100000000000000000000",
+      "1000000000000000000",
+      [
+        "10000000000000000000",
+        "20000000000000000000"
+      ],
+      "10000000000000000000",
+      "10000000000000000000",
+      "50000000000000000",
+      "1000000000000000000",
+      "100000000000000000000"
     ]
   },
-  "implementation": "0xDdb775A9eB6DbcDeeF75b80E9Fad534916a4A927",
+  "implementation": "0xe53BF05DF491fBC46603733d0A99EacCf8f38841",
   "devdoc": {
     "details": "This contract implements a proxy that is upgradeable by an admin. To avoid https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357[proxy selector clashing], which can potentially be used in an attack, this contract uses the https://blog.openzeppelin.com/the-transparent-proxy-pattern/[transparent proxy pattern]. This pattern implies two things that go hand in hand: 1. If any account other than the admin calls the proxy, the call will be forwarded to the implementation, even if that call matches one of the admin functions exposed by the proxy itself. 2. If the admin calls the proxy, it can access the admin functions, but its calls will never be forwarded to the implementation. If the admin tries to call a function on the implementation it will fail with an error that says \"admin cannot fallback to proxy target\". These properties mean that the admin account can only be used for admin actions like upgrading the proxy or changing the admin, so it's best if it's a dedicated account that is not used for anything else. This will avoid headaches due to sudden errors when trying to call a function from the proxy implementation. Our recommendation is for the dedicated account to be an instance of the {ProxyAdmin} contract. If set up this way, you should think of the `ProxyAdmin` instance as the real administrative interface of your proxy.",
     "kind": "dev",
