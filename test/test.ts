@@ -1,113 +1,13 @@
 import { expect } from "chai";
-import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { Signer } from "ethers";
-import { mine } from "@nomicfoundation/hardhat-network-helpers";
-
-export async function getContract(name: string, signer?: Signer) {
-  const c = await deployments.get(name);
-  return await ethers.getContractAt(c.abi, c.address, signer);
-}
-
-function getDelta(
-  blockNumAfter: number,
-  blockNumBefore: number,
-  feeExponent: number,
-  pairOpeningInterest: number, // short -long oi for pair or vice versa
-  maxOi: number
-) {
-  return (
-    (blockNumAfter - blockNumBefore) *
-    feeExponent *
-    ((pairOpeningInterest * 10000000000) / maxOi / 100000000000000000)
-  );
-}
-
-function getTradingFee(delta: number, collateral: number, leverage: number) {
-  return (collateral * leverage * delta) / 10000000000 / 100;
-}
-
-function getWethToBeSentToTrader(
-  currentPrice: number,
-  openPrice: number,
-  leverage: number,
-  long: boolean,
-  posWETH: number
-) {
-  let profitP =
-    ((long ? currentPrice - openPrice : openPrice - currentPrice) *
-      100 *
-      10000000000 *
-      leverage) /
-    openPrice;
-
-  const maxPnl = 9000000000000;
-
-  profitP = profitP > maxPnl ? maxPnl : profitP;
-  return posWETH * (1 + profitP / 100 / 10000000000);
-}
-
-const setupTest = deployments.createFixture(async (hre) => {
-  const { deployer, trader } = await getNamedAccounts();
-  await deployments.fixture();
-  const storage = await getContract(
-    "Storage",
-    await ethers.getSigner(deployer)
-  );
-  const aggregator = await getContract(
-    "PriceAggregator",
-    await ethers.getSigner(deployer)
-  );
-
-  await storage.setPriceAggregator(aggregator.target);
-
-  const pairInfo = await getContract(
-    "pairsInfo",
-    await ethers.getSigner(deployer)
-  );
-
-  const trading = await getContract(
-    "trading",
-    await ethers.getSigner(deployer)
-  );
-
-  const pairsStorage = await getContract(
-    "pairsStorage",
-    await ethers.getSigner(deployer)
-  );
-
-  const callback = await getContract(
-    "callback",
-    await ethers.getSigner(deployer)
-  );
-
-  const borrowing = await getContract(
-    "borrowing",
-    await ethers.getSigner(deployer)
-  );
-
-  const vault = await getContract("vault", await ethers.getSigner(deployer));
-  const pairParamsOnBorrowing = {
-    groupIndex: 0,
-    feePerBlock: 10,
-    feeExponent: 1,
-    maxOi: ethers.toBigInt("10000000000000"),
-  };
-  const WETH = await getContract("WETH", await ethers.getSigner(deployer));
-
-  return {
-    storage,
-    trading,
-    pairInfo,
-    aggregator,
-    pairsStorage,
-    WETH,
-    trader,
-    deployer,
-    borrowing,
-    pairParamsOnBorrowing,
-    vault,
-  };
-});
+import { ethers } from "hardhat";
+import { mine, time } from "@nomicfoundation/hardhat-network-helpers";
+import { BigNumber } from "bignumber.js";
+import {
+  setupTest,
+  getDelta,
+  getTradingFee,
+  getWethToBeSentToTrader,
+} from "./fixture";
 
 describe("test", function () {
   it("trade", async function () {
@@ -120,17 +20,28 @@ describe("test", function () {
       WETH,
       trader,
     } = await setupTest();
-    await WETH.mint(trader, ethers.toBigInt("10000000000000000000000"));
 
+    /// minting WETH for the trader to trade and approving the storage contract.
+    await WETH.mint(trader, ethers.toBigInt("10000000000000000000000"));
     await WETH.connect(await ethers.getSigner(trader)).approve(
       storage.target,
       ethers.toBigInt("100000000000000000000000")
     );
 
+    // Trade parameters
+    const pairIndex = 0;
+    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    const openPrice = ethers.toBigInt("10000000000000000000");
+    const buy = true;
+    const leverage = 10;
+    const tp = ethers.toBigInt("12000000000000000000");
+    const sl = ethers.toBigInt("8000000000000000000");
+
+    //
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
         trader: trader,
-        pairIndex: 0,
+        pairIndex: pairIndex,
         index: 0,
         initialPosToken: 0,
         positionSizeWETH: ethers.toBigInt("10000000000000000000"),
@@ -154,6 +65,7 @@ describe("test", function () {
       pairsStorage,
       WETH,
       trader,
+      oracle,
     } = await setupTest();
     await WETH.mint(trader, ethers.toBigInt("10000000000000000000000"));
 
@@ -179,7 +91,8 @@ describe("test", function () {
       0,
       3000000000
     );
-    await aggregator.Mfulfill(1, 10);
+    await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
+    await aggregator.Mfulfill(1);
   });
 
   it("borrowing fee", async function () {
@@ -193,14 +106,29 @@ describe("test", function () {
       trader,
       borrowing,
       pairParamsOnBorrowing,
+      vault,
+      deployer,
+      oracle,
     } = await setupTest();
+    await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    const tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    await tnx.wait();
     await WETH.mint(trader, ethers.toBigInt("10000000000000000000"));
 
     await WETH.connect(await ethers.getSigner(trader)).approve(
       storage.target,
       ethers.toBigInt("100000000000000000000000")
     );
-    const blockNumBefore = await ethers.provider.getBlockNumber();
+
+    await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
+
+    const openPrice = await oracle.getTWAP(0);
 
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
@@ -219,26 +147,23 @@ describe("test", function () {
       0,
       3000000000
     );
-    await aggregator.Mfulfill(1, ethers.toBigInt("10000000000000000000"));
+    const blockNumBefore = await ethers.provider.getBlockNumber();
+    await aggregator.Mfulfill(1);
     await mine(1000);
     const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
-
-    const blockNumAfter = await ethers.provider.getBlockNumber();
 
     await trading
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 0);
 
-    await aggregator.Mfulfill(2, ethers.toBigInt("11000000000000000000"));
+    await oracle.feedPrice(0, ethers.toBigInt("12000000000000000000"));
+    const closingPrice = await oracle.getTWAP(0);
 
-    let delta =
-      (blockNumAfter - blockNumBefore) *
-      Number(pairParamsOnBorrowing.feeExponent) *
-      ((Number(tradePairOpeningInterest[0]) * 10000000000) /
-        Number(pairParamsOnBorrowing.maxOi) /
-        100000000000000000);
+    const blockNumAfter = await ethers.provider.getBlockNumber();
 
-    delta = getDelta(
+    await aggregator.Mfulfill(2);
+
+    let delta = getDelta(
       blockNumAfter,
       blockNumBefore,
       Number(pairParamsOnBorrowing.feeExponent),
@@ -249,16 +174,18 @@ describe("test", function () {
     const tradingFee = getTradingFee(delta, 10000000000000000000, 10);
 
     const amount = getWethToBeSentToTrader(
-      11000000000000000000,
-      10000000000000000000,
+      Number(closingPrice),
+      Number(openPrice),
       10,
       true,
-      10000000000000000000
+      10000000000000000000,
+      tradingFee
     );
-
     const balanceOfTrader = await WETH.balanceOf(trader);
 
-    expect(Number(balanceOfTrader)).to.be.equal(amount - tradingFee);
+    expect(Number(balanceOfTrader)).to.be.equal(
+      Number(new BigNumber(amount).sub(new BigNumber(tradingFee)))
+    );
   });
   it("call back close trade multiple trade", async function () {
     const {
@@ -269,13 +196,26 @@ describe("test", function () {
       pairsStorage,
       WETH,
       trader,
+      vault,
+      deployer,
+      oracle,
     } = await setupTest();
+    await WETH.mint(deployer, ethers.toBigInt("1000000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("1000000000000000000000000")
+    );
+    const tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("1000000000000000000000000"), deployer);
+    await tnx.wait();
     await WETH.mint(trader, ethers.toBigInt("10000000000000000000000"));
 
     await WETH.connect(await ethers.getSigner(trader)).approve(
       storage.target,
       ethers.toBigInt("100000000000000000000000")
     );
+    await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
 
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
@@ -294,7 +234,7 @@ describe("test", function () {
       0,
       3000000000
     );
-    await aggregator.Mfulfill(1, ethers.toBigInt("10000000000000000000"));
+    await aggregator.Mfulfill(1);
 
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
@@ -314,19 +254,20 @@ describe("test", function () {
       3000000000
     );
 
-    await aggregator.Mfulfill(2, ethers.toBigInt("10000000000000000000"));
+    await aggregator.Mfulfill(2);
     await mine(1000);
+    await oracle.feedPrice(0, ethers.toBigInt("12000000000000000000"));
+
     await trading
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 0);
 
-    await aggregator.Mfulfill(3, ethers.toBigInt("10000000000000000000"));
+    await aggregator.Mfulfill(3);
 
     await trading
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 1);
-
-    await aggregator.Mfulfill(4, 10);
+    await aggregator.Mfulfill(4);
   });
   it("deposit and withdraw", async function () {
     const {
@@ -361,5 +302,148 @@ describe("test", function () {
     await vault
       .connect(await ethers.getSigner(deployer))
       .withdraw(ethers.toBigInt("9999999999999999999999"), deployer, deployer);
+  });
+  it("Epoch update test ", async function () {
+    const {
+      storage,
+      trading,
+      pairInfo,
+      aggregator,
+      pairsStorage,
+      WETH,
+      trader,
+      vault,
+      deployer,
+      openPnlFeed,
+    } = await setupTest();
+
+    await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    const tnx = await vault.tryNewOpenPnlRequestOrEpoch();
+    await tnx.wait();
+    const epochValueRequestCount0 =
+      await openPnlFeed.nextEpochValuesRequestCount();
+
+    expect(epochValueRequestCount0).to.be.equal(0);
+    const currentEpochPositiveOpenPnlStart =
+      await vault.currentEpochPositiveOpenPnl();
+    await time.increase(7200);
+
+    const tnx1 = await vault.tryNewOpenPnlRequestOrEpoch();
+    await tnx1.wait();
+    const epochValueRequestCount1 =
+      await openPnlFeed.nextEpochValuesRequestCount();
+    expect(Number(epochValueRequestCount1)).to.be.equal(1);
+
+    await openPnlFeed.fulfill(1, ethers.toBigInt("1000000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(1, 0)).to.be.equal(
+      ethers.toBigInt("1000000000000000000000")
+    );
+    await openPnlFeed.fulfill(2, ethers.toBigInt("1001000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(1, 1)).to.be.equal(
+      ethers.toBigInt("1001000000000000000000")
+    );
+
+    await openPnlFeed.fulfill(3, ethers.toBigInt("1002000000000000000000")); // 1000 * 1e18
+
+    expect(await openPnlFeed.nextEpochValues(0)).to.be.equal(
+      ethers.toBigInt("1001000000000000000000")
+    ); // the median of above 3 inputs
+
+    await time.increase(1800);
+
+    const tnx2 = await vault.tryNewOpenPnlRequestOrEpoch();
+    await tnx2.wait();
+
+    const epochValueRequestCount2 =
+      await openPnlFeed.nextEpochValuesRequestCount();
+    expect(Number(epochValueRequestCount2)).to.be.equal(2);
+
+    await openPnlFeed.fulfill(7, ethers.toBigInt("1003000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(2, 0)).to.be.equal(
+      ethers.toBigInt("1003000000000000000000")
+    );
+    await openPnlFeed.fulfill(8, ethers.toBigInt("1004000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(2, 1)).to.be.equal(
+      ethers.toBigInt("1004000000000000000000")
+    );
+
+    await openPnlFeed.fulfill(9, ethers.toBigInt("1005000000000000000000")); // 1000 * 1e18
+
+    expect(await openPnlFeed.nextEpochValues(1)).to.be.equal(
+      ethers.toBigInt("1004000000000000000000")
+    ); // the median of above 3 inputs
+
+    await time.increase(1800);
+
+    const tnx3 = await vault.tryNewOpenPnlRequestOrEpoch();
+    await tnx3.wait();
+
+    const epochValueRequestCount3 =
+      await openPnlFeed.nextEpochValuesRequestCount();
+    expect(Number(epochValueRequestCount3)).to.be.equal(3);
+
+    await openPnlFeed.fulfill(13, ethers.toBigInt("1006000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(3, 0)).to.be.equal(
+      ethers.toBigInt("1006000000000000000000")
+    );
+    await openPnlFeed.fulfill(14, ethers.toBigInt("1007000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(3, 1)).to.be.equal(
+      ethers.toBigInt("1007000000000000000000")
+    );
+
+    await openPnlFeed.fulfill(15, ethers.toBigInt("1008000000000000000000")); // 1000 * 1e18
+
+    expect(await openPnlFeed.nextEpochValues(2)).to.be.equal(
+      ethers.toBigInt("1007000000000000000000")
+    ); // the median of above 3 inputs
+
+    await time.increase(1800);
+
+    const tnx4 = await vault.tryNewOpenPnlRequestOrEpoch();
+    await tnx4.wait();
+
+    const epochValueRequestCount4 =
+      await openPnlFeed.nextEpochValuesRequestCount();
+    expect(Number(epochValueRequestCount4)).to.be.equal(4);
+    await openPnlFeed.fulfill(19, ethers.toBigInt("1009000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(4, 0)).to.be.equal(
+      ethers.toBigInt("1009000000000000000000")
+    );
+    await openPnlFeed.fulfill(20, ethers.toBigInt("1010000000000000000000")); // 1000 * 1e18
+    expect(await openPnlFeed.requestAnswers(4, 1)).to.be.equal(
+      ethers.toBigInt("1010000000000000000000")
+    );
+
+    await openPnlFeed.fulfill(21, ethers.toBigInt("1011000000000000000000")); // 1000 * 1e18
+
+    expect(await openPnlFeed.nextEpochValues(3)).to.be.equal(
+      ethers.toBigInt("1010000000000000000000")
+    ); // the median of above 3 inputs
+    await time.increase(1800);
+
+    const tnx5 = await vault.tryNewOpenPnlRequestOrEpoch();
+    await tnx5.wait();
+
+    const currentEpochPositiveOpenPnlEnd =
+      await vault.currentEpochPositiveOpenPnl();
+    const average = new BigNumber(1010000000000000000000)
+      .add(
+        new BigNumber(1007000000000000000000).add(
+          new BigNumber(1004000000000000000000).add(
+            new BigNumber(1001000000000000000000)
+          )
+        )
+      )
+      .div(new BigNumber(4));
+    expect(
+      Number(currentEpochPositiveOpenPnlEnd - currentEpochPositiveOpenPnlStart)
+    ).to.be.equal(Number(average));
   });
 });
