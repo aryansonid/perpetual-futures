@@ -23,8 +23,8 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
     // Params
     IToken public immutable vault;
 
-    uint public requestsStart = 2 days;
-    uint public requestsEvery = 6 hours;
+    uint public requestsStart = 2 hours;
+    uint public requestsEvery = 30 minutes;
     uint public requestsCount = 4;
 
     address[] public oracles;
@@ -38,7 +38,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
 
     uint public requestId;
     uint public lastRequestId;
-    mapping(bytes32 => uint) public requestIds; // chainlink request id => requestId
+    mapping(uint => uint) public requestIds; // chainlink request id => requestId
     mapping(uint => Request) public requests; // requestId => request
     mapping(uint => int[]) public requestAnswers; // requestId => open pnl (1e18)
 
@@ -78,7 +78,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
         bool isLate,
         uint indexed currEpoch,
         uint indexed requestId,
-        bytes32 oracleRequestId,
+        uint oracleRequestId,
         address indexed oracle,
         int requestValue,
         uint linkFee
@@ -262,8 +262,8 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
         // ) /
         //     LINK_FEE_BALANCE_DIVIDER /
         //     oracles.length;
-
-        requests[++lastRequestId] = Request({
+        ++lastRequestId;
+        requests[lastRequestId] = Request({
             initiated: true,
             active: true,
             linkFeePerNode: 0
@@ -272,9 +272,9 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
         nextEpochValuesRequestCount++;
         nextEpochValuesLastRequest = block.timestamp;
 
-        ++requestId;
         for (uint i; i < oracles.length; i++) {
-            requestIds[bytes32(requestId)] = lastRequestId;
+            ++requestId;
+            requestIds[requestId] = lastRequestId;
         }
 
         emit NextEpochValueRequested(
@@ -288,7 +288,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
 
     // Handle answers
     function fulfill(
-        bytes32 requestId,
+        uint requestId,
         int value // 1e18
     ) external /*recordChainlinkFulfillment(requestId)*/ {
         uint reqId = requestIds[requestId];
@@ -310,7 +310,6 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
         if (!r.active) {
             return;
         }
-
         int[] storage answers = requestAnswers[reqId];
         answers.push(value);
 
@@ -342,7 +341,6 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
         int newEpochOpenPnl = nextEpochValues.length >= requestsCount
             ? average(nextEpochValues)
             : int(currentEpochPositiveOpenPnl);
-
         uint finalNewEpochPositiveOpenPnl = vault.updateAccPnlPerTokenUsed(
             currentEpochPositiveOpenPnl,
             newEpochOpenPnl > 0 ? uint(newEpochOpenPnl) : 0
@@ -403,4 +401,14 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
 
         return sum / int(array.length);
     }
+
+    //getters
+
+    // function getRequestAnswers(
+    //     uint256 _requestId,
+    //     uint256 answerIndex
+    // ) external view returns (int ans) {
+    //     int[] memory ansArr = requestAnswers[_requestId];
+    //     return ansArr[answerIndex];
+    // }
 }

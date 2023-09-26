@@ -5,6 +5,7 @@ import "./TokenInterface.sol";
 import "./NftInterfaceV5.sol";
 import "./IToken.sol";
 import "./AggregatorInterfaceV1_4.sol";
+import "./IOracle.sol";
 
 interface StorageInterface {
     enum LimitOrder {
@@ -198,4 +199,6 @@ interface StorageInterface {
     function getGov() external view returns (address); // checking
 
     function mintWETH(address _to, uint _amount) external;
+
+    function oracle() external returns (IOracle);
 }

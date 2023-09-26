@@ -301,11 +301,11 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         return orderIds;
     }
 
-    // Fulfill on-demand price requests
-    function Mfulfill(uint256 orderId, uint price) external {
+    // Fulfill on-demand price requests mock
+    function Mfulfill(uint256 orderId) external {
         Order memory r = orders[orderId];
         bool usedInMedian = false;
-
+        uint256 price = (storageT.oracle()).getTWAP(r.pairIndex);
         usedInMedian = true;
 
         CallbacksInterface.AggregatorAnswer memory a;

@@ -13,7 +13,7 @@ contract Oracle {
         uint256 initializeTime;
     }
 
-    mapping(address => Observation) priceData;
+    mapping(uint256 => Observation) priceData;
 
     function transformPriceData(
         Observation memory last,
@@ -44,8 +44,8 @@ contract Oracle {
             });
     }
 
-    function feedPrice(address tokenAddress, uint256 price) public {
-        Observation memory last = priceData[tokenAddress];
+    function feedPrice(uint256 tokenIndex, uint256 price) public {
+        Observation memory last = priceData[tokenIndex];
         uint256 initializatonDelta = block.timestamp - last.initializeTime;
         Observation memory upadate;
         if (
@@ -56,22 +56,23 @@ contract Oracle {
         } else {
             upadate = initializePriceData(block.timestamp, price);
         }
-        priceData[tokenAddress] = upadate;
+        priceData[tokenIndex] = upadate;
     }
 
     function feedPriceArray(
-        address[] calldata tokenAddress,
+        uint256[] calldata tokenIndexes,
         uint256[] calldata prices
     ) external {
-        for (uint256 i; i < tokenAddress.length; i++) {
-            feedPrice(tokenAddress[i], prices[i]);
+        for (uint256 i; i < tokenIndexes.length; i++) {
+            feedPrice(tokenIndexes[i], prices[i]);
         }
     }
 
     function getTWAP(
-        address tokenAddress
+        uint256 tokenIndex
     ) external view returns (uint256 twapPrice) {
-        Observation memory tokenPriceData = priceData[tokenAddress];
+        Observation memory tokenPriceData = priceData[tokenIndex];
+        require(tokenPriceData.secondsPerLiquidityCumulative != 0, "price feed not set");
         twapPrice =
             tokenPriceData.priceCumulative /
             tokenPriceData.secondsPerLiquidityCumulative;

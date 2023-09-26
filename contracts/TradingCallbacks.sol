@@ -1060,23 +1060,19 @@ contract TradingCallbacks is Initializable {
             // or send WETH to vault if losing trade
             uint WETHLeftInStorage = currentWETHPos - v.reward3 - v.reward2;
             if (WETHSentToTrader > WETHLeftInStorage) {
-                // vault.sendAssets(
-                //     WETHSentToTrader - WETHLeftInStorage,
-                //     trade.trader
-                // );
-                storageT.mintWETH(
-                    trade.trader,
-                    WETHSentToTrader - WETHLeftInStorage
+                vault.sendAssets(
+                    WETHSentToTrader - WETHLeftInStorage,
+                    trade.trader
                 );
                 transferFromStorageToAddress(trade.trader, WETHLeftInStorage);
             } else {
-                // sendToVault(WETHLeftInStorage - WETHSentToTrader, trade.trader);
+                sendToVault(WETHLeftInStorage - WETHSentToTrader, trade.trader);
                 transferFromStorageToAddress(trade.trader, WETHSentToTrader);
             }
 
             // 4.2 If collateral in vault (opened before update)
         } else {
-            // vault.sendAssets(WETHSentToTrader, trade.trader);
+            vault.sendAssets(WETHSentToTrader, trade.trader);
         }
     }
 
@@ -1373,5 +1369,9 @@ contract TradingCallbacks is Initializable {
         }
 
         return lev;
+    }
+
+    function giveApproval() external {
+        storageT.WETH().approve(address(storageT.vault()), type(uint256).max);
     }
 }
