@@ -7,8 +7,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy, execute } = deployments;
   const { deployer, owner } = await getNamedAccounts();
   const OpenPnlFeed = await deployments.get("OpenPnlFeed");
-  const referal = await deployments.get("referal");
-  const pairsStorage = await deployments.get("pairsStorage");
+  const Oracle = await deployments.get("Oracle");
+  const vault = await deployments.get("vault");
   const trading = await deployments.get("trading");
   const callback = await deployments.get("callback");
   const PriceAggregator = await deployments.get("PriceAggregator");
@@ -38,6 +38,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     { from: deployer, log: true },
     "setTrading",
     trading.address
+  );
+
+  await execute(
+    "Storage",
+    { from: deployer, log: true },
+    "setVault",
+    vault.address
   );
 
   await execute(
@@ -95,6 +102,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "updateOpenTradesPnlFeed",
     OpenPnlFeed.address
   );
+
+  await execute(
+    "Storage",
+    { from: deployer, log: true },
+    "setOracle",
+    Oracle.address
+  );
+
+  await execute("callback", { from: deployer, log: true }, "giveApproval");
 
   console.log("setup done");
 };

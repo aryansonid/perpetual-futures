@@ -25,7 +25,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "0xda9dfa130df4de4673b89022ee50ff26f6ea73cf",
     "0x40b38765696e3d5d8d9d834d8aad4bb6e418e489",
     "0x40b38765696e3d5d8d9d834d8aad4bb6e418e489",
-    "0x40b38765696e3d5d8d9d834d8aad4bb6e418e489",
   ];
 
   await deploy("OpenPnlFeed", {
