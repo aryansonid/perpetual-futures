@@ -19,6 +19,7 @@ describe("test", function () {
       pairsStorage,
       WETH,
       trader,
+      oracle
     } = await setupTest();
 
     /// minting WETH for the trader to trade and approving the storage contract.
@@ -37,7 +38,8 @@ describe("test", function () {
     const tp = ethers.toBigInt("12000000000000000000");
     const sl = ethers.toBigInt("8000000000000000000");
 
-    //
+    await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
+
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
         trader: trader,
@@ -73,6 +75,7 @@ describe("test", function () {
       storage.target,
       ethers.toBigInt("100000000000000000000000")
     );
+    await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
 
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
@@ -91,8 +94,7 @@ describe("test", function () {
       0,
       3000000000
     );
-    await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
-    await aggregator.Mfulfill(1);
+    // await aggregator.Mfulfill(1);
   });
 
   it("borrowing fee", async function () {
@@ -148,20 +150,21 @@ describe("test", function () {
       3000000000
     );
     const blockNumBefore = await ethers.provider.getBlockNumber();
-    await aggregator.Mfulfill(1);
+    // await aggregator.Mfulfill(1);
     await mine(1000);
     const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
+
+    await oracle.feedPrice(0, ethers.toBigInt("12000000000000000000"));
 
     await trading
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 0);
 
-    await oracle.feedPrice(0, ethers.toBigInt("12000000000000000000"));
     const closingPrice = await oracle.getTWAP(0);
 
     const blockNumAfter = await ethers.provider.getBlockNumber();
 
-    await aggregator.Mfulfill(2);
+    // await aggregator.Mfulfill(2);
 
     let delta = getDelta(
       blockNumAfter,
@@ -234,7 +237,7 @@ describe("test", function () {
       0,
       3000000000
     );
-    await aggregator.Mfulfill(1);
+    // await aggregator.Mfulfill(1);
 
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
@@ -254,7 +257,7 @@ describe("test", function () {
       3000000000
     );
 
-    await aggregator.Mfulfill(2);
+    // await aggregator.Mfulfill(2);
     await mine(1000);
     await oracle.feedPrice(0, ethers.toBigInt("12000000000000000000"));
 
@@ -262,12 +265,12 @@ describe("test", function () {
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 0);
 
-    await aggregator.Mfulfill(3);
+    // await aggregator.Mfulfill(3);
 
     await trading
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 1);
-    await aggregator.Mfulfill(4);
+    // await aggregator.Mfulfill(4);
   });
   it("deposit and withdraw", async function () {
     const {
