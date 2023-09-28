@@ -58,6 +58,28 @@ contract TradingCallbacks is Initializable {
         uint low;
     }
 
+    struct PendingMarketOrder {
+        Trade trade;
+        uint block;
+        uint wantedPrice; // PRECISION
+        uint slippageP; // PRECISION (%)
+        uint spreadReductionP;
+        uint tokenId; // index in supportedTokens
+    }
+
+    struct Trade {
+        address trader;
+        uint pairIndex;
+        uint index;
+        uint initialPosToken; // 1e18
+        uint positionSizeWETH; // 1e18
+        uint openPrice; // PRECISION
+        bool buy;
+        uint leverage;
+        uint tp; // PRECISION
+        uint sl; // PRECISION
+    }
+
     // Useful to avoid stack too deep errors
     struct Values {
         uint posWETH;
@@ -371,15 +393,16 @@ contract TradingCallbacks is Initializable {
 
     // Callbacks
     function openTradeMarketCallback(
-        AggregatorAnswer memory a
+        AggregatorAnswer memory a,
+        StorageInterface.PendingMarketOrder memory o
     ) external onlyPriceAggregator notDone {
-        StorageInterface.PendingMarketOrder memory o = getPendingMarketOrder(
-            a.orderId
-        );
+        // StorageInterface.PendingMarketOrder memory o = getPendingMarketOrder(
+        //     a.orderId
+        // );
 
-        if (o.block == 0) {
-            return;
-        }
+        // if (o.block == 0) {
+        //     return;
+        // }
 
         StorageInterface.Trade memory t = o.trade;
 
@@ -405,7 +428,6 @@ contract TradingCallbacks is Initializable {
             );
 
         t.openPrice = priceAfterImpact;
-
         if (cancelReason == CancelReason.NONE) {
             (StorageInterface.Trade memory finalTrade, ) = registerTrade(
                 t,
@@ -444,19 +466,20 @@ contract TradingCallbacks is Initializable {
             );
         }
 
-        storageT.unregisterPendingMarketOrder(a.orderId, true);
+        // storageT.unregisterPendingMarketOrder(a.orderId, true);
     }
 
     function closeTradeMarketCallback(
-        AggregatorAnswer memory a
+        AggregatorAnswer memory a,
+        StorageInterface.PendingMarketOrder memory o
     ) external onlyPriceAggregator notDone {
-        StorageInterface.PendingMarketOrder memory o = getPendingMarketOrder(
-            a.orderId
-        );
+        // StorageInterface.PendingMarketOrder memory o = getPendingMarketOrder(
+        //     a.orderId
+        // );
 
-        if (o.block == 0) {
-            return;
-        }
+        // if (o.block == 0) {
+        //     return;
+        // }
 
         StorageInterface.Trade memory t = getOpenTrade(
             o.trade.trader,
@@ -936,6 +959,7 @@ contract TradingCallbacks is Initializable {
             trade.trader,
             trade.pairIndex
         );
+
         // trade.initialPosToken =
         //     (trade.positionSizeWETH * PRECISION) /
         //     v.tokenPriceWETH;

@@ -302,7 +302,10 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     }
 
     // Fulfill on-demand price requests mock
-    function Mfulfill(uint256 orderId) external {
+    function mfulfill(
+        uint256 orderId,
+        StorageInterface.PendingMarketOrder memory o
+    ) external {
         Order memory r = orders[orderId];
         bool usedInMedian = false;
         uint256 price = (storageT.oracle()).getTWAP(r.pairIndex);
@@ -317,9 +320,9 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         CallbacksInterface c = CallbacksInterface(storageT.callbacks());
 
         if (r.orderType == OrderType.MARKET_OPEN) {
-            c.openTradeMarketCallback(a);
+            c.openTradeMarketCallback(a, o);
         } else {
-            c.closeTradeMarketCallback(a);
+            c.closeTradeMarketCallback(a, o);
         }
 
         emit CallbackExecuted(a, r.orderType);
@@ -337,126 +340,126 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         );
     }
 
-    function fulfill(
-        bytes32 requestId,
-        uint priceData
-    ) external recordChainlinkFulfillment(requestId) {
-        uint orderId = orderIdByRequest[requestId];
-        delete orderIdByRequest[requestId];
+    // function fulfill(
+    //     bytes32 requestId,
+    //     uint priceData
+    // ) external recordChainlinkFulfillment(requestId) {
+    //     uint orderId = orderIdByRequest[requestId];
+    //     delete orderIdByRequest[requestId];
 
-        Order memory r = orders[orderId];
-        bool usedInMedian = false;
+    //     Order memory r = orders[orderId];
+    //     bool usedInMedian = false;
 
-        PairsStorageInterfaceV6.Feed memory f = pairsStorage.pairFeed(
-            r.pairIndex
-        );
-        uint feedPrice = fetchFeedPrice(f);
+    //     PairsStorageInterfaceV6.Feed memory f = pairsStorage.pairFeed(
+    //         r.pairIndex
+    //     );
+    //     uint feedPrice = fetchFeedPrice(f);
 
-        if (r.active) {
-            if (r.isLookback) {
-                LookbackOrderAnswer memory newAnswer;
-                (
-                    newAnswer.open,
-                    newAnswer.high,
-                    newAnswer.low,
-                    newAnswer.ts
-                ) = priceData.unpack256To64();
+    //     if (r.active) {
+    //         if (r.isLookback) {
+    //             LookbackOrderAnswer memory newAnswer;
+    //             (
+    //                 newAnswer.open,
+    //                 newAnswer.high,
+    //                 newAnswer.low,
+    //                 newAnswer.ts
+    //             ) = priceData.unpack256To64();
 
-                require(
-                    (newAnswer.high == 0 && newAnswer.low == 0) ||
-                        (newAnswer.high >= newAnswer.open &&
-                            newAnswer.low <= newAnswer.open &&
-                            newAnswer.low > 0),
-                    "INVALID_CANDLE"
-                );
+    //             require(
+    //                 (newAnswer.high == 0 && newAnswer.low == 0) ||
+    //                     (newAnswer.high >= newAnswer.open &&
+    //                         newAnswer.low <= newAnswer.open &&
+    //                         newAnswer.low > 0),
+    //                 "INVALID_CANDLE"
+    //             );
 
-                if (
-                    isPriceWithinDeviation(
-                        newAnswer.high,
-                        feedPrice,
-                        f.maxDeviationP
-                    ) &&
-                    isPriceWithinDeviation(
-                        newAnswer.low,
-                        feedPrice,
-                        f.maxDeviationP
-                    )
-                ) {
-                    usedInMedian = true;
+    //             if (
+    //                 isPriceWithinDeviation(
+    //                     newAnswer.high,
+    //                     feedPrice,
+    //                     f.maxDeviationP
+    //                 ) &&
+    //                 isPriceWithinDeviation(
+    //                     newAnswer.low,
+    //                     feedPrice,
+    //                     f.maxDeviationP
+    //                 )
+    //             ) {
+    //                 usedInMedian = true;
 
-                    LookbackOrderAnswer[]
-                        storage answers = lookbackOrderAnswers[orderId];
-                    answers.push(newAnswer);
+    //                 LookbackOrderAnswer[]
+    //                     storage answers = lookbackOrderAnswers[orderId];
+    //                 answers.push(newAnswer);
 
-                    if (answers.length == minAnswers) {
-                        CallbacksInterface.AggregatorAnswer memory a;
-                        a.orderId = orderId;
-                        (a.open, a.high, a.low) = medianLookbacks(answers);
-                        a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
+    //                 if (answers.length == minAnswers) {
+    //                     CallbacksInterface.AggregatorAnswer memory a;
+    //                     a.orderId = orderId;
+    //                     (a.open, a.high, a.low) = medianLookbacks(answers);
+    //                     a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
 
-                        CallbacksInterface c = CallbacksInterface(
-                            storageT.callbacks()
-                        );
+    //                     CallbacksInterface c = CallbacksInterface(
+    //                         storageT.callbacks()
+    //                     );
 
-                        if (r.orderType == OrderType.LIMIT_OPEN) {
-                            c.executeNftOpenOrderCallback(a);
-                        } else {
-                            c.executeNftCloseOrderCallback(a);
-                        }
+    //                     if (r.orderType == OrderType.LIMIT_OPEN) {
+    //                         c.executeNftOpenOrderCallback(a);
+    //                     } else {
+    //                         c.executeNftCloseOrderCallback(a);
+    //                     }
 
-                        emit CallbackExecuted(a, r.orderType);
+    //                     emit CallbackExecuted(a, r.orderType);
 
-                        orders[orderId].active = false;
-                        delete lookbackOrderAnswers[orderId];
-                    }
-                }
-            } else {
-                (uint64 price, , , ) = priceData.unpack256To64();
+    //                     orders[orderId].active = false;
+    //                     delete lookbackOrderAnswers[orderId];
+    //                 }
+    //             }
+    //         } else {
+    //             (uint64 price, , , ) = priceData.unpack256To64();
 
-                if (isPriceWithinDeviation(price, feedPrice, f.maxDeviationP)) {
-                    usedInMedian = true;
+    //             if (isPriceWithinDeviation(price, feedPrice, f.maxDeviationP)) {
+    //                 usedInMedian = true;
 
-                    uint[] storage answers = ordersAnswers[orderId];
-                    answers.push(price);
+    //                 uint[] storage answers = ordersAnswers[orderId];
+    //                 answers.push(price);
 
-                    if (answers.length == minAnswers) {
-                        CallbacksInterface.AggregatorAnswer memory a;
+    //                 if (answers.length == minAnswers) {
+    //                     CallbacksInterface.AggregatorAnswer memory a;
 
-                        a.orderId = orderId;
-                        a.price = median(answers);
-                        a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
+    //                     a.orderId = orderId;
+    //                     a.price = median(answers);
+    //                     a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
 
-                        CallbacksInterface c = CallbacksInterface(
-                            storageT.callbacks()
-                        );
+    //                     CallbacksInterface c = CallbacksInterface(
+    //                         storageT.callbacks()
+    //                     );
 
-                        if (r.orderType == OrderType.MARKET_OPEN) {
-                            c.openTradeMarketCallback(a);
-                        } else {
-                            c.closeTradeMarketCallback(a);
-                        }
+    //                     if (r.orderType == OrderType.MARKET_OPEN) {
+    //                         c.openTradeMarketCallback(a);
+    //                     } else {
+    //                         c.closeTradeMarketCallback(a);
+    //                     }
 
-                        emit CallbackExecuted(a, r.orderType);
+    //                     emit CallbackExecuted(a, r.orderType);
 
-                        orders[orderId].active = false;
-                        delete ordersAnswers[orderId];
-                    }
-                }
-            }
-        }
+    //                     orders[orderId].active = false;
+    //                     delete ordersAnswers[orderId];
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        emit PriceReceived(
-            requestId,
-            orderId,
-            msg.sender,
-            r.pairIndex,
-            priceData,
-            feedPrice,
-            r.linkFeePerNode,
-            r.isLookback,
-            usedInMedian
-        );
-    }
+    //     emit PriceReceived(
+    //         requestId,
+    //         orderId,
+    //         msg.sender,
+    //         r.pairIndex,
+    //         priceData,
+    //         feedPrice,
+    //         r.linkFeePerNode,
+    //         r.isLookback,
+    //         usedInMedian
+    //     );
+    // }
 
     // Calculate LINK fee for each request
     function linkFee(

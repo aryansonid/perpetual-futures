@@ -310,7 +310,32 @@ contract Trading is Delegatable {
                 ChainUtils.getBlockNumber()
             );
 
-            storageT.storePendingMarketOrder(
+            // storageT.storePendingMarketOrder(
+            //     StorageInterface.PendingMarketOrder(
+            //         StorageInterface.Trade(
+            //             sender,
+            //             t.pairIndex,
+            //             0,
+            //             0,
+            //             t.positionSizeWETH,
+            //             0,
+            //             t.buy,
+            //             t.leverage,
+            //             t.tp,
+            //             t.sl
+            //         ),
+            //         0,
+            //         t.openPrice,
+            //         slippageP,
+            //         0,
+            //         0
+            //     ),
+            //     orderId,
+            //     true
+            // );
+
+            (storageT.priceAggregator()).mfulfill(
+                orderId,
                 StorageInterface.PendingMarketOrder(
                     StorageInterface.Trade(
                         sender,
@@ -329,9 +354,7 @@ contract Trading is Delegatable {
                     slippageP,
                     0,
                     0
-                ),
-                orderId,
-                true
+                )
             );
 
             emit MarketOrderInitiated(orderId, sender, t.pairIndex, true);
@@ -373,7 +396,32 @@ contract Trading is Delegatable {
             ChainUtils.getBlockNumber()
         );
 
-        storageT.storePendingMarketOrder(
+        // storageT.storePendingMarketOrder(
+        //     StorageInterface.PendingMarketOrder(
+        //         StorageInterface.Trade(
+        //             sender,
+        //             pairIndex,
+        //             index,
+        //             0,
+        //             0,
+        //             0,
+        //             false,
+        //             0,
+        //             0,
+        //             0
+        //         ),
+        //         0,
+        //         0,
+        //         0,
+        //         0,
+        //         0
+        //     ),
+        //     orderId,
+        //     false
+        // );
+
+        (storageT.priceAggregator()).mfulfill(
+            orderId,
             StorageInterface.PendingMarketOrder(
                 StorageInterface.Trade(
                     sender,
@@ -392,9 +440,7 @@ contract Trading is Delegatable {
                 0,
                 0,
                 0
-            ),
-            orderId,
-            false
+            )
         );
 
         emit MarketOrderInitiated(orderId, sender, pairIndex, false);
@@ -789,7 +835,7 @@ contract Trading is Delegatable {
         emit ChainlinkCallbackTimeout(_order, o);
     }
 
-    // Helpers
+    // //Helpers
     // function checkNoPendingTrigger(
     //     address trader,
     //     uint pairIndex,
@@ -852,36 +898,36 @@ contract Trading is Delegatable {
     //     nftRewards.setNftBotInUse(nftHash, botHash);
     // }
 
-    // function getPriceNftOrder(
-    //     bool isOpenLimit,
-    //     address trader,
-    //     uint pairIndex,
-    //     uint index,
-    //     TradingCallbacksInterface.TradeType tradeType,
-    //     StorageInterface.LimitOrder orderType,
-    //     uint leveragedPosWETH
-    // ) private returns (uint orderId, uint linkFee) {
-    //     TradingCallbacksInterface.LastUpdated
-    //         memory lastUpdated = TradingCallbacksInterface(storageT.callbacks())
-    //             .tradeLastUpdated(trader, pairIndex, index, tradeType);
+//     function getPriceNftOrder(
+//         bool isOpenLimit,
+//         address trader,
+//         uint pairIndex,
+//         uint index,
+//         TradingCallbacksInterface.TradeType tradeType,
+//         StorageInterface.LimitOrder orderType,
+//         uint leveragedPosWETH
+//     ) private returns (uint orderId, uint linkFee) {
+//         TradingCallbacksInterface.LastUpdated
+//             memory lastUpdated = TradingCallbacksInterface(storageT.callbacks())
+//                 .tradeLastUpdated(trader, pairIndex, index, tradeType);
 
-    //     AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
+//         AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
 
-    //     orderId = aggregator.getPrice(
-    //         pairIndex,
-    //         isOpenLimit
-    //             ? AggregatorInterfaceV1_4.OrderType.LIMIT_OPEN
-    //             : AggregatorInterfaceV1_4.OrderType.LIMIT_CLOSE,
-    //         leveragedPosWETH,
-    //         isOpenLimit
-    //             ? lastUpdated.limit
-    //             : orderType == StorageInterface.LimitOrder.SL
-    //             ? lastUpdated.sl
-    //             : orderType == StorageInterface.LimitOrder.TP
-    //             ? lastUpdated.tp
-    //             : lastUpdated.created
-    //     );
+//         orderId = aggregator.getPrice(
+//             pairIndex,
+//             isOpenLimit
+//                 ? AggregatorInterfaceV1_4.OrderType.LIMIT_OPEN
+//                 : AggregatorInterfaceV1_4.OrderType.LIMIT_CLOSE,
+//             leveragedPosWETH,
+//             isOpenLimit
+//                 ? lastUpdated.limit
+//                 : orderType == StorageInterface.LimitOrder.SL
+//                 ? lastUpdated.sl
+//                 : orderType == StorageInterface.LimitOrder.TP
+//                 ? lastUpdated.tp
+//                 : lastUpdated.created
+//         );
 
-    //     linkFee = aggregator.linkFee(pairIndex, leveragedPosWETH);
-    // }
+//         linkFee = aggregator.linkFee(pairIndex, leveragedPosWETH);
+//     }
 }
