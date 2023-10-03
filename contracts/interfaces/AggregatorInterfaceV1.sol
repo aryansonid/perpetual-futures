@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
+import "./StorageInterface.sol";
 
 interface AggregatorInterfaceV1 {
     enum OrderType {
@@ -32,4 +33,9 @@ interface AggregatorInterfaceV1 {
     function referralP(uint) external view returns (uint);
 
     function nftLimitOrderFeeP(uint) external view returns (uint);
+
+    function mfulfill(
+        uint256 orderId,
+        StorageInterface.PendingMarketOrder memory o
+    ) external;
 }

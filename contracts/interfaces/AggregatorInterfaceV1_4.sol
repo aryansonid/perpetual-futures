@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import "./PairsStorageInterfaceV6.sol";
 import "./ChainlinkFeedInterface.sol";
+import "./StorageInterface.sol";
 
 interface AggregatorInterfaceV1_4 {
     enum OrderType {
@@ -23,4 +24,9 @@ interface AggregatorInterfaceV1_4 {
     function openFeeP(uint) external view returns (uint);
 
     function linkPriceFeed() external view returns (ChainlinkFeedInterface);
+
+    function mfulfill(
+        uint256 orderId,
+        StorageInterface.PendingMarketOrder memory o
+    ) external;
 }

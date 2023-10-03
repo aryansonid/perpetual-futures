@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import "./StorageInterface.sol";
+
 interface CallbacksInterface {
     struct AggregatorAnswer {
         uint orderId;
@@ -11,9 +13,31 @@ interface CallbacksInterface {
         uint low;
     }
 
-    function openTradeMarketCallback(AggregatorAnswer memory) external;
+    // struct PendingMarketOrder {
+    //     Trade trade;
+    //     uint block;
+    //     uint wantedPrice; // PRECISION
+    //     uint slippageP; // PRECISION (%)
+    //     uint spreadReductionP;
+    //     uint tokenId; // index in supportedTokens
+    // }
 
-    function closeTradeMarketCallback(AggregatorAnswer memory) external;
+    // struct Trade {
+    //     address trader;
+    //     uint pairIndex;
+    //     uint index;
+    //     uint initialPosToken; // 1e18
+    //     uint positionSizeWETH; // 1e18
+    //     uint openPrice; // PRECISION
+    //     bool buy;
+    //     uint leverage;
+    //     uint tp; // PRECISION
+    //     uint sl; // PRECISION
+    // }
+
+    function openTradeMarketCallback(AggregatorAnswer memory a, StorageInterface.PendingMarketOrder memory o) external;
+
+    function closeTradeMarketCallback(AggregatorAnswer memory a, StorageInterface.PendingMarketOrder memory o) external;
 
     function executeNftOpenOrderCallback(AggregatorAnswer memory) external;
 
