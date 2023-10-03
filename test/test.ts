@@ -257,8 +257,8 @@ describe("test", function () {
     const closingPrice = ethers.toBigInt("12000000000000000000");
     await oracle.feedPrice(0, openPrice);
 
-    const openPriceFromOracle = await oracle.getPrice(0);
-
+    const openPriceData = await oracle.getPrice(0);
+    const openPriceFromOracle = openPriceData[0];
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
         trader: trader,
@@ -295,7 +295,8 @@ describe("test", function () {
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 0);
 
-    const closingPriceFromOracle = await oracle.getPrice(0);
+    const closePriceData = await oracle.getPrice(0);
+    const closingPriceFromOracle = closePriceData[0];
 
     const blockNumAfter = await ethers.provider.getBlockNumber();
 
@@ -372,7 +373,8 @@ describe("test", function () {
     const closingPrice = ethers.toBigInt("8000000000000000000");
     await oracle.feedPrice(0, openPrice);
 
-    const openPriceFromOracle = await oracle.getPrice(0);
+    const openPriceData = await oracle.getPrice(0);
+    const openPriceFromOracle = openPriceData[0];
 
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
@@ -410,7 +412,8 @@ describe("test", function () {
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 0);
 
-    const closingPriceFromOracle = await oracle.getPrice(0);
+    const closePriceData = await oracle.getPrice(0);
+    const closingPriceFromOracle = closePriceData[0];
 
     const blockNumAfter = await ethers.provider.getBlockNumber();
 
@@ -485,8 +488,8 @@ describe("test", function () {
 
     await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
 
-    const openPriceFromOracle = await oracle.getPrice(0);
-
+    const openPriceData = await oracle.getPrice(0);
+    const openPriceFromOracle = openPriceData[0];
     await trading.connect(await ethers.getSigner(trader)).openTrade(
       {
         trader: trader,
@@ -560,15 +563,13 @@ describe("test", function () {
     await mine(1000);
 
     await oracle.feedPrice(0, closingPrice);
-    //8000000000000000000
 
     await trading
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 2);
 
-    const closingPriceFromOracle = await oracle.getPrice(0);
-
-    // await aggregator.Mfulfill(2);
+    const closePriceData = await oracle.getPrice(0);
+    const closingPriceFromOracle = closePriceData[0];
 
     const amount = getWethToBeSentToTrader(
       Number(closingPriceFromOracle),
@@ -625,7 +626,8 @@ describe("test", function () {
 
     await oracle.feedPrice(0, ethers.toBigInt("10000000000000000000"));
 
-    const openPriceFromOracle = await oracle.getPrice(0);
+    const openPriceData = await oracle.getPrice(0);
+    const openPriceFromOracle = openPriceData[0];
 
     // first trade
     await trading.connect(await ethers.getSigner(trader)).openTrade(
@@ -711,7 +713,8 @@ describe("test", function () {
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 2);
 
-    const closingPriceFromOracle = await oracle.getPrice(0);
+    const closePriceData = await oracle.getPrice(0);
+    const closingPriceFromOracle = closePriceData[0];
 
     const amount = getWethToBeSentToTrader(
       Number(closingPriceFromOracle),
