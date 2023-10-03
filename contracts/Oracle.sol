@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 contract Oracle is AccessControlUpgradeable {
     struct Observation {
         uint256 price;
-        uint256 updateTime;
+        uint256 lastupdateTime;
     }
 
     bytes32 public constant PRICE_SETTER_ROLE = keccak256("PRICE_SETTER_ROLE");
@@ -40,15 +40,15 @@ contract Oracle is AccessControlUpgradeable {
         require(price > 0, "Price can't be zero");
         priceData[tokenIndex] = Observation({
             price: price,
-            updateTime: block.timestamp
+            lastupdateTime: block.timestamp
         });
     }
 
     function getPrice(
         uint256 tokenIndex
-    ) external view returns (uint256 price) {
+    ) external view returns (uint256 price, uint256 lastupdateTime) {
         Observation memory tokenPriceData = priceData[tokenIndex];
-        require(tokenPriceData.updateTime != 0, "Price not updated");
-        return tokenPriceData.price;
+        require(tokenPriceData.lastupdateTime != 0, "Price not updated");
+        return (tokenPriceData.price, tokenPriceData.lastupdateTime);
     }
 }

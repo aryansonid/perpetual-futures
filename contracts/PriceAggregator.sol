@@ -308,7 +308,9 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     ) external {
         Order memory r = orders[orderId];
         bool usedInMedian = false;
-        uint256 price = (storageT.oracle()).getPrice(r.pairIndex);
+        (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
+            r.pairIndex
+        );
         usedInMedian = true;
 
         CallbacksInterface.AggregatorAnswer memory a;
