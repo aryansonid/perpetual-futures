@@ -1,8 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-deploy";
-import "@nomicfoundation/hardhat-verify"
-
+import "@nomicfoundation/hardhat-verify";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -87,6 +86,10 @@ const config: HardhatUserConfig = {
     },
     owner: {
       default: 9,
+      polygon: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
+    },
+    priceSetter: {
+      default: 10,
       polygon: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
     },
   },

@@ -3,7 +3,7 @@ import { Signer } from "ethers";
 
 // test setup
 export const setupTest = deployments.createFixture(async (hre) => {
-  const { deployer, trader } = await getNamedAccounts();
+  const { deployer, trader, priceSetter } = await getNamedAccounts();
   await deployments.fixture();
   const storage = await getContract(
     "Storage",
@@ -36,7 +36,10 @@ export const setupTest = deployments.createFixture(async (hre) => {
     await ethers.getSigner(deployer)
   );
 
-  const oracle = await getContract("Oracle", await ethers.getSigner(deployer));
+  const oracle = await getContract(
+    "Oracle",
+    await ethers.getSigner(priceSetter)
+  );
 
   const borrowing = await getContract(
     "borrowing",
@@ -106,8 +109,7 @@ export function getWethToBeSentToTrader(
   openPrice: number,
   leverage: number,
   long: boolean,
-  posWETH: number,
-  borrowingFee: number
+  collateral: number
 ) {
   let profitP = Math.floor(
     ((long ? currentPrice - openPrice : openPrice - currentPrice) *
@@ -119,6 +121,14 @@ export function getWethToBeSentToTrader(
   const maxPnl = 9000000000000;
   profitP = profitP > maxPnl ? maxPnl : profitP;
   return Math.floor(
-    (posWETH * (100 * 10000000000 + profitP)) / 100 / 10000000000
+    (collateral * (100 * 10000000000 + profitP)) / 100 / 10000000000
   );
+}
+
+export function getNetOI(longOI: number, shortOI: number, moreLong: boolean) {
+  if (moreLong) {
+    return longOI - shortOI;
+  } else {
+    return shortOI - longOI;
+  }
 }
