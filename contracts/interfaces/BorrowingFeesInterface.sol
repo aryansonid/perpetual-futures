@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 interface BorrowingFeesInterface {
     // Structs
@@ -165,4 +165,8 @@ interface BorrowingFeesInterface {
     ) external view returns (bool);
 
     function getPairMaxOi(uint pairIndex) external view returns (uint);
+
+    function getTradePartialLiquidationPrice(
+        LiqPriceInput calldata input
+    ) external view returns (uint);
 }

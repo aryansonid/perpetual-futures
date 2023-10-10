@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/AggregatorInterfaceV1.sol";
@@ -7,7 +7,7 @@ import "./interfaces/PoolInterfaceV5.sol";
 import "./interfaces/NftInterfaceV5.sol";
 import "./interfaces/PausableInterfaceV5.sol";
 
-contract Storage {
+contract Storage is StorageInterface {
     // Constants
     uint public constant PRECISION = 1e10;
     bytes32 public constant MINTER_ROLE =
@@ -60,12 +60,12 @@ contract Storage {
     uint public nftRewards; // 1e18
 
     // Enums
-    enum LimitOrder {
-        TP,
-        SL,
-        LIQ,
-        OPEN
-    }
+    // enum LimitOrder {
+    //     TP,
+    //     SL,
+    //     LIQ,
+    //     OPEN
+    // }
 
     // Structs
     struct Trader {
@@ -73,57 +73,57 @@ contract Storage {
         address referral;
         uint referralRewardsTotal; // 1e18
     }
-    struct Trade {
-        address trader;
-        uint pairIndex;
-        uint index;
-        uint initialPosToken; // 1e18
-        uint positionSizeWETH; // 1e18
-        uint openPrice; // PRECISION
-        bool buy;
-        uint leverage;
-        uint tp; // PRECISION
-        uint sl; // PRECISION
-    }
-    struct TradeInfo {
-        uint tokenId;
-        uint tokenPriceWETH; // PRECISION
-        uint openInterestWETH; // 1e18
-        uint tpLastUpdated;
-        uint slLastUpdated;
-        bool beingMarketClosed;
-    }
-    struct OpenLimitOrder {
-        address trader;
-        uint pairIndex;
-        uint index;
-        uint positionSize; // 1e18 (WETH or GFARM2)
-        uint spreadReductionP;
-        bool buy;
-        uint leverage;
-        uint tp; // PRECISION (%)
-        uint sl; // PRECISION (%)
-        uint minPrice; // PRECISION
-        uint maxPrice; // PRECISION
-        uint block;
-        uint tokenId; // index in supportedTokens
-    }
-    struct PendingMarketOrder {
-        Trade trade;
-        uint block;
-        uint wantedPrice; // PRECISION
-        uint slippageP; // PRECISION (%)
-        uint spreadReductionP;
-        uint tokenId; // index in supportedTokens
-    }
-    struct PendingNftOrder {
-        address nftHolder;
-        uint nftId;
-        address trader;
-        uint pairIndex;
-        uint index;
-        LimitOrder orderType;
-    }
+    // struct Trade {
+    //     address trader;
+    //     uint pairIndex;
+    //     uint index;
+    //     uint initialPosToken; // 1e18
+    //     uint positionSizeWETH; // 1e18
+    //     uint openPrice; // PRECISION
+    //     bool buy;
+    //     uint leverage;
+    //     uint tp; // PRECISION
+    //     uint sl; // PRECISION
+    // }
+    // struct TradeInfo {
+    //     uint tokenId;
+    //     uint tokenPriceWETH; // PRECISION
+    //     uint openInterestWETH; // 1e18
+    //     uint tpLastUpdated;
+    //     uint slLastUpdated;
+    //     bool beingMarketClosed;
+    // }
+    // struct OpenLimitOrder {
+    //     address trader;
+    //     uint pairIndex;
+    //     uint index;
+    //     uint positionSize; // 1e18 (WETH or GFARM2)
+    //     uint spreadReductionP;
+    //     bool buy;
+    //     uint leverage;
+    //     uint tp; // PRECISION (%)
+    //     uint sl; // PRECISION (%)
+    //     uint minPrice; // PRECISION
+    //     uint maxPrice; // PRECISION
+    //     uint block;
+    //     uint tokenId; // index in supportedTokens
+    // }
+    // struct PendingMarketOrder {
+    //     Trade trade;
+    //     uint block;
+    //     uint wantedPrice; // PRECISION
+    //     uint slippageP; // PRECISION (%)
+    //     uint spreadReductionP;
+    //     uint tokenId; // index in supportedTokens
+    // }
+    // struct PendingNftOrder {
+    //     address nftHolder;
+    //     uint nftId;
+    //     address trader;
+    //     uint pairIndex;
+    //     uint index;
+    //     LimitOrder orderType;
+    // }
 
     // Supported tokens to open trades with
     address[] public supportedTokens;
@@ -188,9 +188,10 @@ contract Storage {
     }
     modifier onlyTrading() {
         require(
-            isTradingContract[msg.sender]
+            isTradingContract[msg.sender],
             // &&
             //     token.hasRole(MINTER_ROLE, msg.sender)
+            "here here"
         );
         _;
     }
@@ -809,5 +810,33 @@ contract Storage {
 
     function setOracle(address _oracle) external {
         oracle = IOracle(_oracle);
+    }
+
+    function getOpenTrades(
+        address trader,
+        uint pairIndex,
+        uint index
+    ) external view returns (Trade memory) {
+        return openTrades[trader][pairIndex][index];
+    }
+
+    function getOpenTradesInfo(
+        address trader,
+        uint pairIndex,
+        uint index
+    ) external view returns (TradeInfo memory) {
+        return openTradesInfo[trader][pairIndex][index];
+    }
+
+    function getPendingMarketOrder(
+        uint orderId
+    ) external view returns (PendingMarketOrder memory) {
+        return reqID_pendingMarketOrder[orderId];
+    }
+
+    function getPendingNftOrder(
+        uint orderId
+    ) external view returns (PendingNftOrder memory) {
+        return reqID_pendingNftOrder[orderId];
     }
 }

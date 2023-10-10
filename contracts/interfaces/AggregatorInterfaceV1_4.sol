@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./PairsStorageInterfaceV6.sol";
 import "./ChainlinkFeedInterface.sol";
@@ -25,8 +25,13 @@ interface AggregatorInterfaceV1_4 {
 
     function linkPriceFeed() external view returns (ChainlinkFeedInterface);
 
-    function mfulfill(
+    function marketOrderfulfill(
         uint256 orderId,
         StorageInterface.PendingMarketOrder memory o
+    ) external;
+
+    function nftOrderfulfill(
+        uint256 orderId,
+        StorageInterface.PendingNftOrder memory o
     ) external;
 }

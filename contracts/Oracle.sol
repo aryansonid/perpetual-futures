@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
@@ -48,7 +48,6 @@ contract Oracle is AccessControlUpgradeable {
         uint256 tokenIndex
     ) external view returns (uint256 price, uint256 lastupdateTime) {
         Observation memory tokenPriceData = priceData[tokenIndex];
-        require(tokenPriceData.lastupdateTime != 0, "Price not updated");
         return (tokenPriceData.price, tokenPriceData.lastupdateTime);
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 interface PairInfosInterface {
     // Trade initial acc fees
@@ -89,4 +89,21 @@ interface PairInfosInterface {
     ) external returns (uint); // 1e18 (DAI)
 
     function manager() external view returns (address);
+
+    function getTradeValuePure(
+        uint collateral, // 1e18 (WETH)
+        int percentProfit, // PRECISION (%)
+        uint rolloverFee, // 1e18 (WETH)
+        int fundingFee, // 1e18 (WETH)
+        uint closingFee // 1e18 (WETH)
+    ) external view returns (uint);
+
+    function getTradePartialLiquidationPrice(
+        uint openPrice, // PRECISION
+        bool long,
+        uint collateral, // 1e18 (DAI)
+        uint leverage,
+        uint rolloverFee, // 1e18 (DAI)
+        int fundingFee // 1e18 (DAI)
+    ) external pure returns (uint);
 }

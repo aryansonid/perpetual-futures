@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "./TWAPPriceGetter.sol";
@@ -7,6 +7,7 @@ import "./interfaces/CallbacksInterface.sol";
 import "./interfaces/ChainlinkFeedInterface.sol";
 import "./interfaces/StorageInterface.sol";
 import "./libraries/PackingUtils.sol";
+import "./interfaces/PairsStorageInterfaceV6.sol";
 
 contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     using Chainlink for Chainlink.Request;
@@ -147,11 +148,11 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         _;
     }
     modifier onlyTrading() {
-        require(msg.sender == storageT.trading(), "TRADING_ONLY");
+        require(msg.sender == address(storageT.trading()), "TRADING_ONLY");
         _;
     }
     modifier onlyCallbacks() {
-        require(msg.sender == storageT.callbacks(), "CALLBACKS_ONLY");
+        require(msg.sender == address(storageT.callbacks()), "CALLBACKS_ONLY");
         _;
     }
 
@@ -302,7 +303,7 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     }
 
     // Fulfill on-demand price requests mock
-    function mfulfill(
+    function marketOrderfulfill(
         uint256 orderId,
         StorageInterface.PendingMarketOrder memory o
     ) external {
@@ -319,14 +320,56 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         a.price = price;
         a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
 
-        CallbacksInterface c = CallbacksInterface(storageT.callbacks());
+        CallbacksInterface c = CallbacksInterface(
+            address(storageT.callbacks())
+        );
 
         if (r.orderType == OrderType.MARKET_OPEN) {
             c.openTradeMarketCallback(a, o);
         } else {
             c.closeTradeMarketCallback(a, o);
         }
+        emit CallbackExecuted(a, r.orderType);
 
+        emit PriceReceived(
+            "0x",
+            orderId,
+            msg.sender,
+            r.pairIndex,
+            0,
+            0,
+            r.linkFeePerNode,
+            r.isLookback,
+            usedInMedian
+        );
+    }
+
+    function nftOrderfulfill(
+        uint256 orderId,
+        StorageInterface.PendingNftOrder memory o
+    ) external {
+        Order memory r = orders[orderId];
+        bool usedInMedian = false;
+        (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
+            r.pairIndex
+        );
+        usedInMedian = true;
+
+        CallbacksInterface.AggregatorAnswer memory a;
+
+        a.orderId = orderId;
+        a.price = price;
+        a.spreadP = pairsStorage.pairSpreadP(r.pairIndex);
+
+        CallbacksInterface c = CallbacksInterface(
+            address(storageT.callbacks())
+        );
+
+        if (r.orderType == OrderType.LIMIT_CLOSE) {
+            c.executeNftCloseOrderCallback(a, o);
+        } else {
+            revert("Open Limit orders not supported yet");
+        }
         emit CallbackExecuted(a, r.orderType);
 
         emit PriceReceived(

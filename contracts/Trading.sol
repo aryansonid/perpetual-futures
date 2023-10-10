@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/PairInfosInterface.sol";
@@ -10,6 +10,9 @@ import "./libraries/ChainUtils.sol";
 import "./libraries/TradeUtils.sol";
 import "./libraries/PackingUtils.sol";
 import "./interfaces/NFTRewardInterfaceV6_3.sol";
+import "./interfaces/CallbacksInterface.sol";
+import "./interfaces/PairsStorageInterfaceV6.sol";
+import "./interfaces/AggregatorInterfaceV1_4.sol";
 
 contract Trading is Delegatable {
     using TradeUtils for address;
@@ -21,6 +24,7 @@ contract Trading is Delegatable {
     PairInfosInterface public immutable pairInfos;
     ReferralsInterface public immutable referrals;
     BorrowingFeesInterface public immutable borrowingFees;
+    CallbacksInterface public immutable callbacks;
 
     // Params (constant)
     uint constant PRECISION = 1e10;
@@ -29,6 +33,7 @@ contract Trading is Delegatable {
     // Params (adjustable)
     uint public maxPosWETH; // 1e18 (eg. 75000 * 1e18)
     uint public marketOrdersTimeout; // block (eg. 30)
+    int public maxLeveragedPosWETH = 10e18; //100 weth
 
     // State
     bool public isPaused; // Prevent opening new trades
@@ -108,6 +113,7 @@ contract Trading is Delegatable {
         PairInfosInterface _pairInfos,
         ReferralsInterface _referrals,
         BorrowingFeesInterface _borrowingFees,
+        CallbacksInterface _callbacks,
         uint _maxPosWETH,
         uint _marketOrdersTimeout
     ) {
@@ -117,6 +123,7 @@ contract Trading is Delegatable {
                 address(_pairInfos) != address(0) &&
                 address(_referrals) != address(0) &&
                 address(_borrowingFees) != address(0) &&
+                address(_callbacks) != address(0) &&
                 _maxPosWETH > 0 &&
                 _marketOrdersTimeout > 0,
             "WRONG_PARAMS"
@@ -130,6 +137,7 @@ contract Trading is Delegatable {
 
         maxPosWETH = _maxPosWETH;
         marketOrdersTimeout = _marketOrdersTimeout;
+        callbacks = _callbacks;
     }
 
     // Modifiers
@@ -199,7 +207,9 @@ contract Trading is Delegatable {
         require(t.openPrice * slippageP < type(uint256).max, "OVERFLOW");
         require(t.openPrice > 0, "PRICE_ZERO");
 
-        AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
+        AggregatorInterfaceV1_4 aggregator = AggregatorInterfaceV1_4(
+            address(storageT.priceAggregator())
+        );
         PairsStorageInterfaceV6 pairsStored = aggregator.pairsStorage();
 
         address sender = _msgSender();
@@ -334,7 +344,7 @@ contract Trading is Delegatable {
             //     true
             // );
 
-            (storageT.priceAggregator()).mfulfill(
+            (storageT.priceAggregator()).marketOrderfulfill(
                 orderId,
                 StorageInterface.PendingMarketOrder(
                     StorageInterface.Trade(
@@ -369,13 +379,13 @@ contract Trading is Delegatable {
         uint index
     ) external notContract notDone {
         address sender = _msgSender();
-
-        StorageInterface.Trade memory t = storageT.openTrades(
+        StorageInterface.Trade memory t = storageT.getOpenTrades(
             sender,
             pairIndex,
             index
         );
-        StorageInterface.TradeInfo memory i = storageT.openTradesInfo(
+
+        StorageInterface.TradeInfo memory i = storageT.getOpenTradesInfo(
             sender,
             pairIndex,
             index
@@ -389,12 +399,14 @@ contract Trading is Delegatable {
         require(!i.beingMarketClosed, "ALREADY_BEING_CLOSED");
         require(t.leverage > 0, "NO_TRADE");
 
-        uint orderId = storageT.priceAggregator().getPrice(
-            pairIndex,
-            AggregatorInterfaceV1_4.OrderType.MARKET_CLOSE,
-            (t.initialPosToken * i.tokenPriceWETH * t.leverage) / PRECISION,
-            ChainUtils.getBlockNumber()
-        );
+        uint orderId = AggregatorInterfaceV1_4(
+            address(storageT.priceAggregator())
+        ).getPrice(
+                pairIndex,
+                AggregatorInterfaceV1_4.OrderType.MARKET_CLOSE,
+                (t.initialPosToken * i.tokenPriceWETH * t.leverage) / PRECISION,
+                ChainUtils.getBlockNumber()
+            );
 
         // storageT.storePendingMarketOrder(
         //     StorageInterface.PendingMarketOrder(
@@ -420,7 +432,7 @@ contract Trading is Delegatable {
         //     false
         // );
 
-        (storageT.priceAggregator()).mfulfill(
+        (storageT.priceAggregator()).marketOrderfulfill(
             orderId,
             StorageInterface.PendingMarketOrder(
                 StorageInterface.Trade(
@@ -558,16 +570,11 @@ contract Trading is Delegatable {
         //     index,
         //     StorageInterface.LimitOrder.TP
         // );
-
-        StorageInterface.Trade memory t = storageT.openTrades(
-            sender,
-            pairIndex,
-            index
-        );
+        StorageInterface.Trade memory t = storageT.getOpenTrades(sender, pairIndex, index);
         require(t.leverage > 0, "NO_TRADE");
 
         storageT.updateTp(sender, pairIndex, index, newTp);
-        storageT.callbacks().setTpLastUpdated(
+        address(storageT.callbacks()).setTpLastUpdated(
             sender,
             pairIndex,
             index,
@@ -592,11 +599,7 @@ contract Trading is Delegatable {
         //     StorageInterface.LimitOrder.SL
         // );
 
-        StorageInterface.Trade memory t = storageT.openTrades(
-            sender,
-            pairIndex,
-            index
-        );
+        StorageInterface.Trade memory t = storageT.getOpenTrades(sender, pairIndex, index);
         require(t.leverage > 0, "NO_TRADE");
 
         uint maxSlDist = (t.openPrice * MAX_SL_P) / 100 / t.leverage;
@@ -612,7 +615,7 @@ contract Trading is Delegatable {
         );
 
         storageT.updateSl(sender, pairIndex, index, newSl);
-        storageT.callbacks().setSlLastUpdated(
+        address(storageT.callbacks()).setSlLastUpdated(
             sender,
             pairIndex,
             index,
@@ -623,217 +626,246 @@ contract Trading is Delegatable {
         emit SlUpdated(sender, pairIndex, index, newSl);
     }
 
-    // // Execute limit order
-    // function executeNftOrder(uint256 packed) external notContract notDone {
-    //     (
-    //         uint _orderType,
-    //         address trader,
-    //         uint pairIndex,
-    //         uint index,
-    //         uint nftId,
-    //         uint nftType
-    //     ) = packed.unpackExecuteNftOrder();
-    //     StorageInterface.LimitOrder orderType = StorageInterface.LimitOrder(
-    //         _orderType
-    //     );
-    //     address sender = _msgSender();
-
-    //     require(nftType >= 1 && nftType <= 5, "WRONG_NFT_TYPE");
-    //     require(storageT.nfts(nftType - 1).ownerOf(nftId) == sender, "NO_NFT");
-
-    //     require(
-    //         block.number >=
-    //             storageT.nftLastSuccess(nftId) + storageT.nftSuccessTimelock(),
-    //         "SUCCESS_TIMELOCK"
-    //     );
-
-    //     bool isOpenLimit = orderType == StorageInterface.LimitOrder.OPEN;
-    //     TradingCallbacksInterface.TradeType tradeType = isOpenLimit
-    //         ? TradingCallbacksInterface.TradeType.LIMIT
-    //         : TradingCallbacksInterface.TradeType.MARKET;
-
-    //     require(
-    //         canExecute(
-    //             orderType,
-    //             TradingCallbacksInterface.SimplifiedTradeId(
-    //                 trader,
-    //                 pairIndex,
-    //                 index,
-    //                 tradeType
-    //             )
-    //         ),
-    //         "IN_TIMEOUT"
-    //     );
-
-    //     handleBotInUse(sender, nftId, trader, pairIndex, index);
-
-    //     StorageInterface.Trade memory t;
-
-    //     if (isOpenLimit) {
-    //         require(
-    //             storageT.hasOpenLimitOrder(trader, pairIndex, index),
-    //             "NO_LIMIT"
-    //         );
-    //     } else {
-    //         t = storageT.openTrades(trader, pairIndex, index);
-
-    //         require(t.leverage > 0, "NO_TRADE");
-
-    //         if (orderType == StorageInterface.LimitOrder.LIQ) {
-    //             uint liqPrice = borrowingFees.getTradeLiquidationPrice(
-    //                 BorrowingFeesInterface.LiqPriceInput(
-    //                     t.trader,
-    //                     t.pairIndex,
-    //                     t.index,
-    //                     t.openPrice,
-    //                     t.buy,
-    //                     (t.initialPosToken *
-    //                         storageT
-    //                             .openTradesInfo(t.trader, t.pairIndex, t.index)
-    //                             .tokenPriceWETH) / PRECISION,
-    //                     t.leverage
-    //                 )
-    //             );
-
-    //             require(
-    //                 t.sl == 0 || (t.buy ? liqPrice > t.sl : liqPrice < t.sl),
-    //                 "HAS_SL"
-    //             );
-    //         } else {
-    //             require(
-    //                 orderType != StorageInterface.LimitOrder.SL || t.sl > 0,
-    //                 "NO_SL"
-    //             );
-    //             require(
-    //                 orderType != StorageInterface.LimitOrder.TP || t.tp > 0,
-    //                 "NO_TP"
-    //             );
-    //         }
-    //     }
-
-    //     NftRewardsInterfaceV6_3_1.TriggeredLimitId
-    //         memory triggeredLimitId = NftRewardsInterfaceV6_3_1
-    //             .TriggeredLimitId(trader, pairIndex, index, orderType);
-
-    //     if (
-    //         !nftRewards.triggered(triggeredLimitId) ||
-    //         nftRewards.timedOut(triggeredLimitId)
-    //     ) {
-    //         uint leveragedPosWETH;
-
-    //         if (isOpenLimit) {
-    //             StorageInterface.OpenLimitOrder memory l = storageT
-    //                 .getOpenLimitOrder(trader, pairIndex, index);
-
-    //             leveragedPosWETH = l.positionSize * l.leverage;
-    //             (uint priceImpactP, ) = pairInfos.getTradePriceImpact(
-    //                 0,
-    //                 l.pairIndex,
-    //                 l.buy,
-    //                 leveragedPosWETH
-    //             );
-
-    //             require(
-    //                 priceImpactP * l.leverage <=
-    //                     pairInfos.maxNegativePnlOnOpenP(),
-    //                 "PRICE_IMPACT_TOO_HIGH"
-    //             );
-    //         } else {
-    //             leveragedPosWETH =
-    //                 (t.initialPosToken *
-    //                     storageT
-    //                         .openTradesInfo(trader, pairIndex, index)
-    //                         .tokenPriceWETH *
-    //                     t.leverage) /
-    //                 PRECISION;
-    //         }
-
-    //         storageT.transferLinkToAggregator(
-    //             sender,
-    //             pairIndex,
-    //             leveragedPosWETH
-    //         );
-
-    //         (uint orderId, uint linkFee) = getPriceNftOrder(
-    //             isOpenLimit,
-    //             trader,
-    //             pairIndex,
-    //             index,
-    //             tradeType,
-    //             orderType,
-    //             leveragedPosWETH
-    //         );
-
-    //         StorageInterface.PendingNftOrder memory pendingNftOrder;
-    //         pendingNftOrder.nftHolder = sender;
-    //         pendingNftOrder.nftId = nftId;
-    //         pendingNftOrder.trader = trader;
-    //         pendingNftOrder.pairIndex = pairIndex;
-    //         pendingNftOrder.index = index;
-    //         pendingNftOrder.orderType = orderType;
-
-    //         storageT.storePendingNftOrder(pendingNftOrder, orderId);
-    //         nftRewards.storeFirstToTrigger(triggeredLimitId, sender, linkFee);
-
-    //         emit NftOrderInitiated(orderId, sender, trader, pairIndex);
-    //     } else {
-    //         nftRewards.storeTriggerSameBlock(triggeredLimitId, sender);
-
-    //         emit NftOrderSameBlock(sender, trader, pairIndex);
-    //     }
-    // }
-
-    // Market timeout
-    function openTradeMarketTimeout(uint _order) external notContract notDone {
+    // Execute limit order
+    function executeNftOrder(
+        uint _orderType,
+        address trader,
+        uint pairIndex,
+        uint index,
+        uint nftId,
+        uint nftType
+    ) external notContract notDone {
+        // (
+        //     uint _orderType,
+        //     address trader,
+        //     uint pairIndex,
+        //     uint index,
+        //     uint nftId,
+        //     uint nftType
+        // ) = packed.unpackExecuteNftOrder();
+        StorageInterface.LimitOrder orderType = StorageInterface.LimitOrder(
+            _orderType
+        );
         address sender = _msgSender();
 
-        StorageInterface.PendingMarketOrder memory o = storageT
-            .reqID_pendingMarketOrder(_order);
-        StorageInterface.Trade memory t = o.trade;
+        // require(nftType >= 1 && nftType <= 5, "WRONG_NFT_TYPE");
+        // require(storageT.nfts(nftType - 1).ownerOf(nftId) == sender, "NO_NFT");
 
-        require(
-            o.block > 0 && block.number >= o.block + marketOrdersTimeout,
-            "WAIT_TIMEOUT"
-        );
-        require(t.trader == sender, "NOT_YOUR_ORDER");
-        require(t.leverage > 0, "WRONG_MARKET_ORDER_TYPE");
+        // require(
+        //     block.number >=
+        //         storageT.nftLastSuccess(nftId) + storageT.nftSuccessTimelock(),
+        //     "SUCCESS_TIMELOCK"
+        // );
 
-        storageT.unregisterPendingMarketOrder(_order, true);
-        storageT.transferWETH(address(storageT), sender, t.positionSizeWETH);
+        bool isOpenLimit = orderType == StorageInterface.LimitOrder.OPEN;
+        TradingCallbacksInterface.TradeType tradeType = isOpenLimit
+            ? TradingCallbacksInterface.TradeType.LIMIT
+            : TradingCallbacksInterface.TradeType.MARKET;
 
-        emit ChainlinkCallbackTimeout(_order, o);
-    }
+        // require(
+        //     canExecute(
+        //         orderType,
+        //         TradingCallbacksInterface.SimplifiedTradeId(
+        //             trader,
+        //             pairIndex,
+        //             index,
+        //             tradeType
+        //         )
+        //     ),
+        //     "IN_TIMEOUT"
+        // );
 
-    function closeTradeMarketTimeout(uint _order) external notContract notDone {
-        address sender = _msgSender();
+        // handleBotInUse(sender, nftId, trader, pairIndex, index);
 
-        StorageInterface.PendingMarketOrder memory o = storageT
-            .reqID_pendingMarketOrder(_order);
-        StorageInterface.Trade memory t = o.trade;
+        StorageInterface.Trade memory t;
 
-        require(
-            o.block > 0 && block.number >= o.block + marketOrdersTimeout,
-            "WAIT_TIMEOUT"
-        );
-        require(t.trader == sender, "NOT_YOUR_ORDER");
-        require(t.leverage == 0, "WRONG_MARKET_ORDER_TYPE");
+        if (isOpenLimit) {
+            revert("Open Limit orders not supported yet");
+            // require(
+            //     storageT.hasOpenLimitOrder(trader, pairIndex, index),
+            //     "NO_LIMIT"
+            // );
+        } else {
+            t = storageT.getOpenTrades(trader, pairIndex, index);
 
-        storageT.unregisterPendingMarketOrder(_order, false);
+            require(t.leverage > 0, "NO_TRADE");
 
-        (bool success, ) = address(this).delegatecall(
-            abi.encodeWithSignature(
-                "closeTradeMarket(uint256,uint256)",
-                t.pairIndex,
-                t.index
-            )
-        );
+            if (orderType == StorageInterface.LimitOrder.LIQ) {
+                uint liqPrice = borrowingFees.getTradeLiquidationPrice(
+                    BorrowingFeesInterface.LiqPriceInput(
+                        t.trader,
+                        t.pairIndex,
+                        t.index,
+                        t.openPrice,
+                        t.buy,
+                        t.positionSizeWETH,
+                        t.leverage
+                    )
+                );
 
-        if (!success) {
-            emit CouldNotCloseTrade(sender, t.pairIndex, t.index);
+                require(
+                    t.sl == 0 || (t.buy ? liqPrice > t.sl : liqPrice < t.sl),
+                    "HAS_SL"
+                );
+            } else if (orderType == StorageInterface.LimitOrder.PAR_LIQ) {
+                uint parLiqPrice = borrowingFees
+                    .getTradePartialLiquidationPrice(
+                        BorrowingFeesInterface.LiqPriceInput(
+                            t.trader,
+                            t.pairIndex,
+                            t.index,
+                            t.openPrice,
+                            t.buy,
+                            t.positionSizeWETH,
+                            t.leverage
+                        )
+                    );
+
+                require(
+                    t.sl == 0 ||
+                        (t.buy ? parLiqPrice > t.sl : parLiqPrice < t.sl),
+                    "HAS_SL"
+                );
+                int256 pnl = callbacks.getTradePnl(
+                    t.trader,
+                    t.pairIndex,
+                    t.index
+                );
+                int256 position = int(t.positionSizeWETH) + pnl;
+                require(
+                    position >= maxLeveragedPosWETH,
+                    "position to small for partial liquidation"
+                );
+            } else {
+                require(
+                    orderType != StorageInterface.LimitOrder.SL || t.sl > 0,
+                    "NO_SL"
+                );
+                require(
+                    orderType != StorageInterface.LimitOrder.TP || t.tp > 0,
+                    "NO_TP"
+                );
+            }
         }
 
-        emit ChainlinkCallbackTimeout(_order, o);
+        // NftRewardsInterfaceV6_3_1.TriggeredLimitId
+        //     memory triggeredLimitId = NftRewardsInterfaceV6_3_1
+        //         .TriggeredLimitId(trader, pairIndex, index, orderType);
+
+        if (
+            true
+            // !nftRewards.triggered(triggeredLimitId) ||
+            // nftRewards.timedOut(triggeredLimitId)
+        ) {
+            uint leveragedPosWETH;
+
+            if (isOpenLimit) {
+                // StorageInterface.OpenLimitOrder memory l = storageT
+                //     .getOpenLimitOrder(trader, pairIndex, index);
+                // leveragedPosWETH = l.positionSize * l.leverage;
+                // (uint priceImpactP, ) = pairInfos.getTradePriceImpact(
+                //     0,
+                //     l.pairIndex,
+                //     l.buy,
+                //     leveragedPosWETH
+                // );
+                // require(
+                //     priceImpactP * l.leverage <=
+                //         pairInfos.maxNegativePnlOnOpenP(),
+                //     "PRICE_IMPACT_TOO_HIGH"
+                // );
+            } else {
+                leveragedPosWETH = t.positionSizeWETH * t.leverage;
+            }
+
+            // storageT.transferLinkToAggregator(
+            //     sender,
+            //     pairIndex,
+            //     leveragedPosWETH
+            // );
+
+            (uint orderId /*uint linkFee*/, ) = getPriceNftOrder(
+                isOpenLimit,
+                trader,
+                pairIndex,
+                index,
+                tradeType,
+                orderType,
+                leveragedPosWETH
+            );
+
+            StorageInterface.PendingNftOrder memory pendingNftOrder;
+            pendingNftOrder.nftHolder = sender;
+            pendingNftOrder.nftId = nftId;
+            pendingNftOrder.trader = trader;
+            pendingNftOrder.pairIndex = pairIndex;
+            pendingNftOrder.index = index;
+            pendingNftOrder.orderType = orderType;
+            storageT.storePendingNftOrder(pendingNftOrder, orderId);
+
+            (storageT.priceAggregator()).nftOrderfulfill(
+                orderId,
+                pendingNftOrder
+            );
+            emit NftOrderInitiated(orderId, sender, trader, pairIndex);
+        } else {
+            // nftRewards.storeTriggerSameBlock(triggeredLimitId, sender);
+
+            emit NftOrderSameBlock(sender, trader, pairIndex);
+        }
     }
+
+    // Market timeout
+    // function openTradeMarketTimeout(uint _order) external notContract notDone {
+    //     address sender = _msgSender();
+
+    //     StorageInterface.PendingMarketOrder memory o = storageT
+    //         .reqID_pendingMarketOrder(_order);
+    //     StorageInterface.Trade memory t = o.trade;
+
+    //     require(
+    //         o.block > 0 && block.number >= o.block + marketOrdersTimeout,
+    //         "WAIT_TIMEOUT"
+    //     );
+    //     require(t.trader == sender, "NOT_YOUR_ORDER");
+    //     require(t.leverage > 0, "WRONG_MARKET_ORDER_TYPE");
+
+    //     storageT.unregisterPendingMarketOrder(_order, true);
+    //     storageT.transferWETH(address(storageT), sender, t.positionSizeWETH);
+
+    //     emit ChainlinkCallbackTimeout(_order, o);
+    // }
+
+    // function closeTradeMarketTimeout(uint _order) external notContract notDone {
+    //     address sender = _msgSender();
+
+    //     StorageInterface.PendingMarketOrder memory o = storageT
+    //         .reqID_pendingMarketOrder(_order);
+    //     StorageInterface.Trade memory t = o.trade;
+
+    //     require(
+    //         o.block > 0 && block.number >= o.block + marketOrdersTimeout,
+    //         "WAIT_TIMEOUT"
+    //     );
+    //     require(t.trader == sender, "NOT_YOUR_ORDER");
+    //     require(t.leverage == 0, "WRONG_MARKET_ORDER_TYPE");
+
+    //     storageT.unregisterPendingMarketOrder(_order, false);
+
+    //     (bool success, ) = address(this).delegatecall(
+    //         abi.encodeWithSignature(
+    //             "closeTradeMarket(uint256,uint256)",
+    //             t.pairIndex,
+    //             t.index
+    //         )
+    //     );
+
+    //     if (!success) {
+    //         emit CouldNotCloseTrade(sender, t.pairIndex, t.index);
+    //     }
+
+    //     emit ChainlinkCallbackTimeout(_order, o);
+    // }
 
     // //Helpers
     // function checkNoPendingTrigger(
@@ -873,7 +905,7 @@ contract Trading is Delegatable {
         PairsStorageInterfaceV6 pairsStored,
         uint pairIndex
     ) private view returns (uint) {
-        uint max = TradingCallbacksInterface(storageT.callbacks())
+        uint max = TradingCallbacksInterface(address(storageT.callbacks()))
             .pairMaxLeverage(pairIndex);
         return max > 0 ? max : pairsStored.pairMaxLeverage(pairIndex);
     }
@@ -898,36 +930,39 @@ contract Trading is Delegatable {
     //     nftRewards.setNftBotInUse(nftHash, botHash);
     // }
 
-//     function getPriceNftOrder(
-//         bool isOpenLimit,
-//         address trader,
-//         uint pairIndex,
-//         uint index,
-//         TradingCallbacksInterface.TradeType tradeType,
-//         StorageInterface.LimitOrder orderType,
-//         uint leveragedPosWETH
-//     ) private returns (uint orderId, uint linkFee) {
-//         TradingCallbacksInterface.LastUpdated
-//             memory lastUpdated = TradingCallbacksInterface(storageT.callbacks())
-//                 .tradeLastUpdated(trader, pairIndex, index, tradeType);
+    function getPriceNftOrder(
+        bool isOpenLimit,
+        address trader,
+        uint pairIndex,
+        uint index,
+        TradingCallbacksInterface.TradeType tradeType,
+        StorageInterface.LimitOrder orderType,
+        uint leveragedPosWETH
+    ) private returns (uint orderId, uint linkFee) {
+        TradingCallbacksInterface.LastUpdated
+            memory lastUpdated = TradingCallbacksInterface(
+                address(storageT.callbacks())
+            ).tradeLastUpdated(trader, pairIndex, index, tradeType);
 
-//         AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
+        AggregatorInterfaceV1_4 aggregator = AggregatorInterfaceV1_4(
+            address(storageT.priceAggregator())
+        );
 
-//         orderId = aggregator.getPrice(
-//             pairIndex,
-//             isOpenLimit
-//                 ? AggregatorInterfaceV1_4.OrderType.LIMIT_OPEN
-//                 : AggregatorInterfaceV1_4.OrderType.LIMIT_CLOSE,
-//             leveragedPosWETH,
-//             isOpenLimit
-//                 ? lastUpdated.limit
-//                 : orderType == StorageInterface.LimitOrder.SL
-//                 ? lastUpdated.sl
-//                 : orderType == StorageInterface.LimitOrder.TP
-//                 ? lastUpdated.tp
-//                 : lastUpdated.created
-//         );
+        orderId = aggregator.getPrice(
+            pairIndex,
+            isOpenLimit
+                ? AggregatorInterfaceV1_4.OrderType.LIMIT_OPEN
+                : AggregatorInterfaceV1_4.OrderType.LIMIT_CLOSE,
+            leveragedPosWETH,
+            isOpenLimit
+                ? lastUpdated.limit
+                : orderType == StorageInterface.LimitOrder.SL
+                ? lastUpdated.sl
+                : orderType == StorageInterface.LimitOrder.TP
+                ? lastUpdated.tp
+                : lastUpdated.created
+        );
 
-//         linkFee = aggregator.linkFee(pairIndex, leveragedPosWETH);
-//     }
+        // linkFee = aggregator.linkFee(pairIndex, leveragedPosWETH);
+    }
 }

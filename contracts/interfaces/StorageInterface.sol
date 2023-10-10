@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./TokenInterface.sol";
 import "./NftInterfaceV5.sol";
 import "./IToken.sol";
-import "./AggregatorInterfaceV1_4.sol";
+import "./AggregatorInterfaceV1.sol";
 import "./IOracle.sol";
+import "./PausableInterfaceV5.sol";
 
 interface StorageInterface {
     enum LimitOrder {
         TP,
         SL,
         LIQ,
-        OPEN
+        OPEN,
+        PAR_LIQ
     }
     struct Trade {
         address trader;
@@ -78,13 +80,13 @@ interface StorageInterface {
 
     function linkErc677() external view returns (TokenInterface);
 
-    function priceAggregator() external view returns (AggregatorInterfaceV1_4);
+    function priceAggregator() external view returns (AggregatorInterfaceV1);
 
-    function vault() external view returns (IToken);
+    function vault() external view returns (address);
 
-    function trading() external view returns (address);
+    function trading() external view returns (PausableInterfaceV5);
 
-    function callbacks() external view returns (address);
+    function callbacks() external view returns (PausableInterfaceV5);
 
     function handleTokens(address, uint, bool) external;
 
@@ -110,13 +112,13 @@ interface StorageInterface {
         bool
     ) external;
 
-    function openTrades(
+    function getOpenTrades(
         address,
         uint,
         uint
     ) external view returns (Trade memory);
 
-    function openTradesInfo(
+    function getOpenTradesInfo(
         address,
         uint,
         uint
@@ -136,7 +138,7 @@ interface StorageInterface {
 
     function storeOpenLimitOrder(OpenLimitOrder memory) external;
 
-    function reqID_pendingMarketOrder(
+    function getPendingMarketOrder(
         uint
     ) external view returns (PendingMarketOrder memory);
 
@@ -155,7 +157,7 @@ interface StorageInterface {
 
     function nftSuccessTimelock() external view returns (uint);
 
-    function reqID_pendingNftOrder(
+    function getPendingNftOrder(
         uint
     ) external view returns (PendingNftOrder memory);
 
@@ -194,11 +196,11 @@ interface StorageInterface {
 
     function nfts(uint) external view returns (NftInterfaceV5);
 
-    function fakeBlockNumber() external view returns (uint); // Testing
+    // function fakeBlockNumber() external view returns (uint); // Testing
 
     function getGov() external view returns (address); // checking
 
     function mintWETH(address _to, uint _amount) external;
 
-    function oracle() external returns (IOracle);
+    function oracle() external view returns (IOracle);
 }

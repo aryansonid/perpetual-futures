@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 /// DEPLOY need storage and pair info
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -7,6 +7,7 @@ import "./interfaces/BorrowingFeesInterface.sol";
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/PairInfosInterface.sol";
 import "./libraries/ChainUtils.sol";
+import "./interfaces/AggregatorInterfaceV1_4.sol";
 
 contract BorrowingFees is Initializable, BorrowingFeesInterface {
     // Constants
@@ -43,12 +44,12 @@ contract BorrowingFees is Initializable, BorrowingFeesInterface {
 
     // Modifiers
     modifier onlyManager() {
-        require(msg.sender == pairInfos.manager(), "MANAGER_ONLY");
+        require(msg.sender == address(pairInfos.manager()), "MANAGER_ONLY");
         _;
     }
 
     modifier onlyCallbacks() {
-        require(msg.sender == storageT.callbacks(), "CALLBACKS_ONLY");
+        require(msg.sender == address(storageT.callbacks()), "CALLBACKS_ONLY");
         _;
     }
 
@@ -594,6 +595,42 @@ contract BorrowingFees is Initializable, BorrowingFeesInterface {
             );
     }
 
+    function getTradePartialLiquidationPrice(
+        LiqPriceInput calldata input
+    ) external view returns (uint) {
+        return
+            pairInfos.getTradePartialLiquidationPrice(
+                input.openPrice,
+                input.long,
+                input.collateral,
+                input.leverage,
+                pairInfos.getTradeRolloverFee(
+                    input.trader,
+                    input.pairIndex,
+                    input.index,
+                    input.collateral
+                ) +
+                    getTradeBorrowingFee(
+                        BorrowingFeeInput(
+                            input.trader,
+                            input.pairIndex,
+                            input.index,
+                            input.long,
+                            input.collateral,
+                            input.leverage
+                        )
+                    ),
+                pairInfos.getTradeFundingFee(
+                    input.trader,
+                    input.pairIndex,
+                    input.index,
+                    input.long,
+                    input.collateral,
+                    input.leverage
+                )
+            );
+    }
+
     // Public getters
     function getPairOpenInterestWETH(
         uint pairIndex
@@ -644,7 +681,9 @@ contract BorrowingFees is Initializable, BorrowingFeesInterface {
         view
         returns (Pair[] memory, PairOi[] memory)
     {
-        uint len = storageT.priceAggregator().pairsStorage().pairsCount();
+        uint len = AggregatorInterfaceV1_4(address(storageT.priceAggregator()))
+            .pairsStorage()
+            .pairsCount();
         Pair[] memory p = new Pair[](len);
         PairOi[] memory pairOi = new PairOi[](len);
 

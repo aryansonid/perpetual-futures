@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 import "./StorageInterface.sol";
 
 interface AggregatorInterfaceV1 {
@@ -34,8 +34,13 @@ interface AggregatorInterfaceV1 {
 
     function nftLimitOrderFeeP(uint) external view returns (uint);
 
-    function mfulfill(
+    function marketOrderfulfill(
         uint256 orderId,
         StorageInterface.PendingMarketOrder memory o
+    ) external;
+
+    function nftOrderfulfill(
+        uint256 orderId,
+        StorageInterface.PendingNftOrder memory o
     ) external;
 }

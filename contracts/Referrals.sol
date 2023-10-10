@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
@@ -108,11 +108,11 @@ contract Referrals {
         _;
     }
     modifier onlyTrading() {
-        require(msg.sender == storageT.trading(), "TRADING_ONLY");
+        require(msg.sender == address(storageT.trading()), "TRADING_ONLY");
         _;
     }
     modifier onlyCallbacks() {
-        require(msg.sender == storageT.callbacks(), "CALLBACKS_ONLY");
+        require(msg.sender == address(storageT.callbacks()), "CALLBACKS_ONLY");
         _;
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
@@ -18,6 +18,7 @@ contract PairInfos {
     // Constant parameters
     uint constant PRECISION = 1e10; // 10 decimals
     uint constant LIQ_THRESHOLD_P = 90; // -90% (of collateral)
+    uint constant PAR_LIQ_THRESHOLD_P = 80; // -90% (of collateral)
 
     // Adjustable parameters
     uint public maxNegativePnlOnOpenP = 40 * PRECISION; // PRECISION (%)
@@ -107,7 +108,7 @@ contract PairInfos {
         _;
     }
     modifier onlyCallbacks() {
-        require(msg.sender == storageT.callbacks(), "CALLBACKS_ONLY");
+        require(msg.sender == address(storageT.callbacks()), "CALLBACKS_ONLY");
         _;
     }
 
@@ -495,6 +496,29 @@ contract PairInfos {
             );
     }
 
+    function getTradePartialLiquidationPrice(
+        uint openPrice, // PRECISION
+        bool long,
+        uint collateral, // 1e18 (WETH)
+        uint leverage,
+        uint rolloverFee, // 1e18 (WETH)
+        int fundingFee // 1e18 (WETH)
+    ) public pure returns (uint) {
+        // PRECISION
+        int liqPriceDistance = (int(openPrice) *
+            (int((collateral * PAR_LIQ_THRESHOLD_P) / 100) -
+                int(rolloverFee) -
+                fundingFee)) /
+            int(collateral) /
+            int(leverage);
+
+        int liqPrice = long
+            ? int(openPrice) - liqPriceDistance
+            : int(openPrice) + liqPriceDistance;
+
+        return liqPrice > 0 ? uint(liqPrice) : 0;
+    }
+
     function getTradeLiquidationPricePure(
         uint openPrice, // PRECISION
         bool long,
@@ -572,7 +596,6 @@ contract PairInfos {
         if (value <= (int(collateral) * int(100 - LIQ_THRESHOLD_P)) / 100) {
             return 0;
         }
-
         value -= int(closingFee);
 
         return value > 0 ? uint(value) : 0;
