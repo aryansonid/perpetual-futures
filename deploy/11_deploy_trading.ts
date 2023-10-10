@@ -11,6 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const borrowing = await deployments.get("borrowing");
   const reward = await deployments.get("reward");
   const PackingUtils = await deployments.get("PackingUtils");
+  const callback = await deployments.get("callback");
 
   const TradeUtils = await deploy("TradeUtils", {
     from: deployer,
@@ -27,6 +28,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       pairsInfo.address,
       referal.address,
       borrowing.address,
+      callback.address,
       ethers.toBigInt("1500000000000000000000"),
       2,
     ],

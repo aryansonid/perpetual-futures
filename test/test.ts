@@ -8,6 +8,8 @@ import {
   getTradingFee,
   getWethToBeSentToTrader,
   getNetOI,
+  getTpPercentage,
+  getNewTp,
 } from "./fixture";
 
 describe("test", function () {
@@ -249,12 +251,12 @@ describe("test", function () {
     // Trade parameters
     const pairIndex = 0;
     const positionSizeWETH = ethers.toBigInt("10000000000000000000");
-    const openPrice = ethers.toBigInt("10000000000000000000");
+    const openPrice = ethers.toBigInt("100000000000");
     const buy = true;
     const leverage = 10;
-    const tp = ethers.toBigInt("12000000000000000000");
-    const sl = ethers.toBigInt("8000000000000000000");
-    const closingPrice = ethers.toBigInt("12000000000000000000");
+    const tp = ethers.toBigInt("120000000000");
+    const sl = ethers.toBigInt("80000000000");
+    const closingPrice = ethers.toBigInt("120000000000");
     await oracle.feedPrice(0, openPrice);
 
     const openPriceData = await oracle.getPrice(0);
@@ -276,7 +278,9 @@ describe("test", function () {
       0,
       3000000000
     );
-
+    //29999999999990000000;
+    //00000000100200000000
+    //29999999899800000000
     const balanceOfTraderOld = await WETH.balanceOf(trader);
 
     expect(balanceOfTraderOld).to.be.equal(0);
@@ -310,13 +314,12 @@ describe("test", function () {
     let delta = getDelta(
       blockNumAfter,
       blockNumBefore,
-      Number(pairParamsOnBorrowing.feeExponent),
+      pairParamsOnBorrowing.feePerBlock,
       netOI,
       Number(pairParamsOnBorrowing.maxOi)
     );
 
     const tradingFee = getTradingFee(delta, Number(positionSizeWETH), leverage);
-
     const amount = getWethToBeSentToTrader(
       Number(closingPriceFromOracle),
       Number(openPriceFromOracle),
@@ -365,12 +368,12 @@ describe("test", function () {
     // Trade parameters
     const pairIndex = 0;
     const positionSizeWETH = ethers.toBigInt("10000000000000000000");
-    const openPrice = ethers.toBigInt("10000000000000000000");
+    const openPrice = ethers.toBigInt("100000000000");
     const buy = false;
     const leverage = 10;
-    const tp = ethers.toBigInt("8000000000000000000");
-    const sl = ethers.toBigInt("12000000000000000000");
-    const closingPrice = ethers.toBigInt("8000000000000000000");
+    const tp = ethers.toBigInt("80000000000");
+    const sl = ethers.toBigInt("120000000000");
+    const closingPrice = ethers.toBigInt("80000000000");
     await oracle.feedPrice(0, openPrice);
 
     const openPriceData = await oracle.getPrice(0);
@@ -427,7 +430,7 @@ describe("test", function () {
     let delta = getDelta(
       blockNumAfter,
       blockNumBefore,
-      Number(pairParamsOnBorrowing.feeExponent),
+      pairParamsOnBorrowing.feePerBlock,
       netOI,
       Number(pairParamsOnBorrowing.maxOi)
     );
@@ -1029,5 +1032,288 @@ describe("test", function () {
     expect(
       Number(currentEpochPositiveOpenPnlEnd - currentEpochPositiveOpenPnlStart)
     ).to.be.equal(Number(average));
+  });
+
+  it("liquidation test", async function name() {
+    const {
+      storage,
+      trading,
+      pairInfo,
+      aggregator,
+      pairsStorage,
+      WETH,
+      trader,
+      vault,
+      deployer,
+      oracle,
+      borrowing,
+    } = await setupTest();
+    // step to provide liquidity to the vault
+    await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    const tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    await tnx.wait();
+
+    //
+    await WETH.mint(trader, ethers.toBigInt("10000000000000000000"));
+
+    await WETH.connect(await ethers.getSigner(trader)).approve(
+      storage.target,
+      ethers.toBigInt("10000000000000000000")
+    );
+
+    // Trade parameters
+    const pairIndex = 0;
+    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    const openPrice = ethers.toBigInt("10000000000000000000");
+    const buy = true;
+    const leverage = 10;
+    const tp = ethers.toBigInt("12000000000000000000");
+    const sl = 0;
+    await oracle.feedPrice(0, openPrice);
+
+    await trading.connect(await ethers.getSigner(trader)).openTrade(
+      {
+        trader: trader,
+        pairIndex: pairIndex,
+        index: 0,
+        initialPosToken: 0,
+        positionSizeWETH: positionSizeWETH,
+        openPrice: openPrice,
+        buy: buy,
+        leverage: leverage,
+        tp: tp,
+        sl: sl,
+      },
+      0,
+      0,
+      3000000000
+    );
+
+    // minting blocks for substantial Borrowing fee.
+    await mine(1000);
+
+    const closingPrice = ethers.toBigInt("9100000000000000000");
+
+    await oracle.feedPrice(0, closingPrice);
+    const balanceold = await WETH.balanceOf(trader);
+
+    await trading.executeNftOrder(2, trader, pairIndex, 0, 0, 0);
+
+    const balance = await WETH.balanceOf(trader);
+  });
+
+  it("pnl getter test ", async function name() {
+    const {
+      storage,
+      trading,
+      pairInfo,
+      aggregator,
+      pairsStorage,
+      WETH,
+      trader,
+      vault,
+      deployer,
+      oracle,
+      borrowing,
+      callback,
+    } = await setupTest();
+    // step to provide liquidity to the vault
+    await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    const tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    await tnx.wait();
+
+    //
+    await WETH.mint(trader, ethers.toBigInt("10000000000000000000000"));
+
+    await WETH.connect(await ethers.getSigner(trader)).approve(
+      storage.target,
+      ethers.toBigInt("100000000000000000000000")
+    );
+
+    // Trade parameters
+    const pairIndex = 0;
+    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    const openPrice = ethers.toBigInt("10000000000000000000");
+    const buy = true;
+    const leverage = 10;
+    const tp = ethers.toBigInt("12000000000000000000");
+    const sl = 0;
+    await oracle.feedPrice(0, openPrice);
+
+    await trading.connect(await ethers.getSigner(trader)).openTrade(
+      {
+        trader: trader,
+        pairIndex: pairIndex,
+        index: 0,
+        initialPosToken: 0,
+        positionSizeWETH: positionSizeWETH,
+        openPrice: openPrice,
+        buy: buy,
+        leverage: leverage,
+        tp: tp,
+        sl: sl,
+      },
+      0,
+      0,
+      3000000000
+    );
+
+    // minting blocks for substantial Borrowing fee.
+    await mine(1000);
+
+    const closingPrice = ethers.toBigInt("9100000000000000000");
+    await oracle.feedPrice(0, closingPrice);
+
+    const pnl = await callback.getTradePnl(trader, pairIndex, 0);
+    const amount = getWethToBeSentToTrader(
+      Number(closingPrice),
+      Number(openPrice),
+      leverage,
+      buy,
+      Number(positionSizeWETH)
+    );
+
+    expect(amount).to.be.equal(
+      Number(new BigNumber(Number(positionSizeWETH)).add(new BigNumber(pnl)))
+    );
+  });
+
+  it("partial liquidation test", async function name() {
+    const {
+      storage,
+      trading,
+      pairInfo,
+      aggregator,
+      pairsStorage,
+      WETH,
+      trader,
+      vault,
+      deployer,
+      oracle,
+      borrowing,
+      pairParamsOnBorrowing,
+    } = await setupTest();
+
+    // step to provide liquidity to the vault
+    await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    const tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    await tnx.wait();
+
+    //
+    await WETH.mint(trader, ethers.toBigInt("1000000000000000000000"));
+
+    await WETH.connect(await ethers.getSigner(trader)).approve(
+      storage.target,
+      ethers.toBigInt("1000000000000000000000")
+    );
+
+    // Trade parameters
+    const pairIndex = 0;
+    const positionSizeWETH = ethers.toBigInt("1000000000000000000000");
+    const openPrice = ethers.toBigInt("10000000000000000000");
+    const buy = true;
+    const leverage = 10;
+    const tp = ethers.toBigInt("12000000000000000000");
+    //                          10000000000000000000
+    const sl = 0;
+    await oracle.feedPrice(0, openPrice);
+
+    await trading.connect(await ethers.getSigner(trader)).openTrade(
+      {
+        trader: trader,
+        pairIndex: pairIndex,
+        index: 0,
+        initialPosToken: 0,
+        positionSizeWETH: positionSizeWETH,
+        openPrice: openPrice,
+        buy: buy,
+        leverage: leverage,
+        tp: tp,
+        sl: sl,
+      },
+      0,
+      0,
+      3000000000
+    );
+    const blockNumBefore = await ethers.provider.getBlockNumber();
+
+    // minting blocks for substantial Borrowing fee.
+    await mine(1000);
+
+    const closingPrice = await borrowing.getTradePartialLiquidationPrice({
+      trader: trader,
+      pairIndex: pairIndex,
+      index: 0,
+      openPrice: openPrice, // 1e10
+      long: buy,
+      collateral: positionSizeWETH, // 1e18 (DAI)
+      leverage: leverage,
+    });
+
+    await oracle.feedPrice(0, closingPrice);
+    const tradeOld = await storage.getOpenTrades(trader, pairIndex, 0);
+    const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
+
+    const tnx1 = await trading.executeNftOrder(4, trader, pairIndex, 0, 0, 0);
+    await tnx1.wait();
+    const blockNumAfter = await ethers.provider.getBlockNumber();
+
+    const amountLeftAfterPnl = getWethToBeSentToTrader(
+      Number(closingPrice),
+      Number(openPrice),
+      leverage,
+      buy,
+      Number(positionSizeWETH)
+    );
+    const netOI = getNetOI(
+      Number(tradePairOpeningInterest[0]),
+      Number(tradePairOpeningInterest[1]),
+      true
+    );
+    const borrowingFeeDelta = getDelta(
+      blockNumAfter,
+      blockNumBefore,
+      pairParamsOnBorrowing.feePerBlock,
+      netOI,
+      Number(pairParamsOnBorrowing.maxOi)
+    );
+
+    const borrowingFee = getTradingFee(
+      borrowingFeeDelta,
+      Number(positionSizeWETH),
+      leverage
+    );
+
+    const tradeNew = await storage.getOpenTrades(trader, pairIndex, 0);
+    const tPP = getTpPercentage(
+      Number(tp),
+      Number(openPrice),
+      10000000000,
+      leverage
+    );
+
+    const newTP = getNewTp(tPP, Number(closingPrice), 10000000000, leverage);
+
+    expect(Number(tradeNew[4])).to.be.equals(amountLeftAfterPnl - borrowingFee);
+
+    expect(Number(tradeNew[8])).to.be.equal(newTP);
   });
 });
