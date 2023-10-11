@@ -206,27 +206,30 @@ contract PairInfos {
     }
 
     // Set funding fee for pair
-    function setFundingFeePerBlockP(
-        uint pairIndex,
-        uint value
-    ) public onlyManager {
+    function setFundingFeePerBlockP(uint pairIndex) public /*onlyManager*/ {
+        _setFundingFeePerBlockP(pairIndex);
+    }
+
+    function _setFundingFeePerBlockP(uint pairIndex) internal {
+        uint value = (storageT.oracle()).getFundingFee(pairIndex);
         require(value <= 10000000, "TOO_HIGH"); // ≈ 40% per day
 
         storeAccFundingFees(pairIndex);
 
-        pairParams[pairIndex].fundingFeePerBlockP = value;
-
-        emit FundingFeePerBlockPUpdated(pairIndex, value);
+        uint256 oldFee = pairParams[pairIndex].fundingFeePerBlockP;
+        if (oldFee != value) {
+            pairParams[pairIndex].fundingFeePerBlockP = value;
+            emit FundingFeePerBlockPUpdated(pairIndex, value);
+        }
     }
 
     function setFundingFeePerBlockPArray(
-        uint[] memory indices,
-        uint[] memory values
+        uint[] memory indices
     ) external onlyManager {
-        require(indices.length == values.length, "WRONG_LENGTH");
+        // require(indices.length == values.length, "WRONG_LENGTH");
 
         for (uint i = 0; i < indices.length; i++) {
-            setFundingFeePerBlockP(indices[i], values[i]);
+            _setFundingFeePerBlockP(indices[i]);
         }
     }
 
@@ -237,7 +240,7 @@ contract PairInfos {
         uint index,
         bool long
     ) external onlyCallbacks {
-        storeAccFundingFees(pairIndex);
+        _setFundingFeePerBlockP(pairIndex);
         TradeInitialAccFees storage t = tradeInitialAccFees[trader][pairIndex][
             index
         ];
@@ -306,7 +309,6 @@ contract PairInfos {
         int openInterestWETHShort = int(
             storageT.openInterestWETH(pairIndex, 1)
         );
-
         int fundingFeesPaidByLongs = ((openInterestWETHLong -
             openInterestWETHShort) *
             int(block.number - f.lastUpdateBlock) *
@@ -554,7 +556,7 @@ contract PairInfos {
         uint closingFee // 1e18 (WETH)
     ) external onlyCallbacks returns (uint amount) {
         // 1e18 (WETH)
-        storeAccFundingFees(pairIndex);
+        _setFundingFeePerBlockP(pairIndex);
 
         uint r = getTradeRolloverFee(trader, pairIndex, index, collateral);
         int f = getTradeFundingFee(
@@ -565,6 +567,7 @@ contract PairInfos {
             collateral,
             leverage
         );
+
         amount = getTradeValuePure(collateral, percentProfit, r, f, closingFee);
 
         emit FeesCharged(

@@ -1326,6 +1326,7 @@ contract TradingCallbacks is Initializable {
             currentWETHPos,
             percentProfit
         );
+
         value = pairInfos.getTradeValue(
             trade.trader,
             trade.pairIndex,
