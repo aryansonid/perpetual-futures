@@ -169,9 +169,9 @@ export function getTpPercentage(
 ) {
   return Number(
     new BigNumber(value1 - value2)
-      .mul(new BigNumber(precision))
-      .mul(new BigNumber(leverage))
-      .mul(new BigNumber(100))
+      .times(new BigNumber(precision))
+      .times(new BigNumber(leverage))
+      .times(new BigNumber(100))
       .div(new BigNumber(value2))
   );
 }
@@ -183,12 +183,64 @@ export function getNewTp(
   leverage: number
 ) {
   return Number(
-    new BigNumber(value).add(
+    new BigNumber(value).plus(
       new BigNumber(percentage)
-        .mul(new BigNumber(value))
+        .times(new BigNumber(value))
         .div(new BigNumber(100))
         .div(new BigNumber(precision))
         .div(new BigNumber(leverage))
     )
   );
+}
+
+export function calculateFundingFee(
+  openInterestWETHLong: number,
+  openInterestWETHShort: number,
+  currentBlock: number,
+  lastUpdateBlock: number,
+  fundingFeePerBlockP: number
+) {
+  return Math.abs(Math.floor(
+    Number(
+      new BigNumber(openInterestWETHLong - openInterestWETHShort)
+        .times(new BigNumber(currentBlock - lastUpdateBlock))
+        .times(new BigNumber(fundingFeePerBlockP))
+        .div(new BigNumber(1e10))
+        .div(new BigNumber(100))
+        .times(new BigNumber(1e18))
+        .div(new BigNumber(openInterestWETHLong))
+    )
+  ));
+}
+
+export function calculateFundingFeeForTrade(
+  accFeeNow: number,
+  accFeeBefore: number,
+  collateral: number,
+  leverage: number
+) {
+  return Math.abs(Math.floor(
+    Number(
+      new BigNumber(accFeeNow - accFeeBefore)
+        .times(new BigNumber(collateral))
+        .times(new BigNumber(leverage))
+        .div(new BigNumber(1e18))
+    )
+  ));
+}
+
+export function calculateFundingFeePerBlock(
+  newPrice: number,
+  oldPrice: number,
+  newBlockNumber: number,
+  oldBlockNumber: number
+) {
+  let fundingFee = Number(
+    new BigNumber(newPrice - oldPrice)
+      .times(new BigNumber(1e10))
+      .div(new BigNumber(oldPrice))
+      .div(new BigNumber(newBlockNumber - oldBlockNumber))
+  );
+  fundingFee = fundingFee < 0 ? Math.ceil(fundingFee) : Math.floor(fundingFee);
+  return Math.abs(fundingFee);
 }
