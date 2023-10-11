@@ -69,7 +69,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         nodes,
         jobIds,
       ],
-      libraries: { PackingUtils: PackingUtils.address },
+      // libraries: { PackingUtils: PackingUtils.address },
     });
   }
 };

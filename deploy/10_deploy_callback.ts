@@ -34,6 +34,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           50,
           50,
           3,
+          {
+            _vaultFeeP: 50,
+            _liquidatorFeeP: 50,
+            _liquidationFeeP: 5,
+            _parLiquidationFeeP: 3,
+          },
         ],
       },
       upgradeIndex: 0,

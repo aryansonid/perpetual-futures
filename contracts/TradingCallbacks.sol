@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/StorageInterface.sol";
@@ -9,6 +9,9 @@ import "./interfaces/ReferralsInterface.sol";
 import "./interfaces/StakingInterface.sol";
 import "./libraries/ChainUtils.sol";
 import "./interfaces/BorrowingFeesInterface.sol";
+import "./interfaces/PairsStorageInterfaceV6.sol";
+import "./interfaces/AggregatorInterfaceV1_4.sol";
+import "./Storage.sol";
 
 contract TradingCallbacks is Initializable {
     // Contracts (constant)
@@ -29,6 +32,10 @@ contract TradingCallbacks is Initializable {
     uint public WETHVaultFeeP; // % of closing fee going to WETH vault (eg. 40)
     uint public lpFeeP; // % of closing fee going to GNS/WETH LPs (eg. 20)
     uint public sssFeeP; // % of closing fee going to GNS staking (eg. 40)
+    uint public vaultFeeP = 50;
+    uint public liquidatorFeeP = 50;
+    uint public liquidationFeeP = 5;
+    uint public parLiquidationFeeP = 3;
 
     // State
     bool public isPaused; // Prevent opening new trades
@@ -127,6 +134,13 @@ contract TradingCallbacks is Initializable {
         uint maxSlippageP;
         uint tp;
         uint sl;
+    }
+
+    struct feeConfig {
+        uint _vaultFeeP;
+        uint _liquidatorFeeP;
+        uint _liquidationFeeP;
+        uint _parLiquidationFeeP;
     }
 
     enum TradeType {
@@ -232,7 +246,8 @@ contract TradingCallbacks is Initializable {
         uint _WETHVaultFeeP,
         uint _lpFeeP,
         uint _sssFeeP,
-        uint _canExecuteTimeout
+        uint _canExecuteTimeout,
+        feeConfig memory data
     ) external initializer {
         if (
             address(_storageT) == address(0) ||
@@ -257,6 +272,10 @@ contract TradingCallbacks is Initializable {
         WETHVaultFeeP = _WETHVaultFeeP;
         lpFeeP = _lpFeeP;
         sssFeeP = _sssFeeP;
+        vaultFeeP = data._vaultFeeP;
+        liquidatorFeeP = data._liquidatorFeeP;
+        liquidationFeeP = data._liquidationFeeP;
+        parLiquidationFeeP = data._parLiquidationFeeP;
 
         canExecuteTimeout = _canExecuteTimeout;
         TokenInterface t = storageT.WETH();
@@ -315,7 +334,7 @@ contract TradingCallbacks is Initializable {
     }
 
     function isTrading() private view {
-        if (msg.sender != storageT.trading()) {
+        if (msg.sender != address(storageT.trading())) {
             revert Forbidden();
         }
     }
@@ -426,7 +445,6 @@ contract TradingCallbacks is Initializable {
                     t.sl
                 )
             );
-
         t.openPrice = priceAfterImpact;
         if (cancelReason == CancelReason.NONE) {
             (StorageInterface.Trade memory finalTrade, ) = registerTrade(
@@ -497,7 +515,9 @@ contract TradingCallbacks is Initializable {
                 t.pairIndex,
                 t.index
             );
-            AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
+            AggregatorInterfaceV1_4 aggregator = AggregatorInterfaceV1_4(
+                address(storageT.priceAggregator())
+            );
 
             Values memory v;
             v.levPosWETH = (t.positionSizeWETH * t.leverage);
@@ -518,16 +538,18 @@ contract TradingCallbacks is Initializable {
                     v.profitP,
                     v.posWETH,
                     i.openInterestWETH,
-                    (v.levPosWETH *
-                        aggregator.pairsStorage().pairCloseFeeP(t.pairIndex)) /
-                        100 /
-                        PRECISION,
-                    (v.levPosWETH *
-                        aggregator.pairsStorage().pairNftLimitOrderFeeP(
-                            t.pairIndex
-                        )) /
-                        100 /
-                        PRECISION
+                    // (v.levPosWETH *
+                    //     aggregator.pairsStorage().pairCloseFeeP(t.pairIndex)) /
+                    //     100 /
+                    //     PRECISION,
+                    // (v.levPosWETH *
+                    //     aggregator.pairsStorage().pairNftLimitOrderFeeP(
+                    //         t.pairIndex
+                    //     )) /
+                    //     100 /
+                    //     PRECISION
+                    0,
+                    0
                 );
 
                 emit MarketExecuted(
@@ -577,149 +599,152 @@ contract TradingCallbacks is Initializable {
         storageT.unregisterPendingMarketOrder(a.orderId, false);
     }
 
-    function executeNftOpenOrderCallback(
-        AggregatorAnswer memory a
-    ) external onlyPriceAggregator notDone {
-        StorageInterface.PendingNftOrder memory n = storageT
-            .reqID_pendingNftOrder(a.orderId);
+    // function executeNftOpenOrderCallback(
+    //     AggregatorAnswer memory a
+    // ) external onlyPriceAggregator notDone {
+    //     StorageInterface.PendingNftOrder memory n = storageT
+    //         .reqID_pendingNftOrder(a.orderId);
 
-        CancelReason cancelReason = !storageT.hasOpenLimitOrder(
-            n.trader,
-            n.pairIndex,
-            n.index
-        )
-            ? CancelReason.NO_TRADE
-            : CancelReason.NONE;
+    //     CancelReason cancelReason = !storageT.hasOpenLimitOrder(
+    //         n.trader,
+    //         n.pairIndex,
+    //         n.index
+    //     )
+    //         ? CancelReason.NO_TRADE
+    //         : CancelReason.NONE;
 
-        if (cancelReason == CancelReason.NONE) {
-            StorageInterface.OpenLimitOrder memory o = storageT
-                .getOpenLimitOrder(n.trader, n.pairIndex, n.index);
+    //     if (cancelReason == CancelReason.NONE) {
+    //         StorageInterface.OpenLimitOrder memory o = storageT
+    //             .getOpenLimitOrder(n.trader, n.pairIndex, n.index);
 
-            NftRewardsInterfaceV6_3_1.OpenLimitOrderType t = nftRewards
-                .openLimitOrderTypes(n.trader, n.pairIndex, n.index);
+    //         NftRewardsInterfaceV6_3_1.OpenLimitOrderType t = nftRewards
+    //             .openLimitOrderTypes(n.trader, n.pairIndex, n.index);
 
-            cancelReason = (a.high >= o.maxPrice && a.low <= o.maxPrice)
-                ? CancelReason.NONE
-                : CancelReason.NOT_HIT;
+    //         cancelReason = (a.high >= o.maxPrice && a.low <= o.maxPrice)
+    //             ? CancelReason.NONE
+    //             : CancelReason.NOT_HIT;
 
-            // Note: o.minPrice always equals o.maxPrice so can use either
-            (
-                uint priceImpactP,
-                uint priceAfterImpact,
-                CancelReason _cancelReason
-            ) = _openTradePrep(
-                    OpenTradePrepInput(
-                        cancelReason == CancelReason.NONE ? o.maxPrice : a.open,
-                        o.maxPrice,
-                        a.open,
-                        a.spreadP,
-                        o.spreadReductionP,
-                        o.buy,
-                        o.pairIndex,
-                        o.positionSize,
-                        o.leverage,
-                        tradeData[o.trader][o.pairIndex][o.index][
-                            TradeType.LIMIT
-                        ].maxSlippageP,
-                        o.tp,
-                        o.sl
-                    )
-                );
+    //         // Note: o.minPrice always equals o.maxPrice so can use either
+    //         (
+    //             uint priceImpactP,
+    //             uint priceAfterImpact,
+    //             CancelReason _cancelReason
+    //         ) = _openTradePrep(
+    //                 OpenTradePrepInput(
+    //                     cancelReason == CancelReason.NONE ? o.maxPrice : a.open,
+    //                     o.maxPrice,
+    //                     a.open,
+    //                     a.spreadP,
+    //                     o.spreadReductionP,
+    //                     o.buy,
+    //                     o.pairIndex,
+    //                     o.positionSize,
+    //                     o.leverage,
+    //                     tradeData[o.trader][o.pairIndex][o.index][
+    //                         TradeType.LIMIT
+    //                     ].maxSlippageP,
+    //                     o.tp,
+    //                     o.sl
+    //                 )
+    //             );
 
-            bool exactExecution = cancelReason == CancelReason.NONE;
+    //         bool exactExecution = cancelReason == CancelReason.NONE;
 
-            cancelReason = !exactExecution &&
-                (
-                    o.maxPrice == 0 ||
-                        t ==
-                        NftRewardsInterfaceV6_3_1.OpenLimitOrderType.MOMENTUM
-                        ? (o.buy ? a.open < o.maxPrice : a.open > o.maxPrice)
-                        : (o.buy ? a.open > o.maxPrice : a.open < o.maxPrice)
-                )
-                ? CancelReason.NOT_HIT
-                : _cancelReason;
+    //         cancelReason = !exactExecution &&
+    //             (
+    //                 o.maxPrice == 0 ||
+    //                     t ==
+    //                     NftRewardsInterfaceV6_3_1.OpenLimitOrderType.MOMENTUM
+    //                     ? (o.buy ? a.open < o.maxPrice : a.open > o.maxPrice)
+    //                     : (o.buy ? a.open > o.maxPrice : a.open < o.maxPrice)
+    //             )
+    //             ? CancelReason.NOT_HIT
+    //             : _cancelReason;
 
-            if (cancelReason == CancelReason.NONE) {
-                (
-                    StorageInterface.Trade memory finalTrade,
-                    uint tokenPriceWETH
-                ) = registerTrade(
-                        StorageInterface.Trade(
-                            o.trader,
-                            o.pairIndex,
-                            0,
-                            0,
-                            o.positionSize,
-                            priceAfterImpact,
-                            o.buy,
-                            o.leverage,
-                            o.tp,
-                            o.sl
-                        ),
-                        n.nftId,
-                        n.index
-                    );
+    //         if (cancelReason == CancelReason.NONE) {
+    //             (
+    //                 StorageInterface.Trade memory finalTrade,
+    //                 uint tokenPriceWETH
+    //             ) = registerTrade(
+    //                     StorageInterface.Trade(
+    //                         o.trader,
+    //                         o.pairIndex,
+    //                         0,
+    //                         0,
+    //                         o.positionSize,
+    //                         priceAfterImpact,
+    //                         o.buy,
+    //                         o.leverage,
+    //                         o.tp,
+    //                         o.sl
+    //                     ),
+    //                     n.nftId,
+    //                     n.index
+    //                 );
 
-                storageT.unregisterOpenLimitOrder(
-                    o.trader,
-                    o.pairIndex,
-                    o.index
-                );
+    //             storageT.unregisterOpenLimitOrder(
+    //                 o.trader,
+    //                 o.pairIndex,
+    //                 o.index
+    //             );
 
-                emit LimitExecuted(
-                    a.orderId,
-                    n.index,
-                    finalTrade,
-                    n.nftHolder,
-                    StorageInterface.LimitOrder.OPEN,
-                    finalTrade.openPrice,
-                    priceImpactP,
-                    (finalTrade.initialPosToken * tokenPriceWETH) / PRECISION,
-                    0,
-                    0,
-                    exactExecution
-                );
-            }
-        }
+    //             emit LimitExecuted(
+    //                 a.orderId,
+    //                 n.index,
+    //                 finalTrade,
+    //                 n.nftHolder,
+    //                 StorageInterface.LimitOrder.OPEN,
+    //                 finalTrade.openPrice,
+    //                 priceImpactP,
+    //                 (finalTrade.initialPosToken * tokenPriceWETH) / PRECISION,
+    //                 0,
+    //                 0,
+    //                 exactExecution
+    //             );
+    //         }
+    //     }
 
-        if (cancelReason != CancelReason.NONE) {
-            emit NftOrderCanceled(
-                a.orderId,
-                n.nftHolder,
-                StorageInterface.LimitOrder.OPEN,
-                cancelReason
-            );
-        }
+    //     if (cancelReason != CancelReason.NONE) {
+    //         emit NftOrderCanceled(
+    //             a.orderId,
+    //             n.nftHolder,
+    //             StorageInterface.LimitOrder.OPEN,
+    //             cancelReason
+    //         );
+    //     }
 
-        nftRewards.unregisterTrigger(
-            NftRewardsInterfaceV6_3_1.TriggeredLimitId(
-                n.trader,
-                n.pairIndex,
-                n.index,
-                n.orderType
-            )
-        );
+    //     nftRewards.unregisterTrigger(
+    //         NftRewardsInterfaceV6_3_1.TriggeredLimitId(
+    //             n.trader,
+    //             n.pairIndex,
+    //             n.index,
+    //             n.orderType
+    //         )
+    //     );
 
-        storageT.unregisterPendingNftOrder(a.orderId);
-    }
+    //     storageT.unregisterPendingNftOrder(a.orderId);
+    // }
 
     function executeNftCloseOrderCallback(
-        AggregatorAnswer memory a
+        AggregatorAnswer memory a,
+        StorageInterface.PendingNftOrder memory o
     ) external onlyPriceAggregator notDone {
-        StorageInterface.PendingNftOrder memory o = storageT
-            .reqID_pendingNftOrder(a.orderId);
-        NftRewardsInterfaceV6_3_1.TriggeredLimitId
-            memory triggeredLimitId = NftRewardsInterfaceV6_3_1
-                .TriggeredLimitId(o.trader, o.pairIndex, o.index, o.orderType);
+        // StorageInterface.PendingNftOrder memory o = storageT
+        //     .reqID_pendingNftOrder(a.orderId);
+
+        // NftRewardsInterfaceV6_3_1.TriggeredLimitId
+        //     memory triggeredLimitId = NftRewardsInterfaceV6_3_1
+        //         .TriggeredLimitId(o.trader, o.pairIndex, o.index, o.orderType);
         StorageInterface.Trade memory t = getOpenTrade(
             o.trader,
             o.pairIndex,
             o.index
         );
+        AggregatorInterfaceV1_4 aggregator = AggregatorInterfaceV1_4(
+            address(storageT.priceAggregator())
+        );
 
-        AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
-
-        CancelReason cancelReason = a.open == 0
+        CancelReason cancelReason = a.price == 0
             ? CancelReason.MARKET_CLOSED
             : (t.leverage == 0 ? CancelReason.NO_TRADE : CancelReason.NONE);
 
@@ -733,13 +758,25 @@ contract TradingCallbacks is Initializable {
             PairsStorageInterfaceV6 pairsStored = aggregator.pairsStorage();
 
             Values memory v;
-            v.levPosWETH =
-                (t.initialPosToken * i.tokenPriceWETH * t.leverage) /
-                PRECISION;
+            v.levPosWETH = t.positionSizeWETH * t.leverage;
             v.posWETH = v.levPosWETH / t.leverage;
 
             if (o.orderType == StorageInterface.LimitOrder.LIQ) {
                 v.liqPrice = borrowingFees.getTradeLiquidationPrice(
+                    BorrowingFeesInterface.LiqPriceInput(
+                        t.trader,
+                        t.pairIndex,
+                        t.index,
+                        t.openPrice,
+                        t.buy,
+                        v.posWETH,
+                        t.leverage
+                    )
+                );
+            }
+
+            if (o.orderType == StorageInterface.LimitOrder.PAR_LIQ) {
+                v.liqPrice = borrowingFees.getTradePartialLiquidationPrice(
                     BorrowingFeesInterface.LiqPriceInput(
                         t.trader,
                         t.pairIndex,
@@ -761,24 +798,32 @@ contract TradingCallbacks is Initializable {
                 );
 
             v.exactExecution =
-                v.price > 0 &&
-                a.low <= v.price &&
-                a.high >= v.price;
-
+                // v.price > 0 &&
+                // a.low <= v.price &&
+                // a.high >= v.price;
+                v.price == a.price;
             if (v.exactExecution) {
                 v.reward1 = o.orderType == StorageInterface.LimitOrder.LIQ
-                    ? (v.posWETH * 5) / 100
+                    ? (v.posWETH * liquidationFeeP) / uint256(100)
+                    : o.orderType == StorageInterface.LimitOrder.PAR_LIQ
+                    ? (v.posWETH * parLiquidationFeeP) / uint256(100)
                     : (v.levPosWETH *
                         pairsStored.pairNftLimitOrderFeeP(t.pairIndex)) /
                         100 /
                         PRECISION;
             } else {
-                v.price = a.open;
-
+                // revert("only exact execution allowed");
+                v.price = a.price;
                 v.reward1 = o.orderType == StorageInterface.LimitOrder.LIQ
                     ? (
                         (t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice)
-                            ? (v.posWETH * 5) / 100
+                            ? (v.posWETH * liquidationFeeP) / uint256(100)
+                            : 0
+                    )
+                    : o.orderType == StorageInterface.LimitOrder.PAR_LIQ
+                    ? (
+                        (t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice)
+                            ? (v.posWETH * parLiquidationFeeP) / uint256(100)
                             : 0
                     )
                     : (
@@ -810,33 +855,44 @@ contract TradingCallbacks is Initializable {
                     t.buy,
                     t.leverage
                 );
-                v.tokenPriceWETH = aggregator.tokenPriceWETH();
+                // v.tokenPriceWETH = aggregator.tokenPriceWETH();
 
-                v.WETHSentToTrader = unregisterTrade(
-                    t,
-                    false,
-                    v.profitP,
-                    v.posWETH,
-                    i.openInterestWETH,
-                    o.orderType == StorageInterface.LimitOrder.LIQ
-                        ? v.reward1
-                        : (v.levPosWETH *
-                            pairsStored.pairCloseFeeP(t.pairIndex)) /
-                            100 /
-                            PRECISION,
-                    v.reward1
-                );
+                v.WETHSentToTrader = o.orderType !=
+                    StorageInterface.LimitOrder.PAR_LIQ
+                    ? unregisterTrade(
+                        t,
+                        false,
+                        v.profitP,
+                        v.posWETH,
+                        i.openInterestWETH,
+                        o.orderType == StorageInterface.LimitOrder.LIQ
+                            ? v.reward1
+                            : (v.levPosWETH *
+                                pairsStored.pairCloseFeeP(t.pairIndex)) /
+                                100 /
+                                PRECISION,
+                        v.reward1
+                    )
+                    : updateTrade(
+                        t,
+                        v.profitP,
+                        v.posWETH,
+                        i.openInterestWETH,
+                        v.reward1,
+                        v.reward1,
+                        a.price
+                    );
 
                 // Convert NFT bot fee from WETH to token value
-                v.reward2 = (v.reward1 * PRECISION) / v.tokenPriceWETH;
+                // v.reward2 = (v.reward1 * PRECISION) / v.tokenPriceWETH;
 
-                nftRewards.distributeNftReward(
-                    triggeredLimitId,
-                    v.reward2,
-                    v.tokenPriceWETH
-                );
+                // nftRewards.distributeNftReward(
+                //     triggeredLimitId,
+                //     v.reward2,
+                //     v.tokenPriceWETH
+                // );
 
-                storageT.increaseNftRewards(o.nftId, v.reward2);
+                // storageT.increaseNftRewards(o.nftId, v.reward2);
 
                 emit NftBotFeeCharged(t.trader, v.reward1);
 
@@ -865,7 +921,7 @@ contract TradingCallbacks is Initializable {
             );
         }
 
-        nftRewards.unregisterTrigger(triggeredLimitId);
+        // nftRewards.unregisterTrigger(triggeredLimitId);
         storageT.unregisterPendingNftOrder(a.orderId);
     }
 
@@ -875,7 +931,9 @@ contract TradingCallbacks is Initializable {
         uint nftId,
         uint limitIndex
     ) private returns (StorageInterface.Trade memory, uint) {
-        AggregatorInterfaceV1_4 aggregator = storageT.priceAggregator();
+        AggregatorInterfaceV1_4 aggregator = AggregatorInterfaceV1_4(
+            address(storageT.priceAggregator())
+        );
         PairsStorageInterfaceV6 pairsStored = aggregator.pairsStorage();
 
         Values memory v;
@@ -1033,8 +1091,7 @@ contract TradingCallbacks is Initializable {
         uint closingFeeWETH, // 1e18
         uint nftFeeWETH // 1e18 (= SSS reward if market order)
     ) private returns (uint WETHSentToTrader) {
-        IToken vault = storageT.vault();
-
+        IToken vault = IToken(storageT.vault());
         // 1. Calculate net PnL (after all closing and holding fees)
         (WETHSentToTrader, ) = _getTradeValue(
             trade,
@@ -1082,6 +1139,14 @@ contract TradingCallbacks is Initializable {
 
             // 4.1.3 Take WETH from vault if winning trade
             // or send WETH to vault if losing trade
+
+            if (!marketOrder) {
+                v.reward2 = (nftFeeWETH * vaultFeeP) / 100;
+                sendToVault(v.reward2, trade.trader);
+
+                v.reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
+                transferFromStorageToAddress(msg.sender, v.reward3);
+            }
             uint WETHLeftInStorage = currentWETHPos - v.reward3 - v.reward2;
             if (WETHSentToTrader > WETHLeftInStorage) {
                 vault.sendAssets(
@@ -1098,6 +1163,134 @@ contract TradingCallbacks is Initializable {
         } else {
             vault.sendAssets(WETHSentToTrader, trade.trader);
         }
+    }
+
+    function updateTrade(
+        StorageInterface.Trade memory trade,
+        int percentProfit, // PRECISION
+        uint currentWETHPos, // 1e18
+        uint openInterestWETH, // 1e18
+        uint closingFeeWETH, // 1e18
+        uint nftFeeWETH, // 1e18 (= SSS reward if market order)
+        uint currentPice
+    ) private returns (uint WETHSentToTrader) {
+        // 1. Calculate net PnL (after all closing and holding fees)
+        (WETHSentToTrader, ) = _getTradeValue(
+            trade,
+            currentWETHPos,
+            percentProfit,
+            0
+        );
+
+        // 2. Calls to other contracts
+        borrowingFees.handleTradeAction(
+            trade.trader,
+            trade.pairIndex,
+            trade.index,
+            openInterestWETH,
+            true,
+            trade.buy
+        );
+        getPairsStorage().updateGroupCollateral(
+            trade.pairIndex,
+            (openInterestWETH / trade.leverage) - WETHSentToTrader,
+            trade.buy,
+            false
+        );
+
+        // send fee
+        uint256 reward2 = (nftFeeWETH * vaultFeeP) / 100;
+        sendToVault(reward2, trade.trader);
+
+        uint256 reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
+        transferFromStorageToAddress(msg.sender, reward3);
+
+        // 3. Unregister trade from storage
+
+        storageT.unregisterTrade(trade.trader, trade.pairIndex, trade.index);
+
+        // create new trade
+        StorageInterface.Trade memory newTrade;
+
+        newTrade.trader = trade.trader;
+        newTrade.leverage = trade.leverage;
+        newTrade.pairIndex = trade.pairIndex;
+        newTrade.buy = trade.buy;
+        newTrade.positionSizeWETH = WETHSentToTrader;
+        newTrade.openPrice = currentPice;
+
+        newTrade.index = storageT.firstEmptyTradeIndex(
+            trade.trader,
+            trade.pairIndex
+        );
+
+        newTrade.tp = trade.tp > 0
+            ? _getUpdateTP(
+                trade.openPrice,
+                trade.tp,
+                currentPice,
+                trade.buy,
+                trade.leverage
+            )
+            : 0;
+
+        newTrade.sl = trade.sl > 0
+            ? _getUpdateSl(
+                trade.openPrice,
+                trade.sl,
+                currentPice,
+                trade.buy,
+                trade.leverage
+            )
+            : 0;
+
+        // 5. Call other contracts
+        AggregatorInterfaceV1_4 aggregator = AggregatorInterfaceV1_4(
+            address(storageT.priceAggregator())
+        );
+        PairsStorageInterfaceV6 pairsStored = aggregator.pairsStorage();
+        pairInfos.storeTradeInitialAccFees(
+            newTrade.trader,
+            newTrade.pairIndex,
+            newTrade.index,
+            newTrade.buy
+        );
+        pairsStored.updateGroupCollateral(
+            newTrade.pairIndex,
+            newTrade.positionSizeWETH,
+            newTrade.buy,
+            true
+        );
+        borrowingFees.handleTradeAction(
+            newTrade.trader,
+            newTrade.pairIndex,
+            newTrade.index,
+            newTrade.positionSizeWETH * newTrade.leverage,
+            true,
+            newTrade.buy
+        );
+
+        // 6. Store final trade in storage contract
+        storageT.storeTrade(
+            newTrade,
+            StorageInterface.TradeInfo(
+                0,
+                0,
+                newTrade.positionSizeWETH * newTrade.leverage,
+                0,
+                0,
+                false
+            )
+        );
+
+        // 7. Store tradeLastUpdated
+        LastUpdated storage lastUpdated = tradeLastUpdated[newTrade.trader][
+            newTrade.pairIndex
+        ][newTrade.index][TradeType.MARKET]; // no limit order support.
+        uint32 currBlock = uint32(ChainUtils.getBlockNumber());
+        lastUpdated.tp = currBlock;
+        lastUpdated.sl = currBlock;
+        lastUpdated.created = currBlock;
     }
 
     // Utils (external)
@@ -1133,6 +1326,7 @@ contract TradingCallbacks is Initializable {
             currentWETHPos,
             percentProfit
         );
+
         value = pairInfos.getTradeValue(
             trade.trader,
             trade.pairIndex,
@@ -1185,7 +1379,6 @@ contract TradingCallbacks is Initializable {
         uint leverage
     ) private view returns (bool) {
         uint levPositionSizeWETH = positionSizeWETH * leverage;
-
         return
             storageT.openInterestWETH(pairIndex, buy ? 0 : 1) +
                 levPositionSizeWETH <=
@@ -1211,7 +1404,6 @@ contract TradingCallbacks is Initializable {
                 int(PRECISION) *
                 int(leverage)) / int(openPrice)
             : int(0);
-
         p = p > maxPnlP ? maxPnlP : p;
     }
 
@@ -1233,7 +1425,6 @@ contract TradingCallbacks is Initializable {
                     ? openPrice + tpDiff
                     : (tpDiff <= openPrice ? openPrice - tpDiff : 0);
         }
-
         return tp;
     }
 
@@ -1249,7 +1440,6 @@ contract TradingCallbacks is Initializable {
             int(MAX_SL_P) * int(PRECISION) * -1
         ) {
             uint slDiff = (openPrice * MAX_SL_P) / leverage / 100;
-
             return buy ? openPrice - slDiff : openPrice + slDiff;
         }
 
@@ -1296,7 +1486,6 @@ contract TradingCallbacks is Initializable {
         uint maxSlippage = c.maxSlippageP > 0
             ? (c.wantedPrice * c.maxSlippageP) / 100 / PRECISION
             : c.wantedPrice / 100; // 1% by default
-
         cancelReason = isPaused
             ? CancelReason.PAUSED
             : (
@@ -1341,27 +1530,29 @@ contract TradingCallbacks is Initializable {
     function getPendingMarketOrder(
         uint orderId
     ) private view returns (StorageInterface.PendingMarketOrder memory) {
-        return storageT.reqID_pendingMarketOrder(orderId);
+        return storageT.getPendingMarketOrder(orderId);
     }
 
     function getPairsStorage() private view returns (PairsStorageInterfaceV6) {
-        return storageT.priceAggregator().pairsStorage();
+        return
+            (AggregatorInterfaceV1_4(address(storageT.priceAggregator())))
+                .pairsStorage();
     }
 
     function getOpenTrade(
         address trader,
         uint pairIndex,
         uint index
-    ) private view returns (StorageInterface.Trade memory) {
-        return storageT.openTrades(trader, pairIndex, index);
+    ) private view returns (StorageInterface.Trade memory t) {
+        return storageT.getOpenTrades(trader, pairIndex, index);
     }
 
     function getOpenTradeInfo(
         address trader,
         uint pairIndex,
         uint index
-    ) private view returns (StorageInterface.TradeInfo memory) {
-        return storageT.openTradesInfo(trader, pairIndex, index);
+    ) private view returns (Storage.TradeInfo memory o) {
+        return storageT.getOpenTradesInfo(trader, pairIndex, index);
     }
 
     // Utils (private)
@@ -1373,7 +1564,7 @@ contract TradingCallbacks is Initializable {
 
     function sendToVault(uint amountWETH, address trader) private {
         transferFromStorageToAddress(address(this), amountWETH);
-        storageT.vault().receiveAssets(amountWETH, trader);
+        IToken(storageT.vault()).receiveAssets(amountWETH, trader);
     }
 
     function transferFromStorageToAddress(address to, uint amountWETH) private {
@@ -1397,5 +1588,105 @@ contract TradingCallbacks is Initializable {
 
     function giveApproval() external {
         storageT.WETH().approve(address(storageT.vault()), type(uint256).max);
+    }
+
+    function _getUpdateSl(
+        uint openPrice,
+        uint oldSl,
+        uint currentPrice,
+        bool buy,
+        uint leverage
+    ) internal pure returns (uint256 newSL) {
+        int slP = ((
+            buy ? int(oldSl) - int(openPrice) : int(openPrice) - int(oldSl)
+        ) *
+            100 *
+            int(PRECISION) *
+            int(leverage)) / int(openPrice);
+
+        int slDelta = (((slP * int(currentPrice)) / 100) / int(PRECISION)) /
+            int(leverage);
+
+        newSL = buy
+            ? currentPrice - uint(slDelta)
+            : currentPrice + uint(slDelta);
+    }
+
+    function _getUpdateTP(
+        uint openPrice,
+        uint oldTp,
+        uint currentPrice,
+        bool buy,
+        uint leverage
+    ) internal pure returns (uint256 newTp) {
+        int tPP = ((
+            buy ? int(oldTp) - int(openPrice) : int(openPrice) - int(oldTp)
+        ) *
+            100 *
+            int(PRECISION) *
+            int(leverage)) / int(openPrice);
+        int tPDelta = (((tPP * int(currentPrice)) / 100) / int(PRECISION)) /
+            int(leverage);
+
+        newTp = buy
+            ? currentPrice + uint(tPDelta)
+            : currentPrice - uint(tPDelta);
+    }
+
+    function getTradePnl(
+        address trader,
+        uint pairIndex,
+        uint index
+    ) external view returns (int256 pnl) {
+        StorageInterface.Trade memory t = storageT.getOpenTrades(
+            trader,
+            pairIndex,
+            index
+        );
+        (uint256 currentPrice, ) = (storageT.oracle()).getPrice(pairIndex);
+        int256 profitP = currentPercentProfit(
+            t.openPrice,
+            currentPrice,
+            t.buy,
+            t.leverage
+        );
+        (int netProfitP, ) = _getBorrowingFeeAdjustedPercentProfit(
+            t,
+            t.positionSizeWETH,
+            profitP
+        );
+        int fundingFee = pairInfos.getTradeFundingFee(
+            t.trader,
+            t.pairIndex,
+            t.index,
+            t.buy,
+            t.positionSizeWETH,
+            t.leverage
+        );
+        uint256 tradeValue = pairInfos.getTradeValuePure(
+            t.positionSizeWETH,
+            netProfitP,
+            0,
+            fundingFee,
+            0
+        );
+
+        pnl = int(tradeValue) - int(t.positionSizeWETH);
+    }
+
+    function setLiquidatorFeeP(uint256 _feeP) external {
+        liquidatorFeeP = _feeP;
+    }
+
+    function setVaultFeeP(uint256 _feeP) external {
+        vaultFeeP = _feeP;
+    }
+
+    function setLiquidationFeeP(uint _feeP) external {
+        liquidationFeeP = _feeP;
+    }
+
+    function setParLiquidationFeeP(uint _feeP) external {
+        parLiquidationFeeP = _feeP;
     }
 }

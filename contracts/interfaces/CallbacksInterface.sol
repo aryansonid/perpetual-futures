@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./StorageInterface.sol";
 
@@ -35,11 +35,29 @@ interface CallbacksInterface {
     //     uint sl; // PRECISION
     // }
 
-    function openTradeMarketCallback(AggregatorAnswer memory a, StorageInterface.PendingMarketOrder memory o) external;
+    function openTradeMarketCallback(
+        AggregatorAnswer memory a,
+        StorageInterface.PendingMarketOrder memory o
+    ) external;
 
-    function closeTradeMarketCallback(AggregatorAnswer memory a, StorageInterface.PendingMarketOrder memory o) external;
+    function closeTradeMarketCallback(
+        AggregatorAnswer memory a,
+        StorageInterface.PendingMarketOrder memory o
+    ) external;
 
-    function executeNftOpenOrderCallback(AggregatorAnswer memory) external;
+    function executeNftOpenOrderCallback(
+        AggregatorAnswer memory a,
+        StorageInterface.PendingNftOrder memory o
+    ) external;
 
-    function executeNftCloseOrderCallback(AggregatorAnswer memory) external;
+    function executeNftCloseOrderCallback(
+        AggregatorAnswer memory,
+        StorageInterface.PendingNftOrder memory o
+    ) external;
+
+    function getTradePnl(
+        address trader,
+        uint pairIndex,
+        uint index
+    ) external view returns (int256 pnl);
 }

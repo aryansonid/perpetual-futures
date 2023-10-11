@@ -9,6 +9,6 @@
     "@chainlink/contracts": "^0.6.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.9",
     "@uniswap/v3-core": "1.0.2-solc-0.8-simulate",
-    "bignumber.js": "^4.0.4"
+    "bignumber.js": "9.1.2"
   }
 }

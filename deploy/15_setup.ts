@@ -1,6 +1,7 @@
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ethers } from "hardhat";
+import BigNumber from "bignumber.js";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
@@ -68,28 +69,54 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     0,
     {
       groupIndex: 0,
-      feePerBlock: 10,
+      feePerBlock: 24595,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    1,
+    {
+      groupIndex: 0,
+      feePerBlock: 83800,
       feeExponent: 1,
       maxOi: ethers.toBigInt("10000000000000"),
     }
   );
 
-  await execute("pairsStorage", { from: deployer, log: true }, "addPair", {
-    from: "0x00000000219ab540356cbb839cbe05303d7705fa",
-    to: "0x00000000219ab540356cbb839cbe05303d7705fa",
-    feed: {
-      feed1: "0x00000000219ab540356cbb839cbe05303d7705fa",
-      feed2: "0x00000000219ab540356cbb839cbe05303d7705fa",
-      feedCalculation: 1,
-      maxDeviationP: 10,
-    },
-    spreadP: 0,
-    groupIndex: 0,
-    feeIndex: 0,
-  });
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    2,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000"),
+    }
+  );
+
+  // await execute("pairsStorage", { from: deployer, log: true }, "addPair", {
+  //   from: "0x00000000219ab540356cbb839cbe05303d7705fa",
+  //   to: "0x00000000219ab540356cbb839cbe05303d7705fa",
+  //   feed: {
+  //     feed1: "0x00000000219ab540356cbb839cbe05303d7705fa",
+  //     feed2: "0x00000000219ab540356cbb839cbe05303d7705fa",
+  //     feedCalculation: 1,
+  //     maxDeviationP: 10,
+  //   },
+  //   spreadP: 0,
+  //   groupIndex: 0,
+  //   feeIndex: 0,
+  // });
 
   await execute(
-    "callback",
+  "callback",
     { from: deployer, log: true },
     "setPairMaxLeverage",
     0,

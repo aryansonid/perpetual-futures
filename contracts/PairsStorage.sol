@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
@@ -9,6 +9,7 @@ import "./interfaces/PairsStorageInterfaceV6.sol";
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/AggregatorInterfaceV1_1.sol";
 import "./interfaces/NftRewardsInterfaceV6.sol";
+import "./interfaces/VaultInterface.sol";
 
 contract PairsStorage {
     // Contracts (constant)
@@ -208,7 +209,7 @@ contract PairsStorage {
         bool _long,
         bool _increase
     ) external {
-        require(msg.sender == storageT.callbacks(), "CALLBACKS_ONLY");
+        require(msg.sender == address(storageT.callbacks()), "CALLBACKS_ONLY");
 
         uint[2] storage collateralOpen = groupsCollaterals[
             pairs[_pairIndex].groupIndex
@@ -259,7 +260,7 @@ contract PairsStorage {
     function groupMaxCollateral(uint _pairIndex) external view returns (uint) {
         return
             (groups[pairs[_pairIndex].groupIndex].maxCollateralP *
-                storageT.vault().currentBalanceWETH()) / 100;
+                VaultInterface(address(storageT.vault())).currentBalanceWETH()) / 100;
     }
 
     function groupCollateral(

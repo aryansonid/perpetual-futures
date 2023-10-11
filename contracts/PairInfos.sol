@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.15;
 
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
@@ -18,6 +18,7 @@ contract PairInfos {
     // Constant parameters
     uint constant PRECISION = 1e10; // 10 decimals
     uint constant LIQ_THRESHOLD_P = 90; // -90% (of collateral)
+    uint constant PAR_LIQ_THRESHOLD_P = 80; // -90% (of collateral)
 
     // Adjustable parameters
     uint public maxNegativePnlOnOpenP = 40 * PRECISION; // PRECISION (%)
@@ -107,7 +108,7 @@ contract PairInfos {
         _;
     }
     modifier onlyCallbacks() {
-        require(msg.sender == storageT.callbacks(), "CALLBACKS_ONLY");
+        require(msg.sender == address(storageT.callbacks()), "CALLBACKS_ONLY");
         _;
     }
 
@@ -205,27 +206,30 @@ contract PairInfos {
     }
 
     // Set funding fee for pair
-    function setFundingFeePerBlockP(
-        uint pairIndex,
-        uint value
-    ) public onlyManager {
+    function setFundingFeePerBlockP(uint pairIndex) public /*onlyManager*/ {
+        _setFundingFeePerBlockP(pairIndex);
+    }
+
+    function _setFundingFeePerBlockP(uint pairIndex) internal {
+        uint value = (storageT.oracle()).getFundingFee(pairIndex);
         require(value <= 10000000, "TOO_HIGH"); // ≈ 40% per day
 
         storeAccFundingFees(pairIndex);
 
-        pairParams[pairIndex].fundingFeePerBlockP = value;
-
-        emit FundingFeePerBlockPUpdated(pairIndex, value);
+        uint256 oldFee = pairParams[pairIndex].fundingFeePerBlockP;
+        if (oldFee != value) {
+            pairParams[pairIndex].fundingFeePerBlockP = value;
+            emit FundingFeePerBlockPUpdated(pairIndex, value);
+        }
     }
 
     function setFundingFeePerBlockPArray(
-        uint[] memory indices,
-        uint[] memory values
+        uint[] memory indices
     ) external onlyManager {
-        require(indices.length == values.length, "WRONG_LENGTH");
+        // require(indices.length == values.length, "WRONG_LENGTH");
 
         for (uint i = 0; i < indices.length; i++) {
-            setFundingFeePerBlockP(indices[i], values[i]);
+            _setFundingFeePerBlockP(indices[i]);
         }
     }
 
@@ -236,7 +240,7 @@ contract PairInfos {
         uint index,
         bool long
     ) external onlyCallbacks {
-        storeAccFundingFees(pairIndex);
+        _setFundingFeePerBlockP(pairIndex);
         TradeInitialAccFees storage t = tradeInitialAccFees[trader][pairIndex][
             index
         ];
@@ -305,7 +309,6 @@ contract PairInfos {
         int openInterestWETHShort = int(
             storageT.openInterestWETH(pairIndex, 1)
         );
-
         int fundingFeesPaidByLongs = ((openInterestWETHLong -
             openInterestWETHShort) *
             int(block.number - f.lastUpdateBlock) *
@@ -495,6 +498,29 @@ contract PairInfos {
             );
     }
 
+    function getTradePartialLiquidationPrice(
+        uint openPrice, // PRECISION
+        bool long,
+        uint collateral, // 1e18 (WETH)
+        uint leverage,
+        uint rolloverFee, // 1e18 (WETH)
+        int fundingFee // 1e18 (WETH)
+    ) public pure returns (uint) {
+        // PRECISION
+        int liqPriceDistance = (int(openPrice) *
+            (int((collateral * PAR_LIQ_THRESHOLD_P) / 100) -
+                int(rolloverFee) -
+                fundingFee)) /
+            int(collateral) /
+            int(leverage);
+
+        int liqPrice = long
+            ? int(openPrice) - liqPriceDistance
+            : int(openPrice) + liqPriceDistance;
+
+        return liqPrice > 0 ? uint(liqPrice) : 0;
+    }
+
     function getTradeLiquidationPricePure(
         uint openPrice, // PRECISION
         bool long,
@@ -530,7 +556,7 @@ contract PairInfos {
         uint closingFee // 1e18 (WETH)
     ) external onlyCallbacks returns (uint amount) {
         // 1e18 (WETH)
-        storeAccFundingFees(pairIndex);
+        _setFundingFeePerBlockP(pairIndex);
 
         uint r = getTradeRolloverFee(trader, pairIndex, index, collateral);
         int f = getTradeFundingFee(
@@ -541,6 +567,7 @@ contract PairInfos {
             collateral,
             leverage
         );
+
         amount = getTradeValuePure(collateral, percentProfit, r, f, closingFee);
 
         emit FeesCharged(
@@ -572,7 +599,6 @@ contract PairInfos {
         if (value <= (int(collateral) * int(100 - LIQ_THRESHOLD_P)) / 100) {
             return 0;
         }
-
         value -= int(closingFee);
 
         return value > 0 ? uint(value) : 0;
