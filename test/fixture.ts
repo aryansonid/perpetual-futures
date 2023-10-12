@@ -96,11 +96,11 @@ export function getDelta(
   return Math.floor(
     Number(
       new BigNumber(
-        `${
+        
           (blockNumAfter - blockNumBefore) *
           feeExponent *
           (pairOpeningInterest * 10000000000)
-        }`
+        
       )
         .div(new BigNumber(maxOi))
         .div(new BigNumber(1000000000000000000))
@@ -115,7 +115,7 @@ export function getTradingFee(
 ) {
   return Math.floor(
     Number(
-      new BigNumber(`${collateral * leverage * delta}`)
+      new BigNumber(collateral * leverage * delta)
         .div(new BigNumber(10000000000))
         .div(new BigNumber(100))
     )
@@ -131,12 +131,12 @@ export function getWethToBeSentToTrader(
 ) {
   let profitP = Number(
     new BigNumber(
-      `${
+      
         (long ? currentPrice - openPrice : openPrice - currentPrice) *
         100 *
         10000000000 *
         leverage
-      }`
+      
     ).div(new BigNumber(openPrice))
   );
   profitP = profitP > 0 ? Math.floor(profitP) : Math.ceil(profitP);
@@ -146,7 +146,7 @@ export function getWethToBeSentToTrader(
   if (profitP <= maxNegPnl) profitP = -1000000000000;
   return Math.floor(
     Number(
-      new BigNumber(`${collateral * (100 * 10000000000 + profitP)}`)
+      new BigNumber(collateral * (100 * 10000000000 + profitP))
         .div(new BigNumber(100))
         .div(new BigNumber(10000000000))
     )

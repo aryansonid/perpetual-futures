@@ -18,7 +18,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     contract: "TradeUtils",
     log: true,
   });
-
   const trading = await deploy("trading", {
     from: deployer,
     contract: "Trading",
@@ -51,6 +50,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         pairsInfo.address,
         referal.address,
         borrowing.address,
+        callback.address,
         ethers.toBigInt("1500000000000000000000"),
         2,
       ],

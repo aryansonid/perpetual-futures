@@ -79,7 +79,10 @@ const config: HardhatUserConfig = {
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
     vault: 6,
-    trader: 7,
+    trader: {
+      default: 7,
+      polygon: "0x95C30fb60380175059781d3a730757d254b4485B",
+    },
     manager: {
       default: 8,
       polygon: "0x95C30fb60380175059781d3a730757d254b4485B",
