@@ -482,6 +482,8 @@ contract TradingCallbacks is Initializable {
                 t.pairIndex,
                 cancelReason
             );
+
+            revert("Market open order canceled");
         }
 
         // storageT.unregisterPendingMarketOrder(a.orderId, true);
@@ -594,9 +596,10 @@ contract TradingCallbacks is Initializable {
                 o.trade.index,
                 cancelReason
             );
+            revert("Market close order canceled");
         }
 
-        storageT.unregisterPendingMarketOrder(a.orderId, false);
+        // storageT.unregisterPendingMarketOrder(a.orderId, false);
     }
 
     // function executeNftOpenOrderCallback(
