@@ -116,10 +116,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // });
 
   await execute(
-  "callback",
+    "callback",
     { from: deployer, log: true },
     "setPairMaxLeverage",
     0,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    1,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    2,
     100
   );
 
