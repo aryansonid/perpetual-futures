@@ -570,7 +570,11 @@ contract Trading is Delegatable {
         //     index,
         //     StorageInterface.LimitOrder.TP
         // );
-        StorageInterface.Trade memory t = storageT.getOpenTrades(sender, pairIndex, index);
+        StorageInterface.Trade memory t = storageT.getOpenTrades(
+            sender,
+            pairIndex,
+            index
+        );
         require(t.leverage > 0, "NO_TRADE");
 
         storageT.updateTp(sender, pairIndex, index, newTp);
@@ -599,7 +603,11 @@ contract Trading is Delegatable {
         //     StorageInterface.LimitOrder.SL
         // );
 
-        StorageInterface.Trade memory t = storageT.getOpenTrades(sender, pairIndex, index);
+        StorageInterface.Trade memory t = storageT.getOpenTrades(
+            sender,
+            pairIndex,
+            index
+        );
         require(t.leverage > 0, "NO_TRADE");
 
         uint maxSlDist = (t.openPrice * MAX_SL_P) / 100 / t.leverage;
@@ -964,5 +972,70 @@ contract Trading is Delegatable {
         );
 
         // linkFee = aggregator.linkFee(pairIndex, leveragedPosWETH);
+    }
+
+    function isTradeLiquidatable(
+        address trader,
+        uint pairIndex,
+        uint index
+    ) external view returns (bool) {
+        StorageInterface.Trade memory t = storageT.getOpenTrades(
+            trader,
+            pairIndex,
+            index
+        );
+
+        uint liqPrice = borrowingFees.getTradeLiquidationPrice(
+            BorrowingFeesInterface.LiqPriceInput(
+                t.trader,
+                t.pairIndex,
+                t.index,
+                t.openPrice,
+                t.buy,
+                t.positionSizeWETH,
+                t.leverage
+            )
+        );
+
+        require(
+            t.sl == 0 || (t.buy ? liqPrice > t.sl : liqPrice < t.sl),
+            "HAS_SL"
+        );
+
+        (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
+            pairIndex
+        );
+
+        return price <= liqPrice;
+    }
+
+    function isTradeParLiquidatable(
+        address trader,
+        uint pairIndex,
+        uint index
+    ) external view returns (bool) {
+        StorageInterface.Trade memory t = storageT.getOpenTrades(
+            trader,
+            pairIndex,
+            index
+        );
+
+        uint parLiqPrice = borrowingFees.getTradePartialLiquidationPrice(
+            BorrowingFeesInterface.LiqPriceInput(
+                t.trader,
+                t.pairIndex,
+                t.index,
+                t.openPrice,
+                t.buy,
+                t.positionSizeWETH,
+                t.leverage
+            )
+        );
+
+        (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
+            pairIndex
+        );
+
+        return price <= parLiqPrice;
     }
 }

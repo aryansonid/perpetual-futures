@@ -477,6 +477,7 @@ contract Storage is StorageInterface {
         o[index] = _open
             ? o[index] + _leveragedPosWETH
             : o[index] - _leveragedPosWETH;
+        emit OpenningInterestUpated(_pairIndex, o[1], o[0]);
     }
 
     // Manage open limit orders

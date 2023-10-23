@@ -68,6 +68,12 @@ interface StorageInterface {
         LimitOrder orderType;
     }
 
+    event OpenningInterestUpated(
+        uint256 indexed pairIndex,
+        uint256 indexed openingInterestShort,
+        uint256 indexed openingInterestLong
+    );
+
     function PRECISION() external pure returns (uint);
 
     function gov() external view returns (address);
