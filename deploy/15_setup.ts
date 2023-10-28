@@ -84,7 +84,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       groupIndex: 0,
       feePerBlock: 83800,
       feeExponent: 1,
-      maxOi: ethers.toBigInt("10000000000000"),
+      maxOi: ethers.toBigInt("10000000000000000000"),
     }
   );
 
@@ -97,7 +97,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       groupIndex: 0,
       feePerBlock: 79150,
       feeExponent: 1,
-      maxOi: ethers.toBigInt("10000000000000"),
+      maxOi: ethers.toBigInt("10000000000000000000"),
     }
   );
 
