@@ -74,6 +74,10 @@ interface StorageInterface {
         uint256 indexed openingInterestLong
     );
 
+    event TradeOpen(Trade indexed t);
+
+    event TradeClose(Trade indexed t);
+
     function PRECISION() external pure returns (uint);
 
     function gov() external view returns (address);

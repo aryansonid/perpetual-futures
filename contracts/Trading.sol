@@ -33,7 +33,7 @@ contract Trading is Delegatable {
     // Params (adjustable)
     uint public maxPosWETH; // 1e18 (eg. 75000 * 1e18)
     uint public marketOrdersTimeout; // block (eg. 30)
-    int public maxLeveragedPosWETH = 10e18; //100 weth
+    int public minLeveragedPosWETH = 10e18; //100 weth
 
     // State
     bool public isPaused; // Prevent opening new trades
@@ -741,7 +741,7 @@ contract Trading is Delegatable {
                 );
                 int256 position = int(t.positionSizeWETH) + pnl;
                 require(
-                    position >= maxLeveragedPosWETH,
+                    position * int256(t.leverage) >= minLeveragedPosWETH,
                     "position to small for partial liquidation"
                 );
             } else {

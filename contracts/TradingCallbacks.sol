@@ -1247,23 +1247,13 @@ contract TradingCallbacks is Initializable {
             )
             : 0;
 
-        // 5. Call other contracts
-        AggregatorInterfaceV1_4 aggregator = AggregatorInterfaceV1_4(
-            address(storageT.priceAggregator())
-        );
-        PairsStorageInterfaceV6 pairsStored = aggregator.pairsStorage();
         pairInfos.storeTradeInitialAccFees(
             newTrade.trader,
             newTrade.pairIndex,
             newTrade.index,
             newTrade.buy
         );
-        pairsStored.updateGroupCollateral(
-            newTrade.pairIndex,
-            newTrade.positionSizeWETH,
-            newTrade.buy,
-            true
-        );
+
         borrowingFees.handleTradeAction(
             newTrade.trader,
             newTrade.pairIndex,

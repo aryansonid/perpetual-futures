@@ -376,6 +376,8 @@ contract Storage is StorageInterface {
             true,
             _trade.buy
         );
+
+        emit TradeOpen(_trade);
     }
 
     function unregisterTrade(
@@ -407,6 +409,8 @@ contract Storage is StorageInterface {
 
         openTradesCount[trader][pairIndex]--;
         tradesPerBlock[block.number]++;
+
+        emit TradeClose(t);
     }
 
     // Manage pending market orders
