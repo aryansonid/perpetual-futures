@@ -2125,4 +2125,112 @@ describe("Integration Test", function () {
       )
     );
   });
+  it("automated liquidation test", async function () {
+    const {
+      storage,
+      trading,
+      pairInfo,
+      aggregator,
+      pairsStorage,
+      WETH,
+      trader,
+      borrowing,
+      pairParamsOnBorrowing,
+      vault,
+      deployer,
+      oracle,
+    } = await setupTest();
+    // step to provide liquidity to the vault
+    let tnx;
+
+    tnx = await oracle.feedPriceArray(
+      [0, 1],
+      [
+        ethers.toBigInt("10000000000000000000"),
+        ethers.toBigInt("10000000000000000000"),
+      ]
+    );
+
+    // await tnx.wait();
+
+    tnx = await oracle.getPrice(0);
+
+    console.log(tnx);
+
+    tnx = await WETH.mint(trader, ethers.toBigInt("100000000000000000000000"));
+    await tnx.wait();
+
+    tnx = await WETH.connect(await ethers.getSigner(trader)).approve(
+      storage.target,
+      ethers.toBigInt("100000000000000000000000")
+    );
+    await tnx.wait();
+
+    // Trade parameters
+    const pairIndex = 0;
+    const positionSizeWETH = ethers.toBigInt("1000000000000000000000");
+    const openPrice = ethers.toBigInt("10000000000000000000");
+    const buy = true;
+    const leverage = 10;
+    const tp = ethers.toBigInt("12000000000000000000");
+    //                          10000000000000000000
+    const sl = 0;
+
+    for (let i = 0; i < 3; i++) {
+      tnx = await trading.connect(await ethers.getSigner(trader)).openTrade(
+        {
+          trader: trader,
+          pairIndex: pairIndex,
+          index: 0,
+          initialPosToken: 0,
+          positionSizeWETH: positionSizeWETH,
+          openPrice: openPrice,
+          buy: buy,
+          leverage: leverage,
+          tp: tp,
+          sl: sl,
+        },
+        0,
+        0,
+        3000000000
+      );
+      await tnx.wait();
+    }
+
+    tnx = await oracle.feedPriceArray(
+      [0, 1],
+      [
+        ethers.toBigInt("900000000000000000"),
+        ethers.toBigInt("900000000000000000"),
+      ]
+    );
+
+    // await tnx.wait();
+
+    tnx = await oracle.getPrice(0);
+    tnx = await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await tnx.wait();
+    tnx = await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    await tnx.wait();
+
+    tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    await tnx.wait();
+
+    tnx = await storage.getLiquidatableTrades();
+    console.log(tnx[0]);
+
+    tnx = await trading.executeNftOrders(
+      [...tnx[0]],
+      [...tnx[1]],
+      [...tnx[2]],
+      [...tnx[3]]
+    );
+
+    await tnx
+  });
 });
