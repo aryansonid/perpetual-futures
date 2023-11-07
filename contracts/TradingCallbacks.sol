@@ -175,6 +175,13 @@ contract TradingCallbacks is Initializable {
         uint WETHSentToTrader
     );
 
+    event LiquidationExecuted(
+        uint indexed orderId,
+        StorageInterface.Trade t,
+        uint liqPrice,
+        bool isPartial
+    );
+
     event LimitExecuted(
         uint indexed orderId,
         uint limitIndex,
@@ -896,6 +903,17 @@ contract TradingCallbacks is Initializable {
                 // );
 
                 // storageT.increaseNftRewards(o.nftId, v.reward2);
+                if (
+                    o.orderType == StorageInterface.LimitOrder.LIQ ||
+                    o.orderType == StorageInterface.LimitOrder.PAR_LIQ
+                ) {
+                    emit LiquidationExecuted(
+                        a.orderId,
+                        t,
+                        v.price,
+                        o.orderType == StorageInterface.LimitOrder.LIQ
+                    );
+                }
 
                 emit NftBotFeeCharged(t.trader, v.reward1);
 
