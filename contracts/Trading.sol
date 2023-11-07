@@ -635,6 +635,26 @@ contract Trading is Delegatable, Initializable {
         emit SlUpdated(sender, pairIndex, index, newSl);
     }
 
+    function executeNftOrders(
+        uint[100] memory _orderTypes,
+        address[100] memory traders,
+        uint[100] memory pairIndexs,
+        uint[100] memory indexs
+    ) public  notDone {
+        for (uint i; i < _orderTypes.length; i++) {
+            if (traders[i] != address(0)) {
+                executeNftOrder(
+                    _orderTypes[i],
+                    traders[i],
+                    pairIndexs[i],
+                    indexs[i],
+                    1,
+                    1
+                );
+            }
+        }
+    }
+
     // Execute limit order
     function executeNftOrder(
         uint _orderType,
@@ -643,7 +663,7 @@ contract Trading is Delegatable, Initializable {
         uint index,
         uint nftId,
         uint nftType
-    ) external notContract notDone {
+    ) public  notDone {
         // (
         //     uint _orderType,
         //     address trader,
@@ -986,6 +1006,17 @@ contract Trading is Delegatable, Initializable {
             index
         );
 
+        (bool liquidatable, bool noSL) = isTradeLiquidatablePure(t);
+
+        require(noSL, "HAS_SL");
+
+        return liquidatable;
+    }
+
+    function isTradeLiquidatablePure(
+        StorageInterface.Trade memory t
+    ) public view returns (bool, bool) {
+        if (t.leverage == 0) return (false, false);
         uint liqPrice = borrowingFees.getTradeLiquidationPrice(
             BorrowingFeesInterface.LiqPriceInput(
                 t.trader,
@@ -997,17 +1028,12 @@ contract Trading is Delegatable, Initializable {
                 t.leverage
             )
         );
-
-        require(
-            t.sl == 0 || (t.buy ? liqPrice > t.sl : liqPrice < t.sl),
-            "HAS_SL"
-        );
-
         (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
-            pairIndex
+            t.pairIndex
         );
+        bool noSL = t.sl == 0 || (t.buy ? liqPrice > t.sl : liqPrice < t.sl);
 
-        return price <= liqPrice;
+        return (price <= liqPrice, noSL);
     }
 
     function isTradeParLiquidatable(
@@ -1021,6 +1047,22 @@ contract Trading is Delegatable, Initializable {
             index
         );
 
+        (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
+            pairIndex
+        );
+
+        (bool parLiquidatable, bool noSL) = isTradeParLiquidatablePure(t);
+
+        require(noSL, "HAS_SL");
+
+        return parLiquidatable;
+    }
+
+    function isTradeParLiquidatablePure(
+        StorageInterface.Trade memory t
+    ) public view returns (bool, bool) {
+        if (t.leverage == 0) return (false, false);
+
         uint parLiqPrice = borrowingFees.getTradePartialLiquidationPrice(
             BorrowingFeesInterface.LiqPriceInput(
                 t.trader,
@@ -1032,11 +1074,12 @@ contract Trading is Delegatable, Initializable {
                 t.leverage
             )
         );
-
         (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
-            pairIndex
+            t.pairIndex
         );
+        bool noSL = t.sl == 0 ||
+            (t.buy ? parLiqPrice > t.sl : parLiqPrice < t.sl);
 
-        return price <= parLiqPrice;
+        return (price <= parLiqPrice, noSL);
     }
 }

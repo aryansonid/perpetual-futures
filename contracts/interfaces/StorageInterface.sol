@@ -215,4 +215,14 @@ interface StorageInterface {
     function mintWETH(address _to, uint _amount) external;
 
     function oracle() external view returns (IOracle);
+
+    function getLiquidatableTrades()
+        external
+        view
+        returns (
+            uint[100] memory _orderTypes,
+            address[100] memory traders,
+            uint[100] memory pairIndexs,
+            uint[100] memory indexs
+        );
 }

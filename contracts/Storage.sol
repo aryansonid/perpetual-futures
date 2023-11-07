@@ -59,6 +59,8 @@ contract Storage is StorageInterface, Initializable {
     uint public tokensMinted; // 1e18
     uint public nftRewards; // 1e18
 
+    uint public pairs = 2;
+
     // Enums
     // enum LimitOrder {
     //     TP,
@@ -863,5 +865,54 @@ contract Storage is StorageInterface, Initializable {
         uint orderId
     ) external view returns (PendingNftOrder memory) {
         return reqID_pendingNftOrder[orderId];
+    }
+
+    function setPairs(uint256 _pairs) external {
+        pairs = _pairs;
+    }
+
+    function getLiquidatableTrades()
+        external
+        view
+        returns (
+            uint[100] memory _orderTypes,
+            address[100] memory traderaddreses,
+            uint[100] memory pairIndexs,
+            uint[100] memory indexs
+        )
+    {
+        uint256 index;
+
+        for (uint256 i; i < pairs; i++) {
+            address[] memory traders = pairTraders[i];
+            for (uint j; j < traders.length; j++) {
+                uint256 numOfTrades = openTradesCount[traders[j]][i];
+                uint k;
+                while (numOfTrades != 0) {
+                    Trade memory t = openTrades[traders[j]][i][k];
+                    (bool liquidated, ) = trading.isTradeLiquidatablePure(t);
+                    if (liquidated) {
+                        traderaddreses[index] = t.trader;
+                        _orderTypes[index] = 2;
+                        pairIndexs[index] = t.pairIndex;
+                        indexs[index] = t.index;
+                        index++;
+                    }
+                    (bool parLiquidated, ) = trading.isTradeLiquidatablePure(t);
+                    if (parLiquidated && !liquidated) {
+                        traderaddreses[index] = t.trader;
+                        _orderTypes[index] = 4;
+                        pairIndexs[index] = t.pairIndex;
+                        indexs[index] = t.index;
+                        index++;
+                    }
+                    if (index == 99) break;
+                    numOfTrades--;
+                    k++;
+                }
+                if (index == 99) break;
+            }
+            if (index == 99) break;
+        }
     }
 }
