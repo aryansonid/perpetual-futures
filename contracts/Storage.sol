@@ -6,6 +6,7 @@ import "./interfaces/AggregatorInterfaceV1.sol";
 import "./interfaces/PoolInterfaceV5.sol";
 import "./interfaces/NftInterfaceV5.sol";
 import "./interfaces/PausableInterfaceV5.sol";
+import "hardhat/console.sol";
 
 contract Storage is StorageInterface, Initializable {
     // Constants
@@ -898,8 +899,13 @@ contract Storage is StorageInterface, Initializable {
                         indexs[index] = t.index;
                         index++;
                     }
-                    (bool parLiquidated, ) = trading.isTradeLiquidatablePure(t);
+                    (bool parLiquidated, ) = trading.isTradeParLiquidatablePure(
+                        t
+                    );
+                    console.log(liquidated, "liquidated");
+                    console.log(parLiquidated, "parLiquidated");
                     if (parLiquidated && !liquidated) {
+                        console.log("here");
                         traderaddreses[index] = t.trader;
                         _orderTypes[index] = 4;
                         pairIndexs[index] = t.pairIndex;
