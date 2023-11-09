@@ -15,7 +15,7 @@ import {
   calculateFundingFee,
 } from "./fixture";
 
-describe("test", function () {
+describe("Integration Test", function () {
   it("Opening a trade", async function () {
     const { storage, trading, WETH, trader, oracle } = await setupTest();
 
