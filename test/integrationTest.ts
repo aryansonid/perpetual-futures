@@ -2222,15 +2222,15 @@ describe("Integration Test", function () {
     await tnx.wait();
 
     tnx = await storage.getLiquidatableTrades();
-    console.log(tnx[0]);
 
     tnx = await trading.executeNftOrders(
       [...tnx[0]],
       [...tnx[1]],
       [...tnx[2]],
-      [...tnx[3]]
+      [...tnx[3]],
+      tnx[4]
     );
 
-    await tnx
+    await tnx.wait()
   });
 });
