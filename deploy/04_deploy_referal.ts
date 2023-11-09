@@ -11,7 +11,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await deploy("referal", {
     from: deployer,
     contract: "Referrals",
-    args: [Storage.address, 25, 25, 25, 25], /// need to change these input values
+    proxy: {
+      owner: deployer,
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        methodName: "initialize",
+        args: [Storage.address, 25, 25, 25, 25], /// need to change these input values,
+      },
+      upgradeIndex: 0,
+    },
     log: true,
   });
 };

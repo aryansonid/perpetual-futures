@@ -39,17 +39,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PriceAggregator = await deploy("PriceAggregator", {
     from: deployer,
     contract: "PriceAggregator",
-    args: [
-      linkToken,
-      lpPool.address,
-      1900,
-      Storage.address,
-      pairsStorage.address,
-      linkPriceFeed,
-      3,
-      nodes,
-      jobIds,
-    ],
+    proxy: {
+      owner: deployer,
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        methodName: "initialize",
+        args: [
+          linkToken,
+          lpPool.address,
+          1900,
+          Storage.address,
+          pairsStorage.address,
+          linkPriceFeed,
+          3,
+          nodes,
+          jobIds,
+        ],
+      },
+      upgradeIndex: 0,
+    },
     libraries: { PackingUtils: PackingUtils.address },
     log: true,
   });

@@ -11,10 +11,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const tnx = await deploy("Storage", {
     from: deployer,
     contract: "Storage",
-    args: [WETH.address, deployer, deployer],
+    proxy: {
+      owner: deployer,
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        methodName: "initialize",
+        args: [WETH.address, deployer, deployer],
+      },
+      upgradeIndex: 0,
+    },
     log: true,
   });
-
 };
 export default func;
 func.tags = ["Storage"];
