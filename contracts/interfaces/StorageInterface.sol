@@ -223,6 +223,7 @@ interface StorageInterface {
             uint[100] memory _orderTypes,
             address[100] memory traders,
             uint[100] memory pairIndexs,
-            uint[100] memory indexs
+            uint[100] memory indexs,
+            uint256 index
         );
 }

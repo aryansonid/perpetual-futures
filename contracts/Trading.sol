@@ -639,19 +639,18 @@ contract Trading is Delegatable, Initializable {
         uint[100] memory _orderTypes,
         address[100] memory traders,
         uint[100] memory pairIndexs,
-        uint[100] memory indexs
-    ) public  notDone {
-        for (uint i; i < _orderTypes.length; i++) {
-            if (traders[i] != address(0)) {
-                executeNftOrder(
-                    _orderTypes[i],
-                    traders[i],
-                    pairIndexs[i],
-                    indexs[i],
-                    1,
-                    1
-                );
-            }
+        uint[100] memory indexs,
+        uint256 index
+    ) public notDone {
+        for (uint i; i < index; i++) {
+            executeNftOrder(
+                _orderTypes[i],
+                traders[i],
+                pairIndexs[i],
+                indexs[i],
+                1,
+                1
+            );
         }
     }
 
@@ -663,7 +662,7 @@ contract Trading is Delegatable, Initializable {
         uint index,
         uint nftId,
         uint nftType
-    ) public  notDone {
+    ) public notDone {
         // (
         //     uint _orderType,
         //     address trader,

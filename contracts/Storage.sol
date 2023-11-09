@@ -878,10 +878,10 @@ contract Storage is StorageInterface, Initializable {
             uint[100] memory _orderTypes,
             address[100] memory traderaddreses,
             uint[100] memory pairIndexs,
-            uint[100] memory indexs
+            uint[100] memory indexs,
+            uint256 index
         )
     {
-        uint256 index;
 
         for (uint256 i; i < pairs; i++) {
             address[] memory traders = pairTraders[i];

@@ -20,14 +20,15 @@ contract Resolver {
             uint[100] memory _orderTypes,
             address[100] memory traders,
             uint[100] memory pairIndexs,
-            uint[100] memory indexs
+            uint[100] memory indexs,
+            uint256 index
         ) = storageT.getLiquidatableTrades();
 
         canExec = _orderTypes[0] != 0;
 
         execPayload = abi.encodeCall(
             PausableInterfaceV5.executeNftOrders,
-            (_orderTypes, traders, pairIndexs, indexs)
+            (_orderTypes, traders, pairIndexs, indexs, index)
         );
     }
 }

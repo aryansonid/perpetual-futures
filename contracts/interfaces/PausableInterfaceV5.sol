@@ -18,6 +18,7 @@ interface PausableInterfaceV5 {
         uint[100] memory _orderTypes,
         address[100] memory traders,
         uint[100] memory pairIndexs,
-        uint[100] memory index
+        uint[100] memory indexs,
+        uint256 index
     ) external;
 }
