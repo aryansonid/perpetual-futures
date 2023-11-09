@@ -194,6 +194,8 @@ interface StorageInterface {
         uint
     ) external view returns (uint);
 
+    function maxSlP() external view returns (uint);
+
     function maxTradesPerPair() external view returns (uint);
 
     function pendingOrderIdsCount(address) external view returns (uint);

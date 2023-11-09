@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
 import "./interfaces/NftInterfaceV5.sol";
@@ -10,10 +11,10 @@ import "./interfaces/StorageInterface.sol";
 import "./interfaces/AggregatorInterfaceV1_2.sol";
 import "./interfaces/NftRewardsInterfaceV6.sol";
 
-contract Referrals {
+contract Referrals is Initializable {
     // CONSTANTS
     uint constant PRECISION = 1e10;
-    StorageInterface public immutable storageT;
+    StorageInterface public storageT;
 
     // ADJUSTABLE PARAMETERS
     uint public allyFeeP; // % (of referrer fees going to allies, eg. 10)
@@ -78,13 +79,13 @@ contract Referrals {
     event AllyRewardsClaimed(address indexed ally, uint amountToken);
     event ReferrerRewardsClaimed(address indexed referrer, uint amountToken);
 
-    constructor(
+    function initialize(
         StorageInterface _storageT,
         uint _allyFeeP,
         uint _startReferrerFeeP,
         uint _openFeeP,
         uint _targetVolumeWETH
-    ) {
+    ) external initializer {
         require(
             address(_storageT) != address(0) &&
                 _allyFeeP <= 50 &&

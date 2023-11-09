@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
-
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/AggregatorInterfaceV1.sol";
 import "./interfaces/PoolInterfaceV5.sol";
 import "./interfaces/NftInterfaceV5.sol";
 import "./interfaces/PausableInterfaceV5.sol";
 
-contract Storage is StorageInterface {
+contract Storage is StorageInterface, Initializable {
     // Constants
     uint public constant PRECISION = 1e10;
     bytes32 public constant MINTER_ROLE =
@@ -175,10 +175,30 @@ contract Storage is StorageInterface {
     event NumberUpdatedPair(string name, uint pairIndex, uint value);
     event SpreadReductionsUpdated(uint[5]);
 
-    constructor(address _WETH, address _gov, address _dev) {
+    function initialize(
+        address _WETH,
+        address _gov,
+        address _dev
+    ) external initializer {
         WETH = TokenInterface(_WETH);
         gov = _gov;
         dev = _dev;
+        token = TokenInterface(0x7075cAB6bCCA06613e2d071bd918D1a0241379E2);
+        nfts = [
+            NftInterfaceV5(0xF9A4c522E327935BD1F5a338c121E14e4cc1f898),
+            NftInterfaceV5(0x77cd42B925e1A82f41d852D6BE727CFc88fddBbC),
+            NftInterfaceV5(0x3378AD81D09DE23725Ee9B9270635c97Ed601921),
+            NftInterfaceV5(0x02e2c5825C1a3b69C0417706DbE1327C2Af3e6C2),
+            NftInterfaceV5(0x2D266A94469d05C9e06D52A4D0d9C23b157767c2)
+        ];
+        maxTradesPerPair = 3;
+        maxTradesPerBlock = 5;
+        maxPendingMarketOrders = 5;
+        maxGainP = 900; // %
+        maxSlP = 80; // %
+        defaultLeverageUnlocked = 50; // x
+        nftSuccessTimelock = 50; // 50 blocks
+        spreadReductionsP = [15, 20, 25, 30, 35];
     }
 
     // Modifiers

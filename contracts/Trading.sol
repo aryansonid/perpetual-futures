@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/PairInfosInterface.sol";
 import "./interfaces/ReferralsInterface.sol";
@@ -14,17 +15,17 @@ import "./interfaces/CallbacksInterface.sol";
 import "./interfaces/PairsStorageInterfaceV6.sol";
 import "./interfaces/AggregatorInterfaceV1_4.sol";
 
-contract Trading is Delegatable {
+contract Trading is Delegatable, Initializable {
     using TradeUtils for address;
     using PackingUtils for uint256;
 
     // Contracts (constant)
-    StorageInterface public immutable storageT;
-    NftRewardsInterfaceV6_3_1 public immutable nftRewards;
-    PairInfosInterface public immutable pairInfos;
-    ReferralsInterface public immutable referrals;
-    BorrowingFeesInterface public immutable borrowingFees;
-    CallbacksInterface public immutable callbacks;
+    StorageInterface public storageT;
+    NftRewardsInterfaceV6_3_1 public nftRewards;
+    PairInfosInterface public pairInfos;
+    ReferralsInterface public referrals;
+    BorrowingFeesInterface public borrowingFees;
+    CallbacksInterface public callbacks;
 
     // Params (constant)
     uint constant PRECISION = 1e10;
@@ -107,7 +108,7 @@ contract Trading is Delegatable {
         uint index
     );
 
-    constructor(
+    function initialize(
         StorageInterface _storageT,
         NftRewardsInterfaceV6_3_1 _nftRewards,
         PairInfosInterface _pairInfos,
@@ -116,7 +117,7 @@ contract Trading is Delegatable {
         CallbacksInterface _callbacks,
         uint _maxPosWETH,
         uint _marketOrdersTimeout
-    ) {
+    ) external initializer {
         require(
             address(_storageT) != address(0) &&
                 address(_nftRewards) != address(0) &&

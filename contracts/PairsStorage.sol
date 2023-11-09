@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
 import "./interfaces/NftInterfaceV5.sol";
@@ -11,7 +12,7 @@ import "./interfaces/AggregatorInterfaceV1_1.sol";
 import "./interfaces/NftRewardsInterfaceV6.sol";
 import "./interfaces/VaultInterface.sol";
 
-contract PairsStorage {
+contract PairsStorage is Initializable {
     // Contracts (constant)
     StorageInterface public storageT;
 
@@ -82,7 +83,10 @@ contract PairsStorage {
     event FeeAdded(uint index, string name);
     event FeeUpdated(uint index);
 
-    constructor(uint _currentOrderId, address _storage) {
+    function initialize(
+        uint _currentOrderId,
+        address _storage
+    ) external initializer {
         require(_currentOrderId > 0, "ORDER_ID_0");
         currentOrderId = _currentOrderId;
         storageT = StorageInterface(_storage);
@@ -260,7 +264,8 @@ contract PairsStorage {
     function groupMaxCollateral(uint _pairIndex) external view returns (uint) {
         return
             (groups[pairs[_pairIndex].groupIndex].maxCollateralP *
-                VaultInterface(address(storageT.vault())).currentBalanceWETH()) / 100;
+                VaultInterface(address(storageT.vault()))
+                    .currentBalanceWETH()) / 100;
     }
 
     function groupCollateral(

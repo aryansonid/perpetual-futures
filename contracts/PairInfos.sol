@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/UniswapRouterInterface.sol";
 import "./interfaces/TokenInterface.sol";
 import "./interfaces/NftInterfaceV5.sol";
@@ -10,9 +11,9 @@ import "./interfaces/StorageInterface.sol";
 import "./interfaces/AggregatorInterfaceV1_1.sol";
 import "./interfaces/NftRewardsInterfaceV6.sol";
 
-contract PairInfos {
+contract PairInfos is Initializable {
     // Addresses
-    StorageInterface immutable storageT;
+    StorageInterface public storageT;
     address public manager;
 
     // Constant parameters
@@ -94,7 +95,7 @@ contract PairInfos {
         int fundingFees // 1e18 (WETH)
     );
 
-    constructor(StorageInterface _storageT) {
+    function initialize(StorageInterface _storageT) external initializer {
         storageT = _storageT;
     }
 
