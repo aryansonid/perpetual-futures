@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/libraries/FixedPoint96.sol";
 import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 
-abstract contract TWAPPriceGetter {
+abstract contract TWAPPriceGetter is Initializable {
     // Constants
     uint32 constant MIN_TWAP_PERIOD = 1 hours / 2;
     uint32 constant MAX_TWAP_PERIOD = 4 hours;
 
-    uint immutable precision;
-    address public immutable token;
+    uint public precision;
+    address public token;
 
     // Adjustable parameters
     IUniswapV3Pool public uniV3Pool;
@@ -25,12 +26,12 @@ abstract contract TWAPPriceGetter {
     event UniV3PoolUpdated(IUniswapV3Pool newValue);
     event TwapIntervalUpdated(uint32 newValue);
 
-    constructor(
+    function _TWAPPriceGetter__init(
         IUniswapV3Pool _uniV3Pool,
         address _token,
         uint32 _twapInterval,
         uint _precision
-    ) {
+    ) internal onlyInitializing {
         require(
             address(_uniV3Pool) != address(0) &&
                 _twapInterval >= MIN_TWAP_PERIOD &&

@@ -30,14 +30,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await deploy("OpenPnlFeed", {
     from: deployer,
     contract: "OpenPnlFeed",
-    args: [
-      1,
-      linkToken,
-      vault.address,
-      oracles,
-      "0x0000000000000000000000000000000000000000000000000000000000000004",
-      3,
-    ],
+    proxy: {
+      owner: deployer,
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        methodName: "initialize",
+        args: [
+          1,
+          linkToken,
+          vault.address,
+          oracles,
+          "0x0000000000000000000000000000000000000000000000000000000000000004",
+          3,
+        ],
+      },
+      upgradeIndex: 0,
+    },
     log: true,
   });
 };

@@ -4,25 +4,16 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy } = deployments;
-
-  const { deployer } = await getNamedAccounts();
+  const { deployer, priceSetter } = await getNamedAccounts();
   const Storage = await deployments.get("Storage");
 
-  await deploy("pairsInfo", {
+  await deploy("Resolver", {
     from: deployer,
-    contract: "PairInfos",
-    proxy: {
-      owner: deployer,
-      proxyContract: "OpenZeppelinTransparentProxy",
-      execute: {
-        methodName: "initialize",
-        args: [Storage.address],
-      },
-      upgradeIndex: 0,
-    },
+    contract: "Resolver",
+    args: [Storage.address],
     log: true,
   });
 };
+
 export default func;
-func.tags = ["PairInfos"];
-func.dependencies = ["PairsStorage"];
+func.tags = ["oracle"];

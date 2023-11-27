@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "./TWAPPriceGetter.sol";
 import "./interfaces/CallbacksInterface.sol";
@@ -14,7 +15,7 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     using PackingUtils for uint;
 
     // Contracts (constant)
-    StorageInterface public immutable storageT;
+    StorageInterface public storageT;
 
     // Contracts (adjustable)
     PairsStorageInterfaceV6 public pairsStorage;
@@ -101,7 +102,7 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         OrderType orderType
     );
 
-    constructor(
+    function initialize(
         address _linkToken,
         IUniswapV3Pool _tokenWETHLp,
         uint32 _twapInterval,
@@ -111,14 +112,7 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         uint _minAnswers,
         address[] memory _nodes,
         bytes32[2] memory _jobIds
-    )
-        TWAPPriceGetter(
-            _tokenWETHLp,
-            address(_storageT.token()),
-            _twapInterval,
-            PRECISION
-        )
-    {
+    ) external initializer {
         require(
             address(_storageT) != address(0) &&
                 address(_pairsStorage) != address(0) &&
@@ -140,6 +134,12 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
         jobIds = _jobIds;
 
         setChainlinkToken(_linkToken);
+        _TWAPPriceGetter__init(
+            _tokenWETHLp,
+            address(_storageT.token()),
+            _twapInterval,
+            PRECISION
+        );
     }
 
     // Modifiers

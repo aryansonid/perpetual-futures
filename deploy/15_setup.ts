@@ -101,6 +101,123 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   );
 
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    3,
+    {
+      groupIndex: 0,
+      feePerBlock: 83800,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    4,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    5,
+    {
+      groupIndex: 0,
+      feePerBlock: 83800,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    6,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    7,
+    {
+      groupIndex: 0,
+      feePerBlock: 83800,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    8,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    9,
+    {
+      groupIndex: 0,
+      feePerBlock: 83800,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    10,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    11,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
   // await execute("pairsStorage", { from: deployer, log: true }, "addPair", {
   //   from: "0x00000000219ab540356cbb839cbe05303d7705fa",
   //   to: "0x00000000219ab540356cbb839cbe05303d7705fa",
@@ -138,6 +255,75 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     2,
     100
   );
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    3,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    4,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    5,
+    100
+  );
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    6,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    7,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    8,
+    100
+  );
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    9,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    10,
+    100
+  );
+
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    11,
+    100
+  );
 
   await execute(
     "vault",
@@ -160,4 +346,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 export default func;
 func.tags = ["setup"];
-func.dependencies = ["vault"];
+// func.dependencies = ["vault"];

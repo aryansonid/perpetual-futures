@@ -2,16 +2,17 @@
 pragma solidity 0.8.15;
 
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IToken.sol";
 import "./interfaces/IOwnable.sol";
 import "./interfaces/IOpenTradesPnlFeed.sol";
 
-contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
+contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
     using Chainlink for Chainlink.Request;
 
     // Constants
-    uint public immutable LINK_FEE_BALANCE_DIVIDER;
+    uint public LINK_FEE_BALANCE_DIVIDER;
     uint constant MIN_ANSWERS = 3;
     uint constant MIN_REQUESTS_START = 1 hours;
     uint constant MAX_REQUESTS_START = 1 weeks;
@@ -21,7 +22,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
     uint constant MAX_REQUESTS_COUNT = 10;
 
     // Params
-    IToken public immutable vault;
+    IToken public vault;
 
     uint public requestsStart = 2 hours;
     uint public requestsEvery = 30 minutes;
@@ -91,14 +92,14 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
         int medianValue
     );
 
-    constructor(
+    function initialize(
         uint _LINK_FEE_BALANCE_DIVIDER,
         address _linkToken,
         IToken _vault,
         address[] memory _oracles,
         bytes32 _job,
         uint _minAnswers
-    ) {
+    ) external initializer {
         require(
             _LINK_FEE_BALANCE_DIVIDER > 0 &&
                 _linkToken != address(0) &&
@@ -119,6 +120,9 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed {
         oracles = _oracles;
         job = _job;
         minAnswers = _minAnswers;
+        requestsStart = 2 hours;
+        requestsEvery = 30 minutes;
+        requestsCount = 4;
     }
 
     // Modifiers
