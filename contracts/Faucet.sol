@@ -16,7 +16,7 @@ contract Faucet is OwnableUpgradeable {
     }
 
     function send(address payable receiver) public payable {
-        uint amountSent;
+        uint256 amountSent;
 
         require(
             block.timestamp - lastRequestTime[receiver] >= TransferTimeLimit,
