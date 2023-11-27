@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/AggregatorInterfaceV1.sol";
@@ -882,7 +882,6 @@ contract Storage is StorageInterface, Initializable {
             uint256 index
         )
     {
-
         for (uint256 i; i < pairs; i++) {
             address[] memory traders = pairTraders[i];
             for (uint j; j < traders.length; j++) {

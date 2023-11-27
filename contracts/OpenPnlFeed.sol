@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -275,7 +275,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
 
         nextEpochValuesRequestCount++;
         nextEpochValuesLastRequest = block.timestamp;
-
+        uint256 oldRequestId = requestId;
         for (uint i; i < oracles.length; i++) {
             ++requestId;
             requestIds[requestId] = lastRequestId;
@@ -283,7 +283,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
 
         emit NextEpochValueRequested(
             vault.currentEpoch(),
-            lastRequestId,
+            oldRequestId,
             job,
             oracles.length,
             0

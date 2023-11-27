@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import {StorageInterface} from "./interfaces/StorageInterface.sol";
 import {PausableInterfaceV5} from "./interfaces/PausableInterfaceV5.sol";
