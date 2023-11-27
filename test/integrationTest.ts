@@ -1359,6 +1359,7 @@ describe("Integration Test", function () {
     const tp = ethers.toBigInt("120000000000");
     const sl = ethers.toBigInt("80000000000");
     const closingPrice = ethers.toBigInt("120000000000");
+    const fundingFee = ethers.toBigInt("8593000");
     await oracle.feedPrice(0, openPrice);
 
     const openPriceData = await oracle.getPrice(0);
@@ -1393,6 +1394,7 @@ describe("Integration Test", function () {
     const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
 
     await oracle.feedPrice(0, closingPrice);
+    await oracle.setFundingFee(0, fundingFee);
     const blockNumFeeSet = await ethers.provider.getBlockNumber();
 
     await pairInfo.setFundingFeePerBlockP(pairIndex);
@@ -1431,19 +1433,13 @@ describe("Integration Test", function () {
       buy,
       Number(positionSizeWETH)
     );
-    const fundingFeeRate = calculateFundingFeePerBlock(
-      Number(closingPrice),
-      Number(openPrice),
-      blockNumFeeSet,
-      blockNumBefore
-    );
 
     const totalFundingFeeForLong = calculateFundingFee(
       Number(tradePairOpeningInterest[0]),
       Number(tradePairOpeningInterest[1]),
       blockNumAfter,
       blockNumFeeSet,
-      fundingFeeRate
+      Number(fundingFee)
     );
 
     const fundingFeeTrade = calculateFundingFeeForTrade(
@@ -1507,6 +1503,8 @@ describe("Integration Test", function () {
     const tp = ethers.toBigInt("80000000000");
     const sl = ethers.toBigInt("120000000000");
     const closingPrice = ethers.toBigInt("80000000000");
+    const fundingFee = ethers.toBigInt("8593000");
+
     await oracle.feedPrice(0, openPrice);
 
     const openPriceData = await oracle.getPrice(0);
@@ -1541,6 +1539,8 @@ describe("Integration Test", function () {
     const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
 
     await oracle.feedPrice(0, closingPrice);
+    await oracle.setFundingFee(0, fundingFee);
+
     const blockNumFeeSet = await ethers.provider.getBlockNumber();
 
     await pairInfo.setFundingFeePerBlockP(pairIndex);
@@ -1579,19 +1579,13 @@ describe("Integration Test", function () {
       buy,
       Number(positionSizeWETH)
     );
-    const fundingFeeRate = calculateFundingFeePerBlock(
-      Number(closingPrice),
-      Number(openPrice),
-      blockNumFeeSet,
-      blockNumBefore
-    );
 
     const totalFundingFeeForLong = calculateFundingFee(
       Number(tradePairOpeningInterest[1]),
       Number(tradePairOpeningInterest[0]),
       blockNumAfter,
       blockNumFeeSet,
-      fundingFeeRate
+      Number(fundingFee)
     );
 
     const fundingFeeTrade = calculateFundingFeeForTrade(
@@ -1827,6 +1821,7 @@ describe("Integration Test", function () {
     const tp = ethers.toBigInt("80000000000");
     const sl = ethers.toBigInt("120000000000");
     const closingPrice = ethers.toBigInt("80000000000");
+    const fundingFee = ethers.toBigInt("8593000");
     await oracle.feedPrice(0, openPrice);
 
     const openPriceData = await oracle.getPrice(0);
@@ -1903,6 +1898,8 @@ describe("Integration Test", function () {
     const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
 
     await oracle.feedPrice(0, closingPrice);
+    await oracle.setFundingFee(0, fundingFee);
+
     const blockNumFeeSet = await ethers.provider.getBlockNumber();
 
     await pairInfo.setFundingFeePerBlockP(pairIndex);
@@ -1925,19 +1922,13 @@ describe("Integration Test", function () {
       buy,
       Number(positionSizeWETH)
     );
-    const fundingFeeRate = calculateFundingFeePerBlock(
-      Number(closingPrice),
-      Number(openPrice),
-      blockNumFeeSet,
-      blockNumBefore
-    );
 
     const totalFundingFeeForLong = calculateFundingFee(
       Number(tradePairOpeningInterest[1]),
       Number(tradePairOpeningInterest[0]),
       blockNumAfter,
       blockNumFeeSet,
-      fundingFeeRate
+      Number(fundingFee)
     );
 
     const fundingFeeTrade = calculateFundingFeeForTrade(
@@ -1998,6 +1989,7 @@ describe("Integration Test", function () {
     const tp = ethers.toBigInt("120000000000");
     const sl = ethers.toBigInt("80000000000");
     const closingPrice = ethers.toBigInt("120000000000");
+    const fundingFee = ethers.toBigInt("8593000");
     await oracle.feedPrice(0, openPrice);
 
     const openPriceData = await oracle.getPrice(0);
@@ -2074,6 +2066,7 @@ describe("Integration Test", function () {
     const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
 
     await oracle.feedPrice(0, closingPrice);
+    await oracle.setFundingFee(0, fundingFee);
     const blockNumFeeSet = await ethers.provider.getBlockNumber();
 
     await pairInfo.setFundingFeePerBlockP(pairIndex);
@@ -2096,19 +2089,13 @@ describe("Integration Test", function () {
       buy,
       Number(positionSizeWETH)
     );
-    const fundingFeeRate = calculateFundingFeePerBlock(
-      Number(closingPrice),
-      Number(openPrice),
-      blockNumFeeSet,
-      blockNumBefore
-    );
 
     const totalFundingFeeForLong = calculateFundingFee(
       Number(tradePairOpeningInterest[0]),
       Number(tradePairOpeningInterest[1]),
       blockNumAfter,
       blockNumFeeSet,
-      fundingFeeRate
+      Number(fundingFee)
     );
 
     const fundingFeeTrade = calculateFundingFeeForTrade(
@@ -2151,11 +2138,8 @@ describe("Integration Test", function () {
       ]
     );
 
-    // await tnx.wait();
 
     tnx = await oracle.getPrice(0);
-
-    console.log(tnx);
 
     tnx = await WETH.mint(trader, ethers.toBigInt("100000000000000000000000"));
     await tnx.wait();
@@ -2205,8 +2189,6 @@ describe("Integration Test", function () {
       ]
     );
 
-    // await tnx.wait();
-
     tnx = await oracle.getPrice(0);
     tnx = await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
     await tnx.wait();
@@ -2231,6 +2213,6 @@ describe("Integration Test", function () {
       tnx[4]
     );
 
-    await tnx.wait()
+    await tnx.wait();
   });
 });
