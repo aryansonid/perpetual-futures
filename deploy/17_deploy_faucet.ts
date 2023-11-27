@@ -4,13 +4,20 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy } = deployments;
-  const { deployer, priceSetter } = await getNamedAccounts();
-  const Storage = await deployments.get("Storage");
+  const { deployer } = await getNamedAccounts();
 
-  await deploy("Resolver", {
+  await deploy("Faucet", {
     from: deployer,
-    contract: "Resolver",
-    args: [Storage.address],
+    contract: "Faucet",
+    proxy: {
+      owner: deployer,
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        methodName: "Faucet_init",
+        args: [deployer],
+      },
+      upgradeIndex: 0,
+    },
     log: true,
   });
 };
