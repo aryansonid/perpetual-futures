@@ -1060,8 +1060,4 @@ contract Vault is
     function marketCap() public view returns (uint) {
         return (totalSupply() * shareToAssetsPrice) / PRECISION; // 1e18
     }
-
-    function updateEpoch(uint256 i) external {
-        currentEpoch = i;
-    }
 }

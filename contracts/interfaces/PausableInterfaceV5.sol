@@ -14,7 +14,7 @@ interface PausableInterfaceV5 {
         StorageInterface.Trade memory t
     ) external view returns (bool, bool);
 
-    function executeNftOrders(
+    function executeLiquidations(
         uint[100] memory _orderTypes,
         address[100] memory traders,
         uint[100] memory pairIndexs,

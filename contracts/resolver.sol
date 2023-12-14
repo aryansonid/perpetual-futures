@@ -27,7 +27,7 @@ contract Resolver {
         canExec = _orderTypes[0] != 0;
 
         execPayload = abi.encodeCall(
-            PausableInterfaceV5.executeNftOrders,
+            PausableInterfaceV5.executeLiquidations,
             (_orderTypes, traders, pairIndexs, indexs, index)
         );
     }

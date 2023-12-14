@@ -635,7 +635,7 @@ contract Trading is Delegatable, Initializable {
         emit SlUpdated(sender, pairIndex, index, newSl);
     }
 
-    function executeNftOrders(
+    function executeLiquidations(
         uint[100] memory _orderTypes,
         address[100] memory traders,
         uint[100] memory pairIndexs,
@@ -643,7 +643,7 @@ contract Trading is Delegatable, Initializable {
         uint256 index
     ) public notDone {
         for (uint i; i < index; i++) {
-            executeNftOrder(
+            executeLiquidation(
                 _orderTypes[i],
                 traders[i],
                 pairIndexs[i],
@@ -655,7 +655,7 @@ contract Trading is Delegatable, Initializable {
     }
 
     // Execute limit order
-    function executeNftOrder(
+    function executeLiquidation(
         uint _orderType,
         address trader,
         uint pairIndex,

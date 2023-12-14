@@ -3,19 +3,37 @@ pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Faucet is OwnableUpgradeable {
+contract ETHFaucet is OwnableUpgradeable {
     event sent(uint256 amount, address receiver);
+    event TransferLimitUpdated(uint256 _limit);
+    event TransferTimeLimitUpdated(uint256 _limit);
 
-    uint256 constant TransferLimit = 5e17; //0.5 eth
-    uint256 constant TransferTimeLimit = 1 days;
+    uint256 public TransferLimit;
+    uint256 public TransferTimeLimit;
 
     mapping(address => uint256) lastRequestTime;
 
-    function Faucet_init(address owner) external initializer {
+    function Faucet_init(
+        address owner,
+        uint256 _transferLimit,
+        uint256 _time
+    ) external initializer {
         _transferOwnership(owner);
+        TransferLimit = _transferLimit;
+        TransferTimeLimit = _time;
     }
 
-    function send(address payable receiver) public payable {
+    function updateTransferLimit(uint256 _limit) external onlyOwner {
+        TransferLimit = _limit;
+        emit TransferLimitUpdated(_limit);
+    }
+
+    function updateTransferTimeLimit(uint256 _limit) external onlyOwner {
+        TransferTimeLimit = _limit;
+        emit TransferTimeLimitUpdated(_limit);
+    }
+
+    function send(address payable receiver) public {
         uint256 amountSent;
 
         require(

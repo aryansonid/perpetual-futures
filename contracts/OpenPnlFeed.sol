@@ -42,6 +42,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
     mapping(uint => uint) public requestIds; // chainlink request id => requestId
     mapping(uint => Request) public requests; // requestId => request
     mapping(uint => int[]) public requestAnswers; // requestId => open pnl (1e18)
+    address feeder;
 
     struct Request {
         bool initiated;
@@ -54,6 +55,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
     event OracleUpdated(uint index, address newValue);
     event OraclesUpdated(address[] newValues);
     event JobUpdated(bytes32 newValue);
+    event FeederUpdated(address _feeder);
 
     event NextEpochValuesReset(uint indexed currEpoch, uint requestsResetCount);
 
@@ -98,7 +100,8 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
         IToken _vault,
         address[] memory _oracles,
         bytes32 _job,
-        uint _minAnswers
+        uint _minAnswers,
+        address _feeder
     ) external initializer {
         require(
             _LINK_FEE_BALANCE_DIVIDER > 0 &&
@@ -123,12 +126,19 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
         requestsStart = 2 hours;
         requestsEvery = 30 minutes;
         requestsCount = 4;
+        feeder = _feeder;
     }
 
     // Modifiers
     modifier onlyOwner() {
         // 2-week timelock
         require(msg.sender == IOwnable(address(vault)).owner(), "ONLY_OWNER");
+        _;
+    }
+
+    modifier onlyFeeder() {
+        // 2-week timelock
+        require(msg.sender == feeder, "ONLY_FEEDER");
         _;
     }
 
@@ -145,6 +155,12 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
     }
 
     // Manage parameters
+
+    function updateFeeder(address _feeder) external onlyOwner {
+        feeder = _feeder;
+        emit FeederUpdated(_feeder);
+    }
+
     function updateRequestsStart(uint newValue) public onlyOwner {
         require(newValue >= MIN_REQUESTS_START, "BELOW_MIN");
         require(newValue <= MAX_REQUESTS_START, "ABOVE_MAX");
@@ -294,7 +310,7 @@ contract OpenPnlFeed is ChainlinkClient, IOpenTradesPnlFeed, Initializable {
     function fulfill(
         uint requestId,
         int value // 1e18
-    ) external /*recordChainlinkFulfillment(requestId)*/ {
+    ) external onlyFeeder {
         uint reqId = requestIds[requestId];
         delete requestIds[requestId];
 
