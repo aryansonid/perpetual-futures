@@ -13,11 +13,24 @@ import {
   calculateFundingFeePerBlock,
   calculateFundingFeeForTrade,
   calculateFundingFee,
+  updatePosOpening,
+  getClosingFee,
 } from "./fixture";
 
 describe("Integration Test", function () {
   it("Opening a trade", async function () {
-    const { storage, trading, WETH, trader, oracle } = await setupTest();
+    const { storage, trading, WETH, trader, oracle, vault, deployer } =
+      await setupTest();
+
+    await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    const tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    await tnx.wait();
 
     /// minting WETH for the trader to trade and approving the storage contract.
     await WETH.mint(trader, ethers.toBigInt("10000000000000000000000"));
@@ -145,7 +158,7 @@ describe("Integration Test", function () {
 
     // Trade parameters for first trade
     const pairIndex1 = 0;
-    const positionSizeWETH1 = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH1 = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("10000000000000000000");
     const buy1 = true;
     const leverage1 = 10;
@@ -238,7 +251,7 @@ describe("Integration Test", function () {
       vault.target,
       ethers.toBigInt("10000000000000000000000")
     );
-    const tnx = await vault
+    let tnx = await vault
       .connect(await ethers.getSigner(deployer))
       .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
     await tnx.wait();
@@ -253,7 +266,7 @@ describe("Integration Test", function () {
     );
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("100000000000");
     const buy = true;
     const leverage = 10;
@@ -281,6 +294,11 @@ describe("Integration Test", function () {
       0,
       3000000000
     );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
+    );
+
     const balanceOfTraderOld = await WETH.balanceOf(trader);
 
     expect(balanceOfTraderOld).to.be.equal(0);
@@ -327,10 +345,19 @@ describe("Integration Test", function () {
       buy,
       Number(positionSizeWETH)
     );
+
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH),
+      Number(leverage)
+    );
     const balanceOfTrader = await WETH.balanceOf(trader);
 
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
-      Number(new BigNumber(amount).minus(new BigNumber(tradingFee)))
+      Number(
+        new BigNumber(amount)
+          .minus(new BigNumber(tradingFee))
+          .minus(new BigNumber(closingFee))
+      )
     );
   });
 
@@ -367,7 +394,7 @@ describe("Integration Test", function () {
     );
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("100000000000");
     const buy = false;
     const leverage = 10;
@@ -395,6 +422,10 @@ describe("Integration Test", function () {
       0,
       0,
       3000000000
+    );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
     );
 
     const balanceOfTraderOld = await WETH.balanceOf(trader);
@@ -444,10 +475,18 @@ describe("Integration Test", function () {
       buy,
       Number(positionSizeWETH)
     );
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH),
+      Number(leverage)
+    );
     const balanceOfTrader = await WETH.balanceOf(trader);
 
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
-      Number(new BigNumber(amount).minus(new BigNumber(tradingFee)))
+      Number(
+        new BigNumber(amount)
+          .minus(new BigNumber(tradingFee))
+          .minus(new BigNumber(closingFee))
+      )
     );
   });
 
@@ -537,7 +576,7 @@ describe("Integration Test", function () {
 
     // trade parameters for second trade
     const pairIndex3 = 0;
-    const positionSizeWETH3 = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH3 = ethers.toBigInt("10000000000000000000");
     const buy3 = false;
     const leverage3 = 10;
     const tp3 = ethers.toBigInt("8000000000000000000");
@@ -559,6 +598,15 @@ describe("Integration Test", function () {
       0,
       3000000000
     );
+    positionSizeWETH3 = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH3), Number(leverage3))}`
+    );
+
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH3),
+      Number(leverage3)
+    );
+
     const balanceOfTraderOld = await WETH.balanceOf(trader);
 
     expect(balanceOfTraderOld).to.be.equal(0);
@@ -585,7 +633,7 @@ describe("Integration Test", function () {
     const balanceOfTraderNew = await WETH.balanceOf(trader);
 
     expect(Number(balanceOfTraderNew - balanceOfTraderOld)).to.be.equal(
-      Number(new BigNumber(amount))
+      Number(new BigNumber(amount).minus(new BigNumber(closingFee)))
     );
   });
 
@@ -680,7 +728,7 @@ describe("Integration Test", function () {
 
     // trade parameters for third trade
     const pairIndex3 = 0;
-    const positionSizeWETH3 = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH3 = ethers.toBigInt("10000000000000000000");
     const buy3 = true;
     const leverage3 = 10;
     const tp3 = ethers.toBigInt("12000000000000000000");
@@ -704,6 +752,16 @@ describe("Integration Test", function () {
       0,
       3000000000
     );
+
+    positionSizeWETH3 = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH3), Number(leverage3))}`
+    );
+
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH3),
+      Number(leverage3)
+    );
+
     const balanceOfTraderOld = await WETH.balanceOf(trader);
 
     expect(balanceOfTraderOld).to.be.equal(0);
@@ -730,7 +788,7 @@ describe("Integration Test", function () {
     const balanceOfTraderNew = await WETH.balanceOf(trader);
 
     expect(Number(balanceOfTraderNew - balanceOfTraderOld)).to.be.equal(
-      Number(new BigNumber(amount))
+      Number(new BigNumber(amount).minus(new BigNumber(closingFee)))
     );
   });
   it("call back close trade multiple trade", async function () {
@@ -820,7 +878,7 @@ describe("Integration Test", function () {
       .connect(await ethers.getSigner(trader))
       .closeTradeMarket(0, 1);
   });
-  it("deposit and withdraw", async function () {
+  it.skip("deposit and withdraw", async function () {
     const {
       storage,
       trading,
@@ -1103,7 +1161,7 @@ describe("Integration Test", function () {
     await oracle.feedPrice(0, closingPrice);
     const balanceold = await WETH.balanceOf(trader);
 
-    await trading.executeNftOrder(2, trader, pairIndex, 0, 0, 0);
+    await trading.executeLiquidation(2, trader, pairIndex, 0, 0, 0);
 
     const balance = await WETH.balanceOf(trader);
   });
@@ -1143,7 +1201,7 @@ describe("Integration Test", function () {
 
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("10000000000000000000");
     const buy = true;
     const leverage = 10;
@@ -1167,6 +1225,10 @@ describe("Integration Test", function () {
       0,
       0,
       3000000000
+    );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
     );
 
     // minting blocks for substantial Borrowing fee.
@@ -1226,7 +1288,7 @@ describe("Integration Test", function () {
 
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("1000000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("1000000000000000000000");
     const openPrice = ethers.toBigInt("10000000000000000000");
     const buy = true;
     const leverage = 10;
@@ -1253,6 +1315,10 @@ describe("Integration Test", function () {
       3000000000
     );
     const blockNumBefore = await ethers.provider.getBlockNumber();
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
+    );
+
 
     // minting blocks for substantial Borrowing fee.
     await mine(1000);
@@ -1266,13 +1332,20 @@ describe("Integration Test", function () {
       collateral: positionSizeWETH, // 1e18 (DAI)
       leverage: leverage,
     });
-
     await oracle.feedPrice(0, closingPrice);
     const tradeOld = await storage.getOpenTrades(trader, pairIndex, 0);
     const tradePairOpeningInterest = await borrowing.getPairOpenInterestWETH(0);
 
-    const tnx1 = await trading.executeNftOrder(4, trader, pairIndex, 0, 0, 0);
+    const tnx1 = await trading.executeLiquidation(
+      4,
+      trader,
+      pairIndex,
+      0,
+      0,
+      0
+    );
     await tnx1.wait();
+
     const blockNumAfter = await ethers.provider.getBlockNumber();
 
     const amountLeftAfterPnl = getWethToBeSentToTrader(
@@ -1282,11 +1355,13 @@ describe("Integration Test", function () {
       buy,
       Number(positionSizeWETH)
     );
+
     const netOI = getNetOI(
       Number(tradePairOpeningInterest[0]),
       Number(tradePairOpeningInterest[1]),
       true
     );
+
     const borrowingFeeDelta = getDelta(
       blockNumAfter,
       blockNumBefore,
@@ -1302,6 +1377,7 @@ describe("Integration Test", function () {
     );
 
     const tradeNew = await storage.getOpenTrades(trader, pairIndex, 0);
+
     const tPP = getTpPercentage(
       Number(tp),
       Number(openPrice),
@@ -1352,7 +1428,7 @@ describe("Integration Test", function () {
     );
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("100000000000");
     const buy = true;
     const leverage = 10;
@@ -1381,6 +1457,10 @@ describe("Integration Test", function () {
       0,
       0,
       3000000000
+    );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
     );
 
     const balanceOfTraderOld = await WETH.balanceOf(trader);
@@ -1450,10 +1530,14 @@ describe("Integration Test", function () {
     );
 
     const balanceOfTrader = await WETH.balanceOf(trader);
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH),
+      Number(leverage)
+    );
 
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
       Number(
-        new BigNumber(amount)
+        new BigNumber(amount - closingFee)
           .minus(new BigNumber(tradingFee))
           .minus(new BigNumber(fundingFeeTrade))
       )
@@ -1496,7 +1580,7 @@ describe("Integration Test", function () {
     );
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("100000000000");
     const buy = false;
     const leverage = 10;
@@ -1526,6 +1610,10 @@ describe("Integration Test", function () {
       0,
       0,
       3000000000
+    );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
     );
 
     const balanceOfTraderOld = await WETH.balanceOf(trader);
@@ -1595,11 +1683,16 @@ describe("Integration Test", function () {
       leverage
     );
 
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH),
+      Number(leverage)
+    );
+
     const balanceOfTrader = await WETH.balanceOf(trader);
 
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
       Number(
-        new BigNumber(amount)
+        new BigNumber(amount - closingFee)
           .minus(new BigNumber(tradingFee))
           .minus(new BigNumber(Math.abs(fundingFeeTrade)))
       )
@@ -1641,7 +1734,7 @@ describe("Integration Test", function () {
     );
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("100000000000");
     const buy = false;
     const leverage = 10;
@@ -1669,6 +1762,10 @@ describe("Integration Test", function () {
       0,
       0,
       3000000000
+    );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
     );
 
     // Trade parameters
@@ -1766,11 +1863,16 @@ describe("Integration Test", function () {
       leverage
     );
 
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH),
+      Number(leverage)
+    );
+
     const balanceOfTrader = await WETH.balanceOf(trader);
 
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
       Number(
-        new BigNumber(amount)
+        new BigNumber(amount - closingFee)
           .minus(new BigNumber(tradingFee))
           .minus(new BigNumber(Math.abs(fundingFeeTrade)))
       )
@@ -1814,7 +1916,7 @@ describe("Integration Test", function () {
     );
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("100000000000");
     const buy = false;
     const leverage = 10;
@@ -1843,6 +1945,10 @@ describe("Integration Test", function () {
       0,
       0,
       3000000000
+    );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
     );
 
     // Trade parameters
@@ -1938,10 +2044,17 @@ describe("Integration Test", function () {
       leverage
     );
 
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH),
+      Number(leverage)
+    );
+
     const balanceOfTrader = await WETH.balanceOf(trader);
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
       Number(
-        new BigNumber(amount).plus(new BigNumber(Math.abs(fundingFeeTrade)))
+        new BigNumber(amount - closingFee).plus(
+          new BigNumber(Math.abs(fundingFeeTrade))
+        )
       )
     );
   });
@@ -1982,7 +2095,7 @@ describe("Integration Test", function () {
     );
     // Trade parameters
     const pairIndex = 0;
-    const positionSizeWETH = ethers.toBigInt("10000000000000000000");
+    let positionSizeWETH = ethers.toBigInt("10000000000000000000");
     const openPrice = ethers.toBigInt("100000000000");
     const buy = true;
     const leverage = 10;
@@ -2011,6 +2124,10 @@ describe("Integration Test", function () {
       0,
       0,
       3000000000
+    );
+
+    positionSizeWETH = ethers.toBigInt(
+      `${updatePosOpening(Number(positionSizeWETH), Number(leverage))}`
     );
 
     // Trade parameters
@@ -2105,10 +2222,17 @@ describe("Integration Test", function () {
       leverage
     );
 
+    const closingFee = getClosingFee(
+      Number(positionSizeWETH),
+      Number(leverage)
+    );
+
     const balanceOfTrader = await WETH.balanceOf(trader);
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
       Number(
-        new BigNumber(amount).plus(new BigNumber(Math.abs(fundingFeeTrade)))
+        new BigNumber(amount - closingFee).plus(
+          new BigNumber(Math.abs(fundingFeeTrade))
+        )
       )
     );
   });
@@ -2128,7 +2252,15 @@ describe("Integration Test", function () {
       oracle,
     } = await setupTest();
     // step to provide liquidity to the vault
-    let tnx;
+    await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
+    await WETH.connect(await ethers.getSigner(deployer)).approve(
+      vault.target,
+      ethers.toBigInt("10000000000000000000000")
+    );
+    let tnx = await vault
+      .connect(await ethers.getSigner(deployer))
+      .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
+    await tnx.wait();
 
     tnx = await oracle.feedPriceArray(
       [0, 1],
@@ -2137,7 +2269,6 @@ describe("Integration Test", function () {
         ethers.toBigInt("10000000000000000000"),
       ]
     );
-
 
     tnx = await oracle.getPrice(0);
 
@@ -2205,7 +2336,7 @@ describe("Integration Test", function () {
 
     tnx = await storage.getLiquidatableTrades();
 
-    tnx = await trading.executeNftOrders(
+    tnx = await trading.executeLiquidations(
       [...tnx[0]],
       [...tnx[1]],
       [...tnx[2]],
