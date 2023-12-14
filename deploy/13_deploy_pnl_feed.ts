@@ -42,6 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           oracles,
           "0x0000000000000000000000000000000000000000000000000000000000000004",
           3,
+          deployer
         ],
       },
       upgradeIndex: 0,

@@ -58,7 +58,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
       upgradeIndex: 0,
     },
-    libraries: { PackingUtils: PackingUtils.address },
     log: true,
   });
   const networkName = hre.network.name;
@@ -77,7 +76,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         nodes,
         jobIds,
       ],
-      // libraries: { PackingUtils: PackingUtils.address },
     });
   }
 };

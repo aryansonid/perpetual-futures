@@ -10,8 +10,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const pairsInfo = await deployments.get("pairsInfo");
   const borrowing = await deployments.get("borrowing");
   const reward = await deployments.get("reward");
-  const PackingUtils = await deployments.get("PackingUtils");
   const callback = await deployments.get("callback");
+  const PackingUtils = await deploy("PackingUtils", {
+    from: deployer,
+    contract: "PackingUtils",
+    log: true,
+  });
 
   const TradeUtils = await deploy("TradeUtils", {
     from: deployer,
@@ -64,6 +68,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ],
       libraries: {
         TradeUtils: TradeUtils.address,
+        PackingUtils: PackingUtils.address,
       },
     });
   }
@@ -71,4 +76,3 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 export default func;
 func.tags = ["Trading"];
-func.dependencies = ["Storage", "PairsStorage"];
