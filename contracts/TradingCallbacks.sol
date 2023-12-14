@@ -12,7 +12,6 @@ import "./interfaces/BorrowingFeesInterface.sol";
 import "./interfaces/PairsStorageInterfaceV6.sol";
 import "./interfaces/AggregatorInterfaceV1_4.sol";
 import "./Storage.sol";
-import "hardhat/console.sol";
 
 contract TradingCallbacks is Initializable {
     // Contracts (constant)
@@ -1237,10 +1236,6 @@ contract TradingCallbacks is Initializable {
             percentProfit,
             0
         );
-        console.log("percentProfit");
-        console.logInt(percentProfit);
-        console.log(trade.positionSizeWETH, "positionSizeWETH");
-        console.log(WETHSentToTrader, "WETHSentToTrader");
 
         // 2. Calls to other contracts
         borrowingFees.handleTradeAction(
