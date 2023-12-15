@@ -235,6 +235,19 @@ contract TradingCallbacks is Initializable {
     event Done(bool done);
 
     event DevGovFeeCharged(address indexed trader, uint valueWETH);
+    event ClosigFeeDeduced(address indexed trader, uint256 fee);
+    event OpeningFeeDeduced(address indexed trader, uint256 fee);
+    event LiquidationFeeDeduced(
+        uint256 _vaultFee,
+        uint256 _liquidatorFee,
+        address liquidator
+    );
+    event ParLiquidationFeeDeduced(
+        uint256 _vaultFee,
+        uint256 _liquidatorFee,
+        address liquidator
+    );
+
     event ReferralFeeCharged(address indexed trader, uint valueWETH);
     event NftBotFeeCharged(address indexed trader, uint valueWETH);
     event SssFeeCharged(address indexed trader, uint valueWETH);
@@ -981,6 +994,7 @@ contract TradingCallbacks is Initializable {
         v.reward1 = (v.levPosWETH * openingFeeP) / 1e4;
 
         distributeLPReward(trade.trader, v.reward1);
+        emit OpeningFeeDeduced(trade.trader, v.reward1);
 
         trade.positionSizeWETH = trade.positionSizeWETH - v.reward1;
 
@@ -1191,6 +1205,7 @@ contract TradingCallbacks is Initializable {
             v.reward1 = (v.levPosWETH * closingFeeP) / 1e4;
 
             distributeLPReward(trade.trader, v.reward1);
+            emit ClosigFeeDeduced(trade.trader, v.reward1);
 
             if (!marketOrder) {
                 v.reward2 = (nftFeeWETH * vaultFeeP) / 100;
@@ -1198,6 +1213,8 @@ contract TradingCallbacks is Initializable {
 
                 v.reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
                 transferFromStorageToAddress(msg.sender, v.reward3);
+
+                emit LiquidationFeeDeduced(v.reward2, v.reward3, msg.sender);
             }
             uint WETHLeftInStorage = currentWETHPos -
                 v.reward3 -
@@ -1246,19 +1263,26 @@ contract TradingCallbacks is Initializable {
             true,
             trade.buy
         );
+        uint256 pnl = (openInterestWETH / trade.leverage) - WETHSentToTrader;
         getPairsStorage().updateGroupCollateral(
             trade.pairIndex,
-            (openInterestWETH / trade.leverage) - WETHSentToTrader,
+            pnl,
             trade.buy,
             false
         );
+        {
+            // send fee
+            uint256 reward2 = (nftFeeWETH * vaultFeeP) / 100;
+            sendToVault(reward2, trade.trader);
 
-        // send fee
-        uint256 reward2 = (nftFeeWETH * vaultFeeP) / 100;
-        sendToVault(reward2, trade.trader);
+            uint256 reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
+            transferFromStorageToAddress(msg.sender, reward3);
 
-        uint256 reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
-        transferFromStorageToAddress(msg.sender, reward3);
+            emit ParLiquidationFeeDeduced(reward2, reward3, msg.sender);
+
+            pnl = pnl - reward2 - reward3;
+            sendToVault(pnl, trade.trader);
+        }
 
         // 3. Unregister trade from storage
 
