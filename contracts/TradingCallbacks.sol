@@ -941,7 +941,7 @@ contract TradingCallbacks is Initializable {
                         a.orderId,
                         t,
                         v.price,
-                        o.orderType == StorageInterface.LimitOrder.LIQ
+                        o.orderType != StorageInterface.LimitOrder.LIQ
                     );
                 }
 
