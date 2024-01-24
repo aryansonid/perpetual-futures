@@ -1392,7 +1392,7 @@ describe("Integration Test", function () {
     expect(Number(tradeNew[8])).to.be.equal(newTP);
   });
 
-  it("funding fee from long side", async function () {
+  it.only("funding fee from long side", async function () {
     const {
       storage,
       trading,
@@ -1534,6 +1534,8 @@ describe("Integration Test", function () {
       Number(positionSizeWETH),
       Number(leverage)
     );
+
+    console.log({ fundingFeeTrade });
 
     expect(Number(balanceOfTrader - balanceOfTraderOld)).to.be.equal(
       Number(
@@ -2345,5 +2347,8 @@ describe("Integration Test", function () {
     );
 
     await tnx.wait();
+
+    const recipet = await ethers.provider.getTransactionReceipt(tnx.hash)
+
   });
 });
