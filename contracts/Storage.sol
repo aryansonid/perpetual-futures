@@ -6,6 +6,7 @@ import "./interfaces/AggregatorInterfaceV1.sol";
 import "./interfaces/PoolInterfaceV5.sol";
 import "./interfaces/NftInterfaceV5.sol";
 import "./interfaces/PausableInterfaceV5.sol";
+import "./libraries/ChainUtils.sol";
 
 contract Storage is StorageInterface, Initializable {
     // Constants
@@ -201,6 +202,7 @@ contract Storage is StorageInterface, Initializable {
         defaultLeverageUnlocked = 50; // x
         nftSuccessTimelock = 50; // 50 blocks
         spreadReductionsP = [15, 20, 25, 30, 35];
+        pairs = 11;
     }
 
     // Modifiers
@@ -378,7 +380,7 @@ contract Storage is StorageInterface, Initializable {
         openTrades[_trade.trader][_trade.pairIndex][_trade.index] = _trade;
 
         openTradesCount[_trade.trader][_trade.pairIndex]++;
-        tradesPerBlock[block.number]++;
+        tradesPerBlock[ChainUtils.getBlockNumber()]++;
 
         if (openTradesCount[_trade.trader][_trade.pairIndex] == 1) {
             pairTradersId[_trade.trader][_trade.pairIndex] = pairTraders[
@@ -430,7 +432,7 @@ contract Storage is StorageInterface, Initializable {
         delete openTradesInfo[trader][pairIndex][index];
 
         openTradesCount[trader][pairIndex]--;
-        tradesPerBlock[block.number]++;
+        tradesPerBlock[ChainUtils.getBlockNumber()]++;
 
         emit TradeClose(t);
     }
@@ -444,7 +446,7 @@ contract Storage is StorageInterface, Initializable {
         pendingOrderIds[_order.trade.trader].push(_id);
 
         reqID_pendingMarketOrder[_id] = _order;
-        reqID_pendingMarketOrder[_id].block = block.number;
+        reqID_pendingMarketOrder[_id].block = ChainUtils.getBlockNumber();
 
         if (_open) {
             pendingMarketOpenCount[_order.trade.trader][
@@ -509,7 +511,7 @@ contract Storage is StorageInterface, Initializable {
     // Manage open limit orders
     function storeOpenLimitOrder(OpenLimitOrder memory o) external onlyTrading {
         o.index = firstEmptyOpenLimitIndex(o.trader, o.pairIndex);
-        o.block = block.number;
+        o.block = ChainUtils.getBlockNumber();
         openLimitOrders.push(o);
         openLimitOrderIds[o.trader][o.pairIndex][o.index] =
             openLimitOrders.length -
@@ -533,7 +535,7 @@ contract Storage is StorageInterface, Initializable {
         o.sl = _o.sl;
         o.minPrice = _o.minPrice;
         o.maxPrice = _o.maxPrice;
-        o.block = block.number;
+        o.block = ChainUtils.getBlockNumber();
     }
 
     function unregisterOpenLimitOrder(
@@ -584,7 +586,7 @@ contract Storage is StorageInterface, Initializable {
             return;
         }
         t.sl = _newSl;
-        i.slLastUpdated = block.number;
+        i.slLastUpdated = ChainUtils.getBlockNumber();
     }
 
     function updateTp(
@@ -599,7 +601,7 @@ contract Storage is StorageInterface, Initializable {
             return;
         }
         t.tp = _newTp;
-        i.tpLastUpdated = block.number;
+        i.tpLastUpdated = ChainUtils.getBlockNumber();
     }
 
     function updateTrade(Trade memory _t) external onlyTrading {
@@ -643,7 +645,7 @@ contract Storage is StorageInterface, Initializable {
         uint _nftId,
         uint _amount
     ) external onlyTrading {
-        nftLastSuccess[_nftId] = block.number;
+        nftLastSuccess[_nftId] = ChainUtils.getBlockNumber();
         nftRewards += _amount;
     }
 
@@ -889,24 +891,25 @@ contract Storage is StorageInterface, Initializable {
                 uint k;
                 while (numOfTrades != 0) {
                     Trade memory t = openTrades[traders[j]][i][k];
-                    (bool liquidated, ) = trading.isTradeLiquidatablePure(t);
-                    if (liquidated) {
+
+                    (bool liquidated, bool noSL) = trading
+                        .isTradeLiquidatablePure(t);
+                    if (liquidated && noSL) {
                         traderaddreses[index] = t.trader;
                         _orderTypes[index] = 2;
                         pairIndexs[index] = t.pairIndex;
                         indexs[index] = t.index;
                         index++;
                     }
-                    (bool parLiquidated, ) = trading.isTradeParLiquidatablePure(
-                        t
-                    );
-                    if (parLiquidated && !liquidated) {
-                        traderaddreses[index] = t.trader;
-                        _orderTypes[index] = 4;
-                        pairIndexs[index] = t.pairIndex;
-                        indexs[index] = t.index;
-                        index++;
-                    }
+                    // (bool parLiquidated, bool parNoSL) = trading
+                    //     .isTradeParLiquidatablePure(t);
+                    // if (parLiquidated && !liquidated && parNoSL) {
+                    //     traderaddreses[index] = t.trader;
+                    //     _orderTypes[index] = 4;
+                    //     pairIndexs[index] = t.pairIndex;
+                    //     indexs[index] = t.index;
+                    //     index++;
+                    // }
                     if (index == 99) break;
                     numOfTrades--;
                     k++;

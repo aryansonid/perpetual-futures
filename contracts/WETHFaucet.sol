@@ -10,22 +10,19 @@ contract WETHFaucet is OwnableUpgradeable {
     event TransferTimeLimitUpdated(uint256 _limit);
 
     uint256 public TransferLimit;
-    uint256 public TransferTimeLimit;
 
     TokenInterface WETH;
 
-    mapping(address => uint256) lastRequestTime;
+    mapping(address => bool) requestFulfilled;
 
     function Faucet_init(
         address owner,
         address _WETH,
-        uint256 _transferLimit,
-        uint256 _time
+        uint256 _transferLimit
     ) external initializer {
         _transferOwnership(owner);
         WETH = TokenInterface(_WETH);
         TransferLimit = _transferLimit;
-        TransferTimeLimit = _time;
     }
 
     function updateTransferLimit(uint256 _limit) external onlyOwner {
@@ -33,20 +30,12 @@ contract WETHFaucet is OwnableUpgradeable {
         emit TransferLimitUpdated(_limit);
     }
 
-    function updateTransferTimeLimit(uint256 _limit) external onlyOwner {
-        TransferTimeLimit = _limit;
-        emit TransferTimeLimitUpdated(_limit);
-    }
-
     function send(address payable receiver) public {
         uint256 amountSent;
 
-        require(
-            block.timestamp - lastRequestTime[receiver] >= TransferTimeLimit,
-            "Faucet: early to get faucets"
-        );
+        require(!requestFulfilled[receiver], "Faucet: early requested Faucet");
 
-        lastRequestTime[receiver] = block.timestamp;
+        requestFulfilled[receiver] = true;
 
         WETH.mint(receiver, TransferLimit);
 

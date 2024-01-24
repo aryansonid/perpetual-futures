@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/NFTRewardInterfaceV6_3.sol";
 import "./interfaces/AggregatorInterfaceV1_3.sol";
 import "./interfaces/IStateCopyUtils.sol";
+import "./libraries/ChainUtils.sol";
 
 contract Rewards is Initializable {
     // Contracts (constant)
@@ -210,7 +211,7 @@ contract Rewards is Initializable {
         t.sameBlockLimit = uint16(sameBlockLimit);
 
         delete t.sameBlock;
-        t.block = block.number;
+        t.block = ChainUtils.getBlockNumber();
         t.sameBlock.push(_bot);
 
         emit TriggeredFirst(_id, _bot, _linkFee);
@@ -224,7 +225,7 @@ contract Rewards is Initializable {
             _id.index
         ][_id.order];
 
-        require(t.block == block.number, "TOO_LATE");
+        require(t.block == ChainUtils.getBlockNumber(), "TOO_LATE");
         require(t.sameBlock.length < t.sameBlockLimit, "SAME_BLOCK_LIMIT");
 
         uint linkContribution = t.linkFee / t.sameBlockLimit;
@@ -390,7 +391,9 @@ contract Rewards is Initializable {
         TriggeredLimit memory t = triggeredLimits[_id.trader][_id.pairIndex][
             _id.index
         ][_id.order];
-        return t.block > 0 && block.number - t.block >= triggerTimeout;
+        return
+            t.block > 0 &&
+            ChainUtils.getBlockNumber() - t.block >= triggerTimeout;
     }
 
     function sameBlockTriggers(

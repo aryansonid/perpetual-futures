@@ -183,6 +183,13 @@ contract TradingCallbacks is Initializable {
         uint WETHSentToTrader
     );
 
+    event TradeLiquidated(StorageInterface.Trade t);
+
+    event TradeParLiquidated(
+        StorageInterface.Trade oldTrade,
+        StorageInterface.Trade newTrade
+    );
+
     event LiquidationExecuted(
         uint indexed orderId,
         StorageInterface.Trade t,
@@ -856,13 +863,13 @@ contract TradingCallbacks is Initializable {
                 v.price = a.price;
                 v.reward1 = o.orderType == StorageInterface.LimitOrder.LIQ
                     ? (
-                        (t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice)
+                        (t.buy ? a.price <= v.liqPrice : a.price >= v.liqPrice)
                             ? (v.posWETH * liquidationFeeP) / uint256(100)
                             : 0
                     )
                     : o.orderType == StorageInterface.LimitOrder.PAR_LIQ
                     ? (
-                        (t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice)
+                        (t.buy ? a.price <= v.liqPrice : a.price >= v.liqPrice)
                             ? (v.posWETH * parLiquidationFeeP) / uint256(100)
                             : 0
                     )
@@ -1213,7 +1220,7 @@ contract TradingCallbacks is Initializable {
 
                 v.reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
                 transferFromStorageToAddress(msg.sender, v.reward3);
-
+                emit TradeLiquidated(trade);
                 emit LiquidationFeeDeduced(v.reward2, v.reward3, msg.sender);
             }
             uint WETHLeftInStorage = currentWETHPos -
@@ -1338,6 +1345,8 @@ contract TradingCallbacks is Initializable {
             true,
             newTrade.buy
         );
+
+        emit TradeParLiquidated(trade, newTrade);
 
         // 6. Store final trade in storage contract
         storageT.storeTrade(

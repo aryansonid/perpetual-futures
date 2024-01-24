@@ -34,7 +34,7 @@ contract Trading is Delegatable, Initializable {
     // Params (adjustable)
     uint public maxPosWETH; // 1e18 (eg. 75000 * 1e18)
     uint public marketOrdersTimeout; // block (eg. 30)
-    int public minLeveragedPosWETH = 10e18; //100 weth
+    int public minLeveragedPosWETH; //100 weth
 
     // State
     bool public isPaused; // Prevent opening new trades
@@ -42,6 +42,7 @@ contract Trading is Delegatable, Initializable {
 
     // Events
     event Done(bool done);
+    event MinLeveragedPosWETHSet(int value);
     event Paused(bool paused);
 
     event NumberUpdated(string name, uint value);
@@ -116,7 +117,8 @@ contract Trading is Delegatable, Initializable {
         BorrowingFeesInterface _borrowingFees,
         CallbacksInterface _callbacks,
         uint _maxPosWETH,
-        uint _marketOrdersTimeout
+        uint _marketOrdersTimeout,
+        int _minLeveragedPosWETH
     ) external initializer {
         require(
             address(_storageT) != address(0) &&
@@ -139,6 +141,7 @@ contract Trading is Delegatable, Initializable {
         maxPosWETH = _maxPosWETH;
         marketOrdersTimeout = _marketOrdersTimeout;
         callbacks = _callbacks;
+        minLeveragedPosWETH = _minLeveragedPosWETH;
     }
 
     // Modifiers
@@ -179,6 +182,12 @@ contract Trading is Delegatable, Initializable {
         require(value > 0, "VALUE_0");
         marketOrdersTimeout = value;
         emit NumberUpdated("marketOrdersTimeout", value);
+    }
+
+    function setMinLeveragedPosWETH(int value) external onlyGov {
+        require(value > 0, "VALUE_0");
+        minLeveragedPosWETH = value;
+        emit MinLeveragedPosWETHSet(value);
     }
 
     // Manage state
@@ -287,7 +296,7 @@ contract Trading is Delegatable, Initializable {
             //         t.sl,
             //         t.openPrice,
             //         t.openPrice,
-            //         block.number,
+            //         ChainUtils.getBlockNumber(),
             //         0
             //     )
             // );
@@ -680,7 +689,7 @@ contract Trading is Delegatable, Initializable {
         // require(storageT.nfts(nftType - 1).ownerOf(nftId) == sender, "NO_NFT");
 
         // require(
-        //     block.number >=
+        //     ChainUtils.getBlockNumber() >=
         //         storageT.nftLastSuccess(nftId) + storageT.nftSuccessTimelock(),
         //     "SUCCESS_TIMELOCK"
         // );
@@ -762,7 +771,7 @@ contract Trading is Delegatable, Initializable {
                 int256 position = int(t.positionSizeWETH) + pnl;
                 require(
                     position * int256(t.leverage) >= minLeveragedPosWETH,
-                    "position to small for partial liquidation"
+                    "position too small for partial liquidation"
                 );
             } else {
                 require(
@@ -852,7 +861,7 @@ contract Trading is Delegatable, Initializable {
     //     StorageInterface.Trade memory t = o.trade;
 
     //     require(
-    //         o.block > 0 && block.number >= o.block + marketOrdersTimeout,
+    //         o.block > 0 && ChainUtils.getBlockNumber() >= o.block + marketOrdersTimeout,
     //         "WAIT_TIMEOUT"
     //     );
     //     require(t.trader == sender, "NOT_YOUR_ORDER");
@@ -872,7 +881,7 @@ contract Trading is Delegatable, Initializable {
     //     StorageInterface.Trade memory t = o.trade;
 
     //     require(
-    //         o.block > 0 && block.number >= o.block + marketOrdersTimeout,
+    //         o.block > 0 && ChainUtils.getBlockNumber() >= o.block + marketOrdersTimeout,
     //         "WAIT_TIMEOUT"
     //     );
     //     require(t.trader == sender, "NOT_YOUR_ORDER");
@@ -946,7 +955,7 @@ contract Trading is Delegatable, Initializable {
     //     uint index
     // ) private {
     //     (bytes32 nftHash, bytes32 botHash) = nftRewards.getNftBotHashes(
-    //         block.number,
+    //         ChainUtils.getBlockNumber(),
     //         sender,
     //         nftId,
     //         trader,
@@ -1032,7 +1041,9 @@ contract Trading is Delegatable, Initializable {
         );
         bool noSL = t.sl == 0 || (t.buy ? liqPrice > t.sl : liqPrice < t.sl);
 
-        return (price <= liqPrice, noSL);
+        bool liquidatable = t.buy ? price <= liqPrice : price >= liqPrice;
+
+        return (liquidatable, noSL);
     }
 
     function isTradeParLiquidatable(
@@ -1073,12 +1084,20 @@ contract Trading is Delegatable, Initializable {
                 t.leverage
             )
         );
+        int256 pnl = callbacks.getTradePnl(t.trader, t.pairIndex, t.index);
+        int256 position = int(t.positionSizeWETH) + pnl;
+        bool noSL = t.sl == 0 ||
+            (t.buy ? parLiqPrice > t.sl : parLiqPrice < t.sl);
+        if (position * int256(t.leverage) < minLeveragedPosWETH)
+            return (false, noSL);
         (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
             t.pairIndex
         );
-        bool noSL = t.sl == 0 ||
-            (t.buy ? parLiqPrice > t.sl : parLiqPrice < t.sl);
 
-        return (price <= parLiqPrice, noSL);
+        bool parLiquidatable = t.buy
+            ? price <= parLiqPrice
+            : price >= parLiqPrice;
+
+        return (parLiquidatable, noSL);
     }
 }

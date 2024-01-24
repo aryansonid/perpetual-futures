@@ -445,6 +445,23 @@ contract Vault is
         }
     }
 
+    function sharesBeingWithdrawn(
+        address owner
+    ) public view returns (uint[4] memory shares, uint[4] memory epochs) {
+        uint256 index;
+        for (
+            uint i = currentEpoch;
+            i <= currentEpoch + WITHDRAW_EPOCHS_LOCKS[0];
+            i++
+        ) {
+            if (withdrawRequests[owner][i] > 0) {
+                shares[index] = withdrawRequests[owner][i];
+                epochs[index] = i;
+                index++;
+            }
+        }
+    }
+
     function getPendingAccBlockWeightedMarketCap(
         uint currentBlock
     ) public view returns (uint) {
