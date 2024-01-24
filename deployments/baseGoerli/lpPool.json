@@ -1,0 +1,82 @@
+{
+  "address": "0x33be34702068D07338c58682f48518f79A4a6DD1",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "token0",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x97d8a74a0ab710a9fa850b790d2893d9137e113ee5223363d25c15a41326893c",
+  "receipt": {
+    "to": null,
+    "from": "0xa667403454F483dE81A0363Af7FcEE563819D910",
+    "contractAddress": "0x33be34702068D07338c58682f48518f79A4a6DD1",
+    "transactionIndex": 1,
+    "gasUsed": "109236",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xe5f4a7ee9ffb4ca5e844ebffa0dc07e4e43e0148dc95f6c2c22b6185d42db189",
+    "transactionHash": "0x97d8a74a0ab710a9fa850b790d2893d9137e113ee5223363d25c15a41326893c",
+    "logs": [],
+    "blockNumber": 14761693,
+    "cumulativeGasUsed": "156089",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x899996E219d4DED313A3676939F6665BDa59b190"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "c26d611922cac34a38019d138e123c82",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.14+commit.80d49f37\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"token0\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/mocks/MockLiqPool.sol\":\"MockLiqPool\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":125},\"remappings\":[]},\"sources\":{\"contracts/mocks/MockLiqPool.sol\":{\"content\":\"pragma solidity 0.8.14;\\n\\ncontract MockLiqPool {\\n    address public token0;\\n\\n    constructor(address _token) {\\n        token0 = _token;\\n    }\\n}\\n\",\"keccak256\":\"0x496ab2365bff249444f61d6ffbc36be8a2d74325479c271822e71338b3024f0a\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5060405161012338038061012383398101604081905261002f91610054565b600080546001600160a01b0319166001600160a01b0392909216919091179055610084565b60006020828403121561006657600080fd5b81516001600160a01b038116811461007d57600080fd5b9392505050565b6091806100926000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80630dfe168114602d575b600080fd5b600054603f906001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f3fea26469706673582212206d72e727ec7767a11cd85aa3f7b2d93a6b8987ea89fc6e03aedbd7f0ac9a5e1a64736f6c634300080e0033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c80630dfe168114602d575b600080fd5b600054603f906001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f3fea26469706673582212206d72e727ec7767a11cd85aa3f7b2d93a6b8987ea89fc6e03aedbd7f0ac9a5e1a64736f6c634300080e0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3,
+        "contract": "contracts/mocks/MockLiqPool.sol:MockLiqPool",
+        "label": "token0",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      }
+    }
+  }
+}

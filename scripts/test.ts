@@ -1,103 +1,266 @@
-import BigNumber from "bignumber.js";
 import hre from "hardhat";
 const { deployments, getNamedAccounts, ethers } = hre;
+import BigNumber from "bignumber.js";
 
 (async () => {
-  console.log("in the script");
-  const { deployer, trader, priceSetter } = await getNamedAccounts();
-  const WETH = await getContract("WETH", await ethers.getSigner(deployer));
-  const storage = await getContract(
-    "Storage",
-    await ethers.getSigner(deployer)
-  );
-  const trading = await getContract(
-    "trading",
-    await ethers.getSigner(deployer)
-  );
+  getBorrowingFeeForHour = (
+    collateral: number,
+    leverage: number,
+    pairInfo: IPairInfo
+  ) => {
+    const netOI = getNetOI(
+      Number(pairInfo.openingInterestLong),
+      Number(pairInfo.openingInterestShort),
+      Number(pairInfo.openingInterestLong) >
+        Number(pairInfo.openingInterestShort)
+    );
 
-  const oracle = await getContract(
-    "Oracle",
-    await ethers.getSigner(priceSetter)
-  );
-  let tnx;
+    const feeDelta = getDelta(
+      BLOCKS_IN_HOUR,
+      0,
+      Number(pairInfo.feePerBlock),
+      Number(pairInfo.feeExponent),
+      netOI,
+    Number(pairInfo.maxOi)
+    );
 
-  const vault = await getContract("vault", await ethers.getSigner(deployer));
+    const tradeBorrowingFee = getTradingBorrowingFee(
+      feeDelta,
+      Number(collateral),
+      Number(leverage)
+    );
 
-  // tnx = await oracle.feedPriceArray(
-  //   [0, 1],
-  //   [
-  //     ethers.toBigInt("900000000000000000"),
-  //     ethers.toBigInt("900000000000000000"),
-  //   ]
-  // );
+    return tradeBorrowingFee;
+  };
 
-  // await tnx.wait();
+  getFundingFeeForHour = (
+    collateral: Number,
+    leverage: Number,
+    buy: boolean,
+    pairInfo: IPairInfo
+  ) => {
+    const delta = calculateFundingFeeDelta(
+      Number(pairInfo.openingInterestLong),
+      Number(pairInfo.openingInterestShort),
+      BLOCKS_IN_HOUR,
+      0,
+      Number(pairInfo.value)
+    );
 
-  // tnx = await oracle.getPrice(0);
+    const fundingFee = getUpdatedFundingFee(
+      Number(pairInfo.openingInterestLong),
+      Number(pairInfo.openingInterestShort),
+      0,
+      0,
+      delta,
+      buy ? true : false
+    );
 
-  // console.log(tnx);
+    const tradeFundingFee = calculateFundingFeeForTrade(
+      fundingFee,
+      0,
+      Number(collateral),
+      Number(leverage)
+    );
 
-  // tnx = await WETH.mint(trader, ethers.toBigInt("100000000000000000000000"));
-  // await tnx.wait();
+    return tradeFundingFee;
+  };
 
-  // tnx = await WETH.connect(await ethers.getSigner(trader)).approve(
-  //   storage.target,
-  //   ethers.toBigInt("100000000000000000000000")
-  // );
-  // await tnx.wait();
+  getBorrowingFee = (
+    position: IPosition,
+    pairInfo: IPairInfo,
+    currentBlockNumber: number
+  ) => {
+    const netOI = getNetOI(
+      Number(pairInfo.openingInterestLong),
+      Number(pairInfo.openingInterestShort),
+      Number(pairInfo.openingInterestLong) >
+        Number(pairInfo.openingInterestShort)
+    );
 
-  // // Trade parameters
-  // const pairIndex = 1;
-  // const positionSizeWETH = ethers.toBigInt("1000000000000000000000");
-  // const openPrice = ethers.toBigInt("10000000000000000000");
-  // const buy = true;
-  // const leverage = 10;
-  // const tp = ethers.toBigInt("12000000000000000000");
-  // //                          10000000000000000000
-  // const sl = 0;
+    const feeDelta = getDelta(
+      currentBlockNumber,
+      Number(pairInfo.currentBlock),
+      Number(pairInfo.feePerBlock),
+      Number(pairInfo.feeExponent),
+      netOI,
+      Number(pairInfo.maxOi)
+    );
 
-  // for (let i = 0; i < 3; i++) {
-  //   tnx = await trading.connect(await ethers.getSigner(trader)).openTrade(
-  //     {
-  //       trader: trader,
-  //       pairIndex: pairIndex,
-  //       index: 0,
-  //       initialPosToken: 0,
-  //       positionSizeWETH: positionSizeWETH,
-  //       openPrice: openPrice,
-  //       buy: buy,
-  //       leverage: leverage,
-  //       tp: tp,
-  //       sl: sl,
-  //     },
-  //     0,
-  //     0,
-  //     3000000000
-  //   );
-  //   await tnx.wait();
-  // }
+    const latestFee = getLatestBorrowingFee(
+      Number(pairInfo.accFeeShort),
+      Number(pairInfo.accFeeLong),
+      Number(pairInfo.openingInterestShort) >
+        Number(pairInfo.openingInterestLong),
+      feeDelta,
+      position.buy ? true : false
+    );
 
-  tnx = await WETH.mint(deployer, ethers.toBigInt("10000000000000000000000"));
-  await tnx.wait();
-  tnx = await WETH.connect(await ethers.getSigner(deployer)).approve(
-    vault.target,
-    ethers.toBigInt("10000000000000000000000")
-  );
-  await tnx.wait();
+    const tradeBorrowingFee = getTradingBorrowingFee(
+      latestFee - Number(position.initialPairAccFee),
+      Number(position.collateral),
+      Number(position.leverage)
+    );
 
-  tnx = await vault
-    .connect(await ethers.getSigner(deployer))
-    .deposit(ethers.toBigInt("10000000000000000000000"), deployer);
-  await tnx.wait();
+    return tradeBorrowingFee;
+  };
+
+  getFundingFee = (
+    position: IPosition,
+    pairInfo: IPairInfo,
+    currentBlockNumber: number
+  ) => {
+    const delta = calculateFundingFeeDelta(
+      Number(pairInfo.openingInterestLong),
+      Number(pairInfo.openingInterestShort),
+      currentBlockNumber,
+      Number(pairInfo.accFundingFeesStoredBlockNumber),
+      Number(pairInfo.value)
+    );
+
+    const updatedFundingFee = getUpdatedFundingFee(
+      Number(pairInfo.openingInterestLong),
+      Number(pairInfo.openingInterestShort),
+      Number(pairInfo.valueLong),
+      Number(pairInfo.valueShort),
+      delta,
+      position.buy ? true : false
+    );
+
+    const tradeFundingFee = calculateFundingFeeForTrade(
+      updatedFundingFee,
+      Number(position.funding),
+      Number(position.collateral),
+      Number(position.leverage)
+    );
+
+    return tradeFundingFee;
+  };
+
+  getDelta = (
+    currentBlock: number,
+    lastUpdateBlock: number,
+    feePerBlock: number,
+    feeExponent: number,
+    pairOpeningInterestDif: number, // short -long oi for pair or vice versa
+    maxOi: number
+  ) => {
+    return Math.floor(
+      Number(
+        new BigNumber(currentBlock - lastUpdateBlock)
+          .times(new BigNumber(feePerBlock))
+          .times(
+            new BigNumber(
+              (pairOpeningInterestDif * 10000000000) ** feeExponent /
+                maxOi ** feeExponent
+            )
+          )
+          .div(new BigNumber(1000000000000000000))
+      )
+    );
+  };
+
+  getNetOI = (longOI: number, shortOI: number, moreLong: boolean) => {
+    return moreLong ? longOI - shortOI : shortOI - longOI;
+  };
+
+  getLatestBorrowingFee = (
+    accFeeShort: number,
+    accFeeLong: number,
+    moreShort: boolean,
+    feeDelta: number,
+    long: boolean
+  ) => {
+    let fundingFeeLong;
+    let fundingFeeShort;
+    if (moreShort) {
+      fundingFeeShort = accFeeShort + feeDelta;
+      fundingFeeLong = accFeeLong;
+    } else {
+      fundingFeeLong = accFeeLong + feeDelta;
+      fundingFeeShort = accFeeShort;
+    }
+    return long ? fundingFeeLong : fundingFeeShort;
+  };
+
+  getTradingBorrowingFee = (
+    fee: number,
+    collateral: number,
+    leverage: number
+  ) => {
+    return Math.floor(
+      Number(
+        new BigNumber(collateral * leverage * fee)
+          .div(new BigNumber(10000000000))
+          .div(new BigNumber(100))
+      )
+    );
+  };
+
+  calculateFundingFeeDelta = (
+    openInterestWETHLong: number,
+    openInterestWETHShort: number,
+    currentBlock: number,
+    lastUpdateBlock: number,
+    fundingFeePerBlock: number
+  ) => {
+    let delta = Number(
+      new BigNumber(openInterestWETHLong - openInterestWETHShort)
+        .multipliedBy(new BigNumber(currentBlock - lastUpdateBlock))
+        .multipliedBy(new BigNumber(fundingFeePerBlock))
+        .div(new BigNumber(1e10))
+        .div(new BigNumber(100))
+        .multipliedBy(new BigNumber(1e18))
+    );
+
+    return delta;
+  };
+
+  getUpdatedFundingFee = (
+    pairOpeningInterestLong: number,
+    pairOpeningInterestShort: number,
+    fundingFeeLong: number,
+    fundingFeeShort: number,
+    feeDelta: number,
+    long: boolean
+  ) => {
+    if (pairOpeningInterestLong > 0) {
+      let feeUpdate = Number(
+        new BigNumber(feeDelta).div(new BigNumber(pairOpeningInterestLong))
+      );
+      fundingFeeLong += feeUpdate;
+    }
+    if (pairOpeningInterestShort > 0) {
+      let feeUpdate = Number(
+        new BigNumber(feeDelta)
+          .multipliedBy(new BigNumber(-1))
+          .div(new BigNumber(pairOpeningInterestShort))
+      );
+
+      fundingFeeShort += feeUpdate;
+    }
+
+    return long ? fundingFeeLong : fundingFeeShort;
+  };
+
+  calculateFundingFeeForTrade = (
+    accFeeNow: number,
+    accFeeBefore: number,
+    collateral: number,
+    leverage: number
+  ) => {
+    let fee = Number(
+      new BigNumber(accFeeNow - accFeeBefore)
+        .multipliedBy(new BigNumber(collateral))
+        .multipliedBy(new BigNumber(leverage))
+        .div(new BigNumber(1e18))
+    );
+
+    if (fee < 0) {
+      fee = Math.ceil(fee);
+    } else {
+      fee = Math.floor(fee);
+    }
+    return fee;
+  };
 })();
-
-export async function getContract(name: string, signer?: Signer) {
-  const c = await deployments.get(name);
-  return await ethers.getContractAt(c.abi, c.address, signer);
-}
-
-//125437823264000000
-//124023884144000000
-//500000000000000000
-//100
-//6201194207200000000

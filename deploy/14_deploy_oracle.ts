@@ -13,7 +13,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       proxyContract: "OpenZeppelinTransparentProxy",
       execute: {
         methodName: "__Oracle_init",
-        args: [priceSetter, 3600 * 8],
+        args: [priceSetter],
       },
       upgradeIndex: 0,
     },

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import "./TokenInterface.sol";
 import "./NftInterfaceV5.sol";
@@ -74,9 +74,9 @@ interface StorageInterface {
         uint256 indexed openingInterestLong
     );
 
-    event TradeOpen(Trade indexed t);
+    event TradeOpen(Trade t);
 
-    event TradeClose(Trade indexed t);
+    event TradeClose(Trade t);
 
     function PRECISION() external pure returns (uint);
 

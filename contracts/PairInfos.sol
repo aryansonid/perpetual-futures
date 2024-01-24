@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/UniswapRouterInterface.sol";
@@ -10,6 +10,7 @@ import "./interfaces/PairsStorageInterfaceV6.sol";
 import "./interfaces/StorageInterface.sol";
 import "./interfaces/AggregatorInterfaceV1_1.sol";
 import "./interfaces/NftRewardsInterfaceV6.sol";
+import "./libraries/ChainUtils.sol";
 
 contract PairInfos is Initializable {
     // Addresses
@@ -19,7 +20,7 @@ contract PairInfos is Initializable {
     // Constant parameters
     uint constant PRECISION = 1e10; // 10 decimals
     uint constant LIQ_THRESHOLD_P = 90; // -90% (of collateral)
-    uint constant PAR_LIQ_THRESHOLD_P = 80; // -90% (of collateral)
+    uint constant PAR_LIQ_THRESHOLD_P = 100; // -90% (of collateral)
 
     // Adjustable parameters
     uint public maxNegativePnlOnOpenP = 40 * PRECISION; // PRECISION (%)
@@ -268,7 +269,7 @@ contract PairInfos is Initializable {
         PairRolloverFees storage r = pairRolloverFees[pairIndex];
 
         r.accPerCollateral = getPendingAccRolloverFees(pairIndex);
-        r.lastUpdateBlock = block.number;
+        r.lastUpdateBlock = ChainUtils.getBlockNumber();
 
         emit AccRolloverFeesStored(pairIndex, r.accPerCollateral);
     }
@@ -281,7 +282,7 @@ contract PairInfos is Initializable {
 
         return
             r.accPerCollateral +
-            ((block.number - r.lastUpdateBlock) *
+            ((ChainUtils.getBlockNumber() - r.lastUpdateBlock) *
                 pairParams[pairIndex].rolloverFeePerBlockP *
                 1e18) /
             PRECISION /
@@ -293,7 +294,7 @@ contract PairInfos is Initializable {
         PairFundingFees storage f = pairFundingFees[pairIndex];
 
         (f.accPerOiLong, f.accPerOiShort) = getPendingAccFundingFees(pairIndex);
-        f.lastUpdateBlock = block.number;
+        f.lastUpdateBlock = ChainUtils.getBlockNumber();
 
         emit AccFundingFeesStored(pairIndex, f.accPerOiLong, f.accPerOiShort);
     }
@@ -312,7 +313,7 @@ contract PairInfos is Initializable {
         );
         int fundingFeesPaidByLongs = ((openInterestWETHLong -
             openInterestWETHShort) *
-            int(block.number - f.lastUpdateBlock) *
+            int(ChainUtils.getBlockNumber() - f.lastUpdateBlock) *
             int(pairParams[pairIndex].fundingFeePerBlockP)) /
             int(PRECISION) /
             100;

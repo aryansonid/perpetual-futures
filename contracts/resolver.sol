@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import {StorageInterface} from "./interfaces/StorageInterface.sol";
 import {PausableInterfaceV5} from "./interfaces/PausableInterfaceV5.sol";
@@ -27,7 +27,7 @@ contract Resolver {
         canExec = _orderTypes[0] != 0;
 
         execPayload = abi.encodeCall(
-            PausableInterfaceV5.executeNftOrders,
+            PausableInterfaceV5.executeLiquidations,
             (_orderTypes, traders, pairIndexs, indexs, index)
         );
     }

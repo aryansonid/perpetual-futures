@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
@@ -7,12 +7,10 @@ import "./TWAPPriceGetter.sol";
 import "./interfaces/CallbacksInterface.sol";
 import "./interfaces/ChainlinkFeedInterface.sol";
 import "./interfaces/StorageInterface.sol";
-import "./libraries/PackingUtils.sol";
 import "./interfaces/PairsStorageInterfaceV6.sol";
 
 contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     using Chainlink for Chainlink.Request;
-    using PackingUtils for uint;
 
     // Contracts (constant)
     StorageInterface public storageT;
@@ -306,7 +304,7 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     function marketOrderfulfill(
         uint256 orderId,
         StorageInterface.PendingMarketOrder memory o
-    ) external {
+    ) external onlyTrading {
         Order memory r = orders[orderId];
         bool usedInMedian = false;
         (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(
@@ -347,7 +345,7 @@ contract PriceAggregator is ChainlinkClient, TWAPPriceGetter {
     function nftOrderfulfill(
         uint256 orderId,
         StorageInterface.PendingNftOrder memory o
-    ) external {
+    ) external onlyTrading {
         Order memory r = orders[orderId];
         bool usedInMedian = false;
         (uint256 price, uint256 lastUpdateTime) = (storageT.oracle()).getPrice(

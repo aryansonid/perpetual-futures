@@ -10,8 +10,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const pairsInfo = await deployments.get("pairsInfo");
   const borrowing = await deployments.get("borrowing");
   const reward = await deployments.get("reward");
-  const PackingUtils = await deployments.get("PackingUtils");
   const callback = await deployments.get("callback");
+  const PackingUtils = await deploy("PackingUtils", {
+    from: deployer,
+    contract: "PackingUtils",
+    log: true,
+  });
 
   const TradeUtils = await deploy("TradeUtils", {
     from: deployer,
@@ -35,6 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           callback.address,
           ethers.toBigInt("1500000000000000000000"),
           2,
+          ethers.toBigInt("10000000000000000000"),
         ],
       },
       upgradeIndex: 0,
@@ -48,27 +53,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const networkName = hre.network.name;
-
-  if (networkName != "hardhat") {
-    await hre.run("verify:verify", {
-      address: trading.address,
-      constructorArguments: [
-        Storage.address,
-        reward.address,
-        pairsInfo.address,
-        referal.address,
-        borrowing.address,
-        callback.address,
-        ethers.toBigInt("1500000000000000000000"),
-        2,
-      ],
-      libraries: {
-        TradeUtils: TradeUtils.address,
-      },
-    });
-  }
 };
 
 export default func;
 func.tags = ["Trading"];
-func.dependencies = ["Storage", "PairsStorage"];

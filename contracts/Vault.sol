@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
@@ -442,6 +442,23 @@ contract Vault is
             i++
         ) {
             shares += withdrawRequests[owner][i];
+        }
+    }
+
+    function sharesBeingWithdrawn(
+        address owner
+    ) public view returns (uint[4] memory shares, uint[4] memory epochs) {
+        uint256 index;
+        for (
+            uint i = currentEpoch;
+            i <= currentEpoch + WITHDRAW_EPOCHS_LOCKS[0];
+            i++
+        ) {
+            if (withdrawRequests[owner][i] > 0) {
+                shares[index] = withdrawRequests[owner][i];
+                epochs[index] = i;
+                index++;
+            }
         }
     }
 
@@ -1059,9 +1076,5 @@ contract Vault is
 
     function marketCap() public view returns (uint) {
         return (totalSupply() * shareToAssetsPrice) / PRECISION; // 1e18
-    }
-
-    function updateEpoch(uint256 i) external {
-        currentEpoch = i;
     }
 }

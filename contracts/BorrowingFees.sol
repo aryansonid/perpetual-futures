@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 /// DEPLOY need storage and pair info
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";

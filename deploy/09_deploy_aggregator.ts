@@ -58,28 +58,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
       upgradeIndex: 0,
     },
-    libraries: { PackingUtils: PackingUtils.address },
     log: true,
   });
   const networkName = hre.network.name;
-
-  if (networkName != "hardhat") {
-    await hre.run("verify:verify", {
-      address: PriceAggregator.address,
-      constructorArguments: [
-        linkToken,
-        lpPool.address,
-        1900,
-        Storage.address,
-        pairsStorage.address,
-        linkPriceFeed,
-        3,
-        nodes,
-        jobIds,
-      ],
-      // libraries: { PackingUtils: PackingUtils.address },
-    });
-  }
 };
 
 export default func;

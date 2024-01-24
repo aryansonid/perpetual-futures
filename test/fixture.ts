@@ -96,11 +96,9 @@ export function getDelta(
   return Math.floor(
     Number(
       new BigNumber(
-        
-          (blockNumAfter - blockNumBefore) *
+        (blockNumAfter - blockNumBefore) *
           feeExponent *
           (pairOpeningInterest * 10000000000)
-        
       )
         .div(new BigNumber(maxOi))
         .div(new BigNumber(1000000000000000000))
@@ -130,16 +128,15 @@ export function getWethToBeSentToTrader(
   collateral: number
 ) {
   let profitP = Number(
-    new BigNumber(
-      
-        (long ? currentPrice - openPrice : openPrice - currentPrice) *
-        100 *
-        10000000000 *
-        leverage
-      
-    ).div(new BigNumber(openPrice))
+    new BigNumber(long ? currentPrice - openPrice : openPrice - currentPrice)
+      .multipliedBy(
+        new BigNumber(100)
+          .multipliedBy(new BigNumber(10000000000))
+          .multipliedBy(leverage)
+      )
+      .div(new BigNumber(openPrice))
   );
-  profitP = profitP > 0 ? Math.floor(profitP) : Math.ceil(profitP);
+  profitP = Math.floor(profitP);
   const maxPnl = 9000000000000;
   const maxNegPnl = -900000000000;
   profitP = profitP > maxPnl ? maxPnl : profitP;
@@ -200,17 +197,19 @@ export function calculateFundingFee(
   lastUpdateBlock: number,
   fundingFeePerBlockP: number
 ) {
-  return Math.abs(Math.floor(
-    Number(
-      new BigNumber(openInterestWETHLong - openInterestWETHShort)
-        .times(new BigNumber(currentBlock - lastUpdateBlock))
-        .times(new BigNumber(fundingFeePerBlockP))
-        .div(new BigNumber(1e10))
-        .div(new BigNumber(100))
-        .times(new BigNumber(1e18))
-        .div(new BigNumber(openInterestWETHLong))
+  return Math.abs(
+    Math.floor(
+      Number(
+        new BigNumber(openInterestWETHLong - openInterestWETHShort)
+          .times(new BigNumber(currentBlock - lastUpdateBlock))
+          .times(new BigNumber(fundingFeePerBlockP))
+          .div(new BigNumber(1e10))
+          .div(new BigNumber(100))
+          .times(new BigNumber(1e18))
+          .div(new BigNumber(openInterestWETHLong))
+      )
     )
-  ));
+  );
 }
 
 export function calculateFundingFeeForTrade(
@@ -219,14 +218,16 @@ export function calculateFundingFeeForTrade(
   collateral: number,
   leverage: number
 ) {
-  return Math.abs(Math.floor(
-    Number(
-      new BigNumber(accFeeNow - accFeeBefore)
-        .times(new BigNumber(collateral))
-        .times(new BigNumber(leverage))
-        .div(new BigNumber(1e18))
+  return Math.abs(
+    Math.floor(
+      Number(
+        new BigNumber(accFeeNow - accFeeBefore)
+          .times(new BigNumber(collateral))
+          .times(new BigNumber(leverage))
+          .div(new BigNumber(1e18))
+      )
     )
-  ));
+  );
 }
 
 export function calculateFundingFeePerBlock(
@@ -244,3 +245,18 @@ export function calculateFundingFeePerBlock(
   fundingFee = fundingFee < 0 ? Math.ceil(fundingFee) : Math.floor(fundingFee);
   return Math.abs(fundingFee);
 }
+
+export function updatePosOpening(pos: number, leverage: number) {
+  return Math.floor(
+    Number(new BigNumber(pos).minus(new BigNumber((pos * leverage * 8) / 1e4)))
+  );
+}
+
+export function getClosingFee(pos: number, leverage: number) {
+  return Math.floor(Number(new BigNumber((pos * leverage * 8) / 1e4)));
+}
+
+export function getFundingFee(atr: number, closingPrice: number) {
+  return Math.floor((((atr / closingPrice) * 100) ^ ((1.25 * 52) / 60)) * 1e10);
+}
+

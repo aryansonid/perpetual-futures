@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/StorageInterface.sol";
@@ -36,6 +36,8 @@ contract TradingCallbacks is Initializable {
     uint public liquidatorFeeP = 50;
     uint public liquidationFeeP = 5;
     uint public parLiquidationFeeP = 3;
+    uint public openingFeeP;
+    uint public closingFeeP;
 
     // State
     bool public isPaused; // Prevent opening new trades
@@ -141,6 +143,8 @@ contract TradingCallbacks is Initializable {
         uint _liquidatorFeeP;
         uint _liquidationFeeP;
         uint _parLiquidationFeeP;
+        uint _openingFeeP; // 1e4 precision
+        uint _closingFeeP; // 1e4 precision
     }
 
     enum TradeType {
@@ -164,6 +168,10 @@ contract TradingCallbacks is Initializable {
     }
 
     // Events
+    event UpdatedOpeningFeeP(uint256 _openingFeeP);
+
+    event UpdatedClosingFeeP(uint256 _closingFeeP);
+
     event MarketExecuted(
         uint indexed orderId,
         StorageInterface.Trade t,
@@ -173,6 +181,13 @@ contract TradingCallbacks is Initializable {
         uint positionSizeWETH,
         int percentProfit, // before fees
         uint WETHSentToTrader
+    );
+
+    event TradeLiquidated(StorageInterface.Trade t);
+
+    event TradeParLiquidated(
+        StorageInterface.Trade oldTrade,
+        StorageInterface.Trade newTrade
     );
 
     event LiquidationExecuted(
@@ -227,9 +242,23 @@ contract TradingCallbacks is Initializable {
     event Done(bool done);
 
     event DevGovFeeCharged(address indexed trader, uint valueWETH);
+    event ClosigFeeDeduced(address indexed trader, uint256 fee);
+    event OpeningFeeDeduced(address indexed trader, uint256 fee);
+    event LiquidationFeeDeduced(
+        uint256 _vaultFee,
+        uint256 _liquidatorFee,
+        address liquidator
+    );
+    event ParLiquidationFeeDeduced(
+        uint256 _vaultFee,
+        uint256 _liquidatorFee,
+        address liquidator
+    );
+
     event ReferralFeeCharged(address indexed trader, uint valueWETH);
     event NftBotFeeCharged(address indexed trader, uint valueWETH);
     event SssFeeCharged(address indexed trader, uint valueWETH);
+    event VaultRewardDistributed(address indexed trader, uint valueWETH);
     event WETHVaultFeeCharged(address indexed trader, uint valueWETH);
     event BorrowingFeeCharged(
         address indexed trader,
@@ -283,6 +312,8 @@ contract TradingCallbacks is Initializable {
         liquidatorFeeP = data._liquidatorFeeP;
         liquidationFeeP = data._liquidationFeeP;
         parLiquidationFeeP = data._parLiquidationFeeP;
+        openingFeeP = data._openingFeeP;
+        closingFeeP = data._closingFeeP;
 
         canExecuteTimeout = _canExecuteTimeout;
         TokenInterface t = storageT.WETH();
@@ -355,6 +386,16 @@ contract TradingCallbacks is Initializable {
     // Manage params
     function setPairMaxLeverage(uint pairIndex, uint maxLeverage) external {
         _setPairMaxLeverage(pairIndex, maxLeverage);
+    }
+
+    function setOpeningFee(uint256 _openingFeeP) external onlyGov {
+        openingFeeP = _openingFeeP;
+        emit UpdatedOpeningFeeP(_openingFeeP);
+    }
+
+    function setClosingFee(uint256 _closingFeeP) external onlyGov {
+        closingFeeP = _closingFeeP;
+        emit UpdatedClosingFeeP(_closingFeeP);
     }
 
     function setPairMaxLeverageArray(
@@ -547,17 +588,13 @@ contract TradingCallbacks is Initializable {
                     v.profitP,
                     v.posWETH,
                     i.openInterestWETH,
-                    // (v.levPosWETH *
-                    //     aggregator.pairsStorage().pairCloseFeeP(t.pairIndex)) /
-                    //     100 /
-                    //     PRECISION,
+                    (v.levPosWETH * closingFeeP) / 10000,
                     // (v.levPosWETH *
                     //     aggregator.pairsStorage().pairNftLimitOrderFeeP(
                     //         t.pairIndex
                     //     )) /
                     //     100 /
                     //     PRECISION
-                    0,
                     0
                 );
 
@@ -826,13 +863,13 @@ contract TradingCallbacks is Initializable {
                 v.price = a.price;
                 v.reward1 = o.orderType == StorageInterface.LimitOrder.LIQ
                     ? (
-                        (t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice)
+                        (t.buy ? a.price <= v.liqPrice : a.price >= v.liqPrice)
                             ? (v.posWETH * liquidationFeeP) / uint256(100)
                             : 0
                     )
                     : o.orderType == StorageInterface.LimitOrder.PAR_LIQ
                     ? (
-                        (t.buy ? a.open <= v.liqPrice : a.open >= v.liqPrice)
+                        (t.buy ? a.price <= v.liqPrice : a.price >= v.liqPrice)
                             ? (v.posWETH * parLiquidationFeeP) / uint256(100)
                             : 0
                     )
@@ -881,7 +918,7 @@ contract TradingCallbacks is Initializable {
                                 pairsStored.pairCloseFeeP(t.pairIndex)) /
                                 100 /
                                 PRECISION,
-                        v.reward1
+                        0
                     )
                     : updateTrade(
                         t,
@@ -911,7 +948,7 @@ contract TradingCallbacks is Initializable {
                         a.orderId,
                         t,
                         v.price,
-                        o.orderType == StorageInterface.LimitOrder.LIQ
+                        o.orderType != StorageInterface.LimitOrder.LIQ
                     );
                 }
 
@@ -960,6 +997,14 @@ contract TradingCallbacks is Initializable {
         Values memory v;
 
         v.levPosWETH = trade.positionSizeWETH * trade.leverage;
+        // trade opening fee deduction
+        v.reward1 = (v.levPosWETH * openingFeeP) / 1e4;
+
+        distributeLPReward(trade.trader, v.reward1);
+        emit OpeningFeeDeduced(trade.trader, v.reward1);
+
+        trade.positionSizeWETH = trade.positionSizeWETH - v.reward1;
+
         // v.tokenPriceWETH = aggregator.tokenPriceWETH();
 
         // 1. Charge referral fee (if applicable) and send WETH amount to vault
@@ -1161,14 +1206,27 @@ contract TradingCallbacks is Initializable {
             // 4.1.3 Take WETH from vault if winning trade
             // or send WETH to vault if losing trade
 
+            // closing fee deducted
+            v.levPosWETH = trade.positionSizeWETH * trade.leverage;
+
+            v.reward1 = (v.levPosWETH * closingFeeP) / 1e4;
+
+            distributeLPReward(trade.trader, v.reward1);
+            emit ClosigFeeDeduced(trade.trader, v.reward1);
+
             if (!marketOrder) {
                 v.reward2 = (nftFeeWETH * vaultFeeP) / 100;
                 sendToVault(v.reward2, trade.trader);
 
                 v.reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
                 transferFromStorageToAddress(msg.sender, v.reward3);
+                emit TradeLiquidated(trade);
+                emit LiquidationFeeDeduced(v.reward2, v.reward3, msg.sender);
             }
-            uint WETHLeftInStorage = currentWETHPos - v.reward3 - v.reward2;
+            uint WETHLeftInStorage = currentWETHPos -
+                v.reward3 -
+                v.reward2 -
+                v.reward1;
             if (WETHSentToTrader > WETHLeftInStorage) {
                 vault.sendAssets(
                     WETHSentToTrader - WETHLeftInStorage,
@@ -1212,19 +1270,26 @@ contract TradingCallbacks is Initializable {
             true,
             trade.buy
         );
+        uint256 pnl = (openInterestWETH / trade.leverage) - WETHSentToTrader;
         getPairsStorage().updateGroupCollateral(
             trade.pairIndex,
-            (openInterestWETH / trade.leverage) - WETHSentToTrader,
+            pnl,
             trade.buy,
             false
         );
+        {
+            // send fee
+            uint256 reward2 = (nftFeeWETH * vaultFeeP) / 100;
+            sendToVault(reward2, trade.trader);
 
-        // send fee
-        uint256 reward2 = (nftFeeWETH * vaultFeeP) / 100;
-        sendToVault(reward2, trade.trader);
+            uint256 reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
+            transferFromStorageToAddress(msg.sender, reward3);
 
-        uint256 reward3 = (nftFeeWETH * liquidatorFeeP) / 100;
-        transferFromStorageToAddress(msg.sender, reward3);
+            emit ParLiquidationFeeDeduced(reward2, reward3, msg.sender);
+
+            pnl = pnl - reward2 - reward3;
+            sendToVault(pnl, trade.trader);
+        }
 
         // 3. Unregister trade from storage
 
@@ -1280,6 +1345,8 @@ contract TradingCallbacks is Initializable {
             true,
             newTrade.buy
         );
+
+        emit TradeParLiquidated(trade, newTrade);
 
         // 6. Store final trade in storage contract
         storageT.storeTrade(
@@ -1571,6 +1638,12 @@ contract TradingCallbacks is Initializable {
         transferFromStorageToAddress(address(this), amountWETH);
         staking.distributeRewardWETH(amountWETH);
         emit SssFeeCharged(trader, amountWETH);
+    }
+
+    function distributeLPReward(address trader, uint amountWETH) private {
+        transferFromStorageToAddress(address(this), amountWETH);
+        IToken(storageT.vault()).distributeReward(amountWETH);
+        emit VaultRewardDistributed(trader, amountWETH);
     }
 
     function sendToVault(uint amountWETH, address trader) private {

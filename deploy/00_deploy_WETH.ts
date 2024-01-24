@@ -10,6 +10,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await deploy("WETH", {
     from: deployer,
     contract: "WETH",
+    proxy: {
+      owner: deployer,
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        methodName: "__WETH_init",
+        args: [deployer],
+      },
+      upgradeIndex: 0,
+    },
     log: true,
   });
 };
