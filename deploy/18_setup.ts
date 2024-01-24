@@ -252,6 +252,57 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   );
 
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    12,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    13,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    1,
+    {
+      groupIndex: 0,
+      feePerBlock: 83800,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
+  await execute(
+    "borrowing",
+    { from: deployer, log: true },
+    "setPairParams",
+    15,
+    {
+      groupIndex: 0,
+      feePerBlock: 79150,
+      feeExponent: 1,
+      maxOi: ethers.toBigInt("10000000000000000000"),
+    }
+  );
+
   // await execute("pairsStorage", { from: deployer, log: true }, "addPair", {
   //   from: "0x00000000219ab540356cbb839cbe05303d7705fa",
   //   to: "0x00000000219ab540356cbb839cbe05303d7705fa",
@@ -360,6 +411,35 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    12,
+    20
+  );
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    13,
+    20
+  );
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    14,
+    20
+  );
+  await execute(
+    "callback",
+    { from: deployer, log: true },
+    "setPairMaxLeverage",
+    15,
+    20
+  );
+
+  await execute(
     "vault",
     { from: deployer, log: true },
     "updateOpenTradesPnlFeed",
@@ -376,23 +456,50 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await execute("callback", { from: deployer, log: true }, "giveApproval");
 
   for (let i = 0; i < activeCollections.length; i++) {
+    console.log(
+      getFundingFee(
+        activeCollections[i].delta,
+        activeCollections[i].closingPrice
+      ) > 10000000,
+      getFundingFee(
+        activeCollections[i].delta,
+        activeCollections[i].closingPrice
+      )
+    );
     await execute(
       "Oracle",
       { from: priceSetter, log: true },
       "setFundingFee",
       activeCollections[i].index,
       ethers.toBigInt(
-        `${getFundingFee(0.001, activeCollections[i].closingPrice)}`
+        `${getFundingFee(
+          activeCollections[i].delta,
+          activeCollections[i].closingPrice
+        )}`
       )
     );
+
+    await execute(
+      "pairsInfo",
+      { from: priceSetter, log: true },
+      "setFundingFeePerBlockP",
+      activeCollections[i].index
+    );
   }
+
+  await execute(
+    "trading",
+    { from: deployer, log: true },
+    "setMinLeveragedPosWETH",
+    ethers.toBigInt("10000000000000000000")
+  );
 
   console.log("setup done");
 };
 
 export function getFundingFee(atr: number, closingPrice: number) {
   return Math.floor(
-    ((Math.pow(
+    (Math.pow(
       Number(
         new BigNumber(atr)
           .dividedBy(new BigNumber(closingPrice))
@@ -400,61 +507,94 @@ export function getFundingFee(atr: number, closingPrice: number) {
       ),
       1.25
     ) *
-      52) /
-      60) *
-      1e10
+      52 *
+      1e10) /
+      60 /
+      2102400
   );
 }
 
 interface ICollections {
   index: number;
   closingPrice: number;
+  delta: number;
 }
 
 const activeCollections: Array<ICollections> = [
   {
     index: 1,
     closingPrice: 2.985,
+    delta: 0.2,
   },
   {
     index: 2,
     closingPrice: 0.345,
+    delta: 0.04,
   },
   {
     index: 3,
     closingPrice: 55.69,
+    delta: 1,
   },
   {
     index: 4,
     closingPrice: 29,
+    delta: 0.5,
   },
   {
     index: 5,
     closingPrice: 5.66,
+    delta: 0.3,
   },
   {
     index: 6,
     closingPrice: 10.9,
+    delta: 0.1,
   },
   {
     index: 7,
     closingPrice: 4.85,
+    delta: 0.4,
   },
   {
     index: 8,
     closingPrice: 6.6,
+    delta: 0.5,
   },
   {
     index: 9,
     closingPrice: 1.9,
+    delta: 0.1,
   },
   {
     index: 10,
     closingPrice: 0.62,
+    delta: 0.05,
   },
   {
     index: 11,
     closingPrice: 0.43,
+    delta: 0.04,
+  },
+  {
+    index: 12,
+    closingPrice: 3.1346,
+    delta: 0.3,
+  },
+  {
+    index: 13,
+    closingPrice: 0.52,
+    delta: 0.05,
+  },
+  {
+    index: 14,
+    closingPrice: 0.1299,
+    delta: 0.01,
+  },
+  {
+    index: 15,
+    closingPrice: 0.57,
+    delta: 0.05,
   },
 ];
 

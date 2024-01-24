@@ -18,8 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         args: [
           deployer,
           WETH.address,
-          ethers.toBigInt("1000000000000000000000"),
-          60 * 60 * 24,
+          ethers.toBigInt("100000000000000000000"),
         ],
       },
       upgradeIndex: 0,
@@ -27,5 +26,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     log: true,
   });
 };
+func.tags = ["WETHFaucet"];
 
 export default func;

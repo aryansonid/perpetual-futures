@@ -39,6 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           callback.address,
           ethers.toBigInt("1500000000000000000000"),
           2,
+          ethers.toBigInt("10000000000000000000"),
         ],
       },
       upgradeIndex: 0,
@@ -52,26 +53,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const networkName = hre.network.name;
-
-  if (networkName != "hardhat") {
-    await hre.run("verify:verify", {
-      address: trading.address,
-      constructorArguments: [
-        Storage.address,
-        reward.address,
-        pairsInfo.address,
-        referal.address,
-        borrowing.address,
-        callback.address,
-        ethers.toBigInt("1500000000000000000000"),
-        2,
-      ],
-      libraries: {
-        TradeUtils: TradeUtils.address,
-        PackingUtils: PackingUtils.address,
-      },
-    });
-  }
 };
 
 export default func;

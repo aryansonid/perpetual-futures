@@ -61,23 +61,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     log: true,
   });
   const networkName = hre.network.name;
-
-  if (networkName != "hardhat") {
-    await hre.run("verify:verify", {
-      address: PriceAggregator.address,
-      constructorArguments: [
-        linkToken,
-        lpPool.address,
-        1900,
-        Storage.address,
-        pairsStorage.address,
-        linkPriceFeed,
-        3,
-        nodes,
-        jobIds,
-      ],
-    });
-  }
 };
 
 export default func;
