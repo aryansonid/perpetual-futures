@@ -59,70 +59,81 @@ const config: HardhatUserConfig = {
     deployer: {
       default: 0,
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      sepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      arbSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      optimismSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseGoerli: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
     govFund: {
       default: 1,
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      sepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      arbSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      optimismSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseGoerli: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
 
     linkPriceFeed: {
       default: 2,
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      sepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      arbSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      optimismSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseGoerli: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
     linkToken: {
       default: 3,
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      sepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      arbSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      optimismSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseGoerli: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
     tokenWETHLp: {
       default: 4,
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      sepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      arbSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      optimismSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseGoerli: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
     vault: 6,
     trader: {
       default: 7,
       polygon: "0x95C30fb60380175059781d3a730757d254b4485B",
-      sepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
-      arbSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      optimismSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      baseSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      baseGoerli: "0x95C30fb60380175059781d3a730757d254b4485B",
     },
     manager: {
       default: 8,
       polygon: "0x95C30fb60380175059781d3a730757d254b4485B",
-      sepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
-      arbSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      optimismSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      baseSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      baseGoerli: "0x95C30fb60380175059781d3a730757d254b4485B",
     },
     owner: {
       default: 9,
       polygon: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
-      sepolia: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
-      arbSepolia: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
+      optimismSepolia: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
+      baseSepolia: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
+      baseGoerli: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
     },
     priceSetter: {
       default: 10,
       polygon: "0x9Ced9c76935922089cA1b06a5Eb6D29cA6057Bd1",
-      sepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
-      arbSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      optimismSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      baseSepolia: "0x95C30fb60380175059781d3a730757d254b4485B",
+      baseGoerli: "0x95C30fb60380175059781d3a730757d254b4485B",
     },
     feeder: {
       default: 10,
       polygon: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      sepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
-      arbSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      optimismSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseSepolia: "0xa667403454F483dE81A0363Af7FcEE563819D910",
+      baseGoerli: "0xa667403454F483dE81A0363Af7FcEE563819D910",
     },
     OraclePriceSetter: {
       default: 11,
       polygon: "0xAa6fA167EdF3012B9e578551bff3242FeE0D00Dd",
-      sepolia: "0xAa6fA167EdF3012B9e578551bff3242FeE0D00Dd",
-      arbSepolia: "0xAa6fA167EdF3012B9e578551bff3242FeE0D00Dd",
+      optimismSepolia: "0xAa6fA167EdF3012B9e578551bff3242FeE0D00Dd",
+      baseSepolia: "0xAa6fA167EdF3012B9e578551bff3242FeE0D00Dd",
+      baseGoerli: "0xAa6fA167EdF3012B9e578551bff3242FeE0D00Dd",
     },
   },
 
@@ -136,47 +147,82 @@ const config: HardhatUserConfig = {
           "flee slice employ stone audit diary extra elite fiscal mango human curve",
       },
     },
-    sepolia: {
-      url: "https://eth-sepolia.g.alchemy.com/v2/_wfmnKDlLJth_6N1H0eH4w_uM9ZAfGWO",
+    optimismSepolia: {
+      url: "https://opt-sepolia.g.alchemy.com/v2/TCOOFkyrcfYvAH9af2L7Gtn-lWDOEV3A",
 
       saveDeployments: true,
-      accounts: {
-        mnemonic:
-          "flee slice employ stone audit diary extra elite fiscal mango human curve",
-      },
-    },
-    arbSepolia: {
-      url: "https://arb-sepolia.g.alchemy.com/v2/wdB9kBfwbGxtQ2tusOXKe3xvz9BQ5MZV",
-      chainId: 421614,
-      saveDeployments: true,
+      chainId: 11155420,
       accounts: {
         mnemonic:
           "flee slice employ stone audit diary extra elite fiscal mango human curve",
       },
       verify: {
         etherscan: {
-          apiUrl: "https://api-sepolia.arbiscan.io",
-          apiKey: "J251F5AR74JKFJC6UHFUVUZ9CB95GYHA5M",
+          apiUrl: "https://api-sepolia-optimistic.etherscan.io",
+          apiKey: "X75F51KMUNMRWUGPNJ8BWK6MCJBIAI6H5T",
+        },
+      },
+    },
+    baseSepolia: {
+      url: "https://base-sepolia.g.alchemy.com/v2/wmMCUA6ExlGC3Y4heEUCZK_k6F5rbTHO",
+      saveDeployments: true,
+      chainId: 84532,
+      accounts: {
+        mnemonic:
+          "flee slice employ stone audit diary extra elite fiscal mango human curve",
+      },
+      verify: {
+        etherscan: {
+          apiUrl: "https://api-sepolia.basescan.org",
+          apiKey: "YTUDP7IUZPDJ4ZEX7CX6VGXVGYKG8QS5ZI",
+        },
+      },
+    },
+    baseGoerli: {
+      url: "https://base-goerli.g.alchemy.com/v2/x2Xl3-lEX20p17U8Ri65dRxR_aQjEJmc",
+      saveDeployments: true,
+      chainId: 84531,
+      accounts: {
+        mnemonic:
+          "flee slice employ stone audit diary extra elite fiscal mango human curve",
+      },
+      verify: {
+        etherscan: {
+          apiUrl: "https://api-goerli.basescan.org",
+          apiKey: "YTUDP7IUZPDJ4ZEX7CX6VGXVGYKG8QS5ZI",
         },
       },
     },
   },
-  verify: {
-    etherscan: {
-      apiKey: "J251F5AR74JKFJC6UHFUVUZ9CB95GYHA5M",
-    },
-  },
   etherscan: {
     apiKey: {
-      arbSepolia: "J251F5AR74JKFJC6UHFUVUZ9CB95GYHA5M",
+      baseSepolia: "YTUDP7IUZPDJ4ZEX7CX6VGXVGYKG8QS5ZI",
+      optimismSepolia: "X75F51KMUNMRWUGPNJ8BWK6MCJBIAI6H5T",
+      baseGoerli: "X75F51KMUNMRWUGPNJ8BWK6MCJBIAI6H5T",
     },
     customChains: [
       {
-        network: "arbSepolia",
-        chainId: 421614,
+        network: "optimismSepolia",
+        chainId: 11155420,
         urls: {
-          apiURL: "https://api-sepolia.arbiscan.io/api",
-          browserURL: "https://sepolia.arbiscan.io/api",
+          apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
+          browserURL: "https://sepolia-optimism.etherscan.io/api",
+        },
+      },
+      {
+        network: "baseGoerli",
+        chainId: 84531,
+        urls: {
+          apiURL: "https://api-goerli.basescan.org/api",
+          browserURL: "https://api-goerli.basescan.org/api",
+        },
+      },
+      {
+        network: "baseSepolia",
+        chainId: 84532,
+        urls: {
+          apiURL: "https://api-sepolia.basescan.org/api",
+          browserURL: "https://api-sepolia.basescan.org/api",
         },
       },
     ],
